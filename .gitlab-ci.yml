@@ -16,12 +16,12 @@ stages:
   image: python:${PYTHON_VERSION}
   before_script:
     - python --version
-    - mkdir -p /cache/pip
+    - mkdir -p /cache/pip /cache/venv
     - export PIP_CACHE_DIR="/cache/pip"
     - export XDG_CACHE_HOME="/cache"
     - pip install --upgrade pip
-    - python -m venv venv
-    - source venv/bin/activate
+    - python -m venv /cache/venv
+    - source /cache/venv/bin/activate
 
 .install_dependencies:
   extends: .python_base
