@@ -1,7 +1,7 @@
 # PyTorch CPU only
-torch==2.9.1+cpu
-torchaudio==2.2.0+cpu
-torchvision==0.17.1+cpu
+torch==2.9.1
+torchaudio==2.2.0
+torchvision==0.17.1
 
 # Numpy & scientific stack
 numpy==1.26.4
