@@ -4,8 +4,17 @@ Génère un dataset d'entraînement à partir de templates et d'une liste de vil
 
 import json
 import random
+import sys
 from pathlib import Path
 from typing import List, Dict
+
+# Importer l'augmenteur
+try:
+    from nlu.augment import NLUAugmenter
+    AUGMENTATION_AVAILABLE = True
+except ImportError:
+    AUGMENTATION_AVAILABLE = False
+    print("Warning: Module d'augmentation non disponible")
 
 def load_templates(templates_file="nlu/data/templates.json") -> Dict:
     """Charge les templates"""
@@ -223,6 +232,17 @@ if __name__ == "__main__":
         num_samples_per_template=10,  # 10 exemples par template
         num_negative_samples=100       # 100 exemples négatifs au total
     )
+
+    # Appliquer l'augmentation si disponible
+    if AUGMENTATION_AVAILABLE:
+        print("\n" + "="*70)
+        print("APPLICATION DE LA DATA AUGMENTATION")
+        print("="*70)
+        augmenter = NLUAugmenter()
+        dataset = augmenter.augment_dataset(
+            dataset,
+            augmentation_factor=2.0  # Double la taille du dataset
+        )
 
     # Sauvegarder
     print("\n" + "="*70)
