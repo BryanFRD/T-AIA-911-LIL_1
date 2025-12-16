@@ -1,6 +1,7 @@
 variables:
   PYTHON_VERSION: "3.11"
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PIP_CACHE_DIR: "/cache/pip"
+  XDG_CACHE_HOME: "/cache"
   MODEL_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
   MODEL_VERSION: "${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
 
@@ -11,15 +12,13 @@ stages:
   - package
   - release
 
-cache:
-  key: "${CI_COMMIT_REF_SLUG}"
-  paths:
-    - .cache/pip
-
 .python_base:
   image: python:${PYTHON_VERSION}
   before_script:
     - python --version
+    - mkdir -p /cache/pip
+    - export PIP_CACHE_DIR="/cache/pip"
+    - export XDG_CACHE_HOME="/cache"
     - pip install --upgrade pip
     - python -m venv venv
     - source venv/bin/activate
@@ -27,7 +26,7 @@ cache:
 .install_dependencies:
   extends: .python_base
   script:
-    - pip install -r requirements.txt
+    - pip install --cache-dir=/cache/pip -r requirements.txt
 
 install:dependencies:
   stage: install
