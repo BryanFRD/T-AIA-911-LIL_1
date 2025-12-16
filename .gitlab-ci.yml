@@ -1,0 +1,428 @@
+# ==================================
+# GitLab CI/CD pour Models AI Project
+# ==================================
+
+# Variables globales
+variables:
+  # Python version
+  PYTHON_VERSION: "3.11"
+
+  # Pip cache
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+  # Model Registry base URL
+  MODEL_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+
+  # Versioning
+  MODEL_VERSION: "${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+
+# D�finition des stages
+stages:
+  - install
+  - test
+  - train
+  - package
+  - release
+
+# Cache global
+cache:
+  key: "${CI_COMMIT_REF_SLUG}"
+  paths:
+    - .cache/pip
+    - venv/
+
+# ==================================
+# Templates
+# ==================================
+
+.python_base:
+  image: python:${PYTHON_VERSION}
+  before_script:
+    - python --version
+    - pip install --upgrade pip
+    - python -m venv venv
+    - source venv/bin/activate
+
+.install_dependencies:
+  extends: .python_base
+  script:
+    - pip install -r requirements.txt
+
+# ==================================
+# Stage: Install
+# ==================================
+
+install:dependencies:
+  stage: install
+  extends: .install_dependencies
+  artifacts:
+    paths:
+      - venv/
+    expire_in: 1 day
+  only:
+    - merge_requests
+    - main
+    - tags
+
+# ==================================
+# Stage: Test (Quality & Linting)
+# ==================================
+
+test:lint:
+  stage: test
+  extends: .python_base
+  dependencies:
+    - install:dependencies
+  script:
+    - source venv/bin/activate
+    - pip install flake8 pylint
+    - echo "Running flake8..."
+    - flake8 nlu/ stt/ tts/ common/ --max-line-length=120 --exclude=venv,__pycache__ || true
+    - echo "Running pylint..."
+    - pylint nlu/ stt/ tts/ common/ --disable=all --enable=E,F || true
+  only:
+    - merge_requests
+    - main
+
+test:sonarqube:
+  stage: test
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - sonar-scanner
+  allow_failure: true
+  only:
+    - merge_requests
+    - main
+
+# ==================================
+# Stage: Train Models
+# ==================================
+
+# NLU Model Training
+train:nlu:
+  stage: train
+  extends: .python_base
+  dependencies:
+    - install:dependencies
+  script:
+    - source venv/bin/activate
+    - echo "Generating NLU dataset..."
+    - python nlu/generate_from_templates.py
+    - echo "Training NLU models..."
+    - python nlu/train.py
+    - echo "Testing NLU predictions..."
+    - python nlu/predict.py
+  artifacts:
+    paths:
+      - nlu/models/
+      - nlu/data/train_generated.json
+    expire_in: 7 days
+  only:
+    changes:
+      - nlu/**/*
+      - .gitlab-ci.yml
+  when: manual
+  tags:
+    - docker
+
+# STT Model Training
+train:stt:
+  stage: train
+  extends: .python_base
+  dependencies:
+    - install:dependencies
+  script:
+    - source venv/bin/activate
+    - echo "Training STT model..."
+    - python stt/train.py
+  artifacts:
+    paths:
+      - stt/models/
+    expire_in: 7 days
+  only:
+    changes:
+      - stt/**/*
+      - .gitlab-ci.yml
+  when: manual
+  tags:
+    - docker
+
+# TTS Model Training
+train:tts:
+  stage: train
+  extends: .python_base
+  dependencies:
+    - install:dependencies
+  script:
+    - source venv/bin/activate
+    - echo "Training TTS model..."
+    - python tts/train.py
+  artifacts:
+    paths:
+      - tts/models/
+    expire_in: 7 days
+  only:
+    changes:
+      - tts/**/*
+      - .gitlab-ci.yml
+  when: manual
+  tags:
+    - docker
+
+# ==================================
+# Stage: Package Models
+# ==================================
+
+package:nlu:
+  stage: package
+  image: alpine:latest
+  dependencies:
+    - train:nlu
+  before_script:
+    - apk add --no-cache tar gzip
+  script:
+    - echo "Packaging NLU model version ${MODEL_VERSION}..."
+    - |
+      # Cr�er un fichier de m�tadonn�es
+      cat > nlu/models/metadata.json <<EOF
+      {
+        "model_name": "nlu",
+        "version": "${MODEL_VERSION}",
+        "commit": "${CI_COMMIT_SHA}",
+        "branch": "${CI_COMMIT_REF_NAME}",
+        "pipeline_id": "${CI_PIPELINE_ID}",
+        "created_at": "$(date -Iseconds)",
+        "components": {
+          "ner": "model_ner",
+          "intent": "model_intent"
+        }
+      }
+      EOF
+    - cat nlu/models/metadata.json
+    - tar -czf nlu-model-${MODEL_VERSION}.tar.gz -C nlu models/ data/cities.json data/templates.json
+    - ls -lh nlu-model-${MODEL_VERSION}.tar.gz
+  artifacts:
+    paths:
+      - nlu-model-${MODEL_VERSION}.tar.gz
+    expire_in: 30 days
+  only:
+    changes:
+      - nlu/**/*
+      - .gitlab-ci.yml
+
+package:stt:
+  stage: package
+  image: alpine:latest
+  dependencies:
+    - train:stt
+  before_script:
+    - apk add --no-cache tar gzip
+  script:
+    - echo "Packaging STT model version ${MODEL_VERSION}..."
+    - |
+      # Cr�er un fichier de m�tadonn�es
+      cat > stt/models/metadata.json <<EOF
+      {
+        "model_name": "stt",
+        "version": "${MODEL_VERSION}",
+        "commit": "${CI_COMMIT_SHA}",
+        "branch": "${CI_COMMIT_REF_NAME}",
+        "pipeline_id": "${CI_PIPELINE_ID}",
+        "created_at": "$(date -Iseconds)"
+      }
+      EOF
+    - cat stt/models/metadata.json
+    - tar -czf stt-model-${MODEL_VERSION}.tar.gz -C stt models/
+    - ls -lh stt-model-${MODEL_VERSION}.tar.gz
+  artifacts:
+    paths:
+      - stt-model-${MODEL_VERSION}.tar.gz
+    expire_in: 30 days
+  only:
+    changes:
+      - stt/**/*
+      - .gitlab-ci.yml
+
+package:tts:
+  stage: package
+  image: alpine:latest
+  dependencies:
+    - train:tts
+  before_script:
+    - apk add --no-cache tar gzip
+  script:
+    - echo "Packaging TTS model version ${MODEL_VERSION}..."
+    - |
+      # Cr�er un fichier de m�tadonn�es
+      cat > tts/models/metadata.json <<EOF
+      {
+        "model_name": "tts",
+        "version": "${MODEL_VERSION}",
+        "commit": "${CI_COMMIT_SHA}",
+        "branch": "${CI_COMMIT_REF_NAME}",
+        "pipeline_id": "${CI_PIPELINE_ID}",
+        "created_at": "$(date -Iseconds)"
+      }
+      EOF
+    - cat tts/models/metadata.json
+    - tar -czf tts-model-${MODEL_VERSION}.tar.gz -C tts models/
+    - ls -lh tts-model-${MODEL_VERSION}.tar.gz
+  artifacts:
+    paths:
+      - tts-model-${MODEL_VERSION}.tar.gz
+    expire_in: 30 days
+  only:
+    changes:
+      - tts/**/*
+      - .gitlab-ci.yml
+
+# ==================================
+# Stage: Release to Model Registry
+# ==================================
+
+release:nlu:
+  stage: release
+  image: curlimages/curl:latest
+  dependencies:
+    - package:nlu
+  script:
+    - echo "Uploading NLU model ${MODEL_VERSION} to GitLab Package Registry..."
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file nlu-model-${MODEL_VERSION}.tar.gz \
+           "${MODEL_REGISTRY_URL}/nlu-model/${MODEL_VERSION}/nlu-model-${MODEL_VERSION}.tar.gz"
+    - echo "NLU model ${MODEL_VERSION} uploaded successfully!"
+    - echo "Download URL: ${MODEL_REGISTRY_URL}/nlu-model/${MODEL_VERSION}/nlu-model-${MODEL_VERSION}.tar.gz"
+  only:
+    - tags
+    - main
+  needs:
+    - package:nlu
+
+release:stt:
+  stage: release
+  image: curlimages/curl:latest
+  dependencies:
+    - package:stt
+  script:
+    - echo "Uploading STT model ${MODEL_VERSION} to GitLab Package Registry..."
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file stt-model-${MODEL_VERSION}.tar.gz \
+           "${MODEL_REGISTRY_URL}/stt-model/${MODEL_VERSION}/stt-model-${MODEL_VERSION}.tar.gz"
+    - echo "STT model ${MODEL_VERSION} uploaded successfully!"
+    - echo "Download URL: ${MODEL_REGISTRY_URL}/stt-model/${MODEL_VERSION}/stt-model-${MODEL_VERSION}.tar.gz"
+  only:
+    - tags
+    - main
+  needs:
+    - package:stt
+
+release:tts:
+  stage: release
+  image: curlimages/curl:latest
+  dependencies:
+    - package:tts
+  script:
+    - echo "Uploading TTS model ${MODEL_VERSION} to GitLab Package Registry..."
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file tts-model-${MODEL_VERSION}.tar.gz \
+           "${MODEL_REGISTRY_URL}/tts-model/${MODEL_VERSION}/tts-model-${MODEL_VERSION}.tar.gz"
+    - echo "TTS model ${MODEL_VERSION} uploaded successfully!"
+    - echo "Download URL: ${MODEL_REGISTRY_URL}/tts-model/${MODEL_VERSION}/tts-model-${MODEL_VERSION}.tar.gz"
+  only:
+    - tags
+    - main
+  needs:
+    - package:tts
+
+# ==================================
+# Stage: Create Release Notes
+# ==================================
+
+release:notes:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  script:
+    - echo "Creating release notes for version ${MODEL_VERSION}..."
+  release:
+    tag_name: '${CI_COMMIT_TAG}'
+    description: |
+      ## AI Models Release ${MODEL_VERSION}
+
+      ### =� Available Models
+
+      - **NLU Model**: Natural Language Understanding for route detection
+        - Download: [nlu-model-${MODEL_VERSION}.tar.gz](${MODEL_REGISTRY_URL}/nlu-model/${MODEL_VERSION}/nlu-model-${MODEL_VERSION}.tar.gz)
+
+      - **STT Model**: Speech-to-Text
+        - Download: [stt-model-${MODEL_VERSION}.tar.gz](${MODEL_REGISTRY_URL}/stt-model/${MODEL_VERSION}/stt-model-${MODEL_VERSION}.tar.gz)
+
+      - **TTS Model**: Text-to-Speech
+        - Download: [tts-model-${MODEL_VERSION}.tar.gz](${MODEL_REGISTRY_URL}/tts-model/${MODEL_VERSION}/tts-model-${MODEL_VERSION}.tar.gz)
+
+      ### =� Metadata
+      - Commit: ${CI_COMMIT_SHA}
+      - Pipeline: ${CI_PIPELINE_URL}
+      - Created: $(date -Iseconds)
+
+      ### =� Download Instructions
+
+      ```bash
+      # Using curl with GitLab token
+      curl --header "PRIVATE-TOKEN: <your_token>" \
+           "${MODEL_REGISTRY_URL}/nlu-model/${MODEL_VERSION}/nlu-model-${MODEL_VERSION}.tar.gz" \
+           --output nlu-model.tar.gz
+
+      # Extract
+      tar -xzf nlu-model.tar.gz
+      ```
+  only:
+    - tags
+
+# ==================================
+# Manual Jobs: Download Models
+# ==================================
+
+download:nlu:
+  stage: .post
+  image: curlimages/curl:latest
+  script:
+    - echo "Download NLU model with:"
+    - echo "curl --header 'PRIVATE-TOKEN: <your_token>' '${MODEL_REGISTRY_URL}/nlu-model/${MODEL_VERSION}/nlu-model-${MODEL_VERSION}.tar.gz' --output nlu-model.tar.gz"
+  when: manual
+  only:
+    - tags
+    - main
+
+download:stt:
+  stage: .post
+  image: curlimages/curl:latest
+  script:
+    - echo "Download STT model with:"
+    - echo "curl --header 'PRIVATE-TOKEN: <your_token>' '${MODEL_REGISTRY_URL}/stt-model/${MODEL_VERSION}/stt-model-${MODEL_VERSION}.tar.gz' --output stt-model.tar.gz"
+  when: manual
+  only:
+    - tags
+    - main
+
+download:tts:
+  stage: .post
+  image: curlimages/curl:latest
+  script:
+    - echo "Download TTS model with:"
+    - echo "curl --header 'PRIVATE-TOKEN: <your_token>' '${MODEL_REGISTRY_URL}/tts-model/${MODEL_VERSION}/tts-model-${MODEL_VERSION}.tar.gz' --output tts-model.tar.gz"
+  when: manual
+  only:
+    - tags
+    - main

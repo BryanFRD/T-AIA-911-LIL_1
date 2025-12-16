@@ -1,0 +1,13 @@
+{
+  "tokenizer": {
+    "type": "camembert-base",
+    "max_length": 128
+  },
+  "training": {
+    "epochs": 5,
+    "batch_size": 8,
+    "learning_rate": 5e-5
+  },
+  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA"],
+  "intent_labels": ["trajet", "other"]
+}
