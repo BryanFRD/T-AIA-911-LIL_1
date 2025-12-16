@@ -37,10 +37,9 @@ install:dependencies:
     paths:
       - venv/
     expire_in: 1 day
-  only:
-    - merge_requests
-    - main
-    - tags
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
 
 test:lint:
   stage: test
@@ -52,9 +51,8 @@ test:lint:
     - pip install flake8 pylint
     - flake8 nlu/ stt/ tts/ common/ --max-line-length=120 --exclude=venv,__pycache__ || true
     - pylint nlu/ stt/ tts/ common/ --disable=all --enable=E,F || true
-  only:
-    - merge_requests
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
 test:sonarqube:
   stage: test
@@ -71,9 +69,8 @@ test:sonarqube:
   script:
     - sonar-scanner
   allow_failure: true
-  only:
-    - merge_requests
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
 train:nlu:
   stage: train
@@ -90,13 +87,11 @@ train:nlu:
       - nlu/models/
       - nlu/data/train_generated.json
     expire_in: 7 days
-  only:
-    changes:
-      - nlu/**/*
-      - .gitlab-ci.yml
+  rules:
+    - changes:
+        - nlu/**/*
+        - .gitlab-ci.yml
   when: manual
-  tags:
-    - docker
 
 train:stt:
   stage: train
@@ -110,13 +105,11 @@ train:stt:
     paths:
       - stt/models/
     expire_in: 7 days
-  only:
-    changes:
-      - stt/**/*
-      - .gitlab-ci.yml
+  rules:
+    - changes:
+        - stt/**/*
+        - .gitlab-ci.yml
   when: manual
-  tags:
-    - docker
 
 train:tts:
   stage: train
@@ -130,13 +123,11 @@ train:tts:
     paths:
       - tts/models/
     expire_in: 7 days
-  only:
-    changes:
-      - tts/**/*
-      - .gitlab-ci.yml
+  rules:
+    - changes:
+        - tts/**/*
+        - .gitlab-ci.yml
   when: manual
-  tags:
-    - docker
 
 package:nlu:
   stage: package
@@ -152,10 +143,10 @@ package:nlu:
     paths:
       - nlu-model-${MODEL_VERSION}.tar.gz
     expire_in: 30 days
-  only:
-    changes:
-      - nlu/**/*
-      - .gitlab-ci.yml
+  rules:
+    - changes:
+        - nlu/**/*
+        - .gitlab-ci.yml
 
 package:stt:
   stage: package
@@ -171,10 +162,10 @@ package:stt:
     paths:
       - stt-model-${MODEL_VERSION}.tar.gz
     expire_in: 30 days
-  only:
-    changes:
-      - stt/**/*
-      - .gitlab-ci.yml
+  rules:
+    - changes:
+        - stt/**/*
+        - .gitlab-ci.yml
 
 package:tts:
   stage: package
@@ -190,49 +181,52 @@ package:tts:
     paths:
       - tts-model-${MODEL_VERSION}.tar.gz
     expire_in: 30 days
-  only:
-    changes:
-      - tts/**/*
-      - .gitlab-ci.yml
+  rules:
+    - changes:
+        - tts/**/*
+        - .gitlab-ci.yml
 
 release:nlu:
   stage: release
   image: curlimages/curl:latest
-  dependencies:
-    - package:nlu
-  script:
-    - curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file nlu-model-${MODEL_VERSION}.tar.gz "${MODEL_REGISTRY_URL}/nlu-model/${MODEL_VERSION}/nlu-model-${MODEL_VERSION}.tar.gz"
-  only:
-    - tags
-    - main
   needs:
-    - package:nlu
+    - job: package:nlu
+      artifacts: true
+  script: >
+    curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+    --upload-file nlu-model-${MODEL_VERSION}.tar.gz
+    "${MODEL_REGISTRY_URL}/nlu-model/${MODEL_VERSION}/nlu-model-${MODEL_VERSION}.tar.gz"
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "main"
 
 release:stt:
   stage: release
   image: curlimages/curl:latest
-  dependencies:
-    - package:stt
-  script:
-    - curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file stt-model-${MODEL_VERSION}.tar.gz "${MODEL_REGISTRY_URL}/stt-model/${MODEL_VERSION}/stt-model-${MODEL_VERSION}.tar.gz"
-  only:
-    - tags
-    - main
   needs:
-    - package:stt
+    - job: package:stt
+      artifacts: true
+  script: >
+    curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+    --upload-file stt-model-${MODEL_VERSION}.tar.gz
+    "${MODEL_REGISTRY_URL}/stt-model/${MODEL_VERSION}/stt-model-${MODEL_VERSION}.tar.gz"
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "main"
 
 release:tts:
   stage: release
   image: curlimages/curl:latest
-  dependencies:
-    - package:tts
-  script:
-    - curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file tts-model-${MODEL_VERSION}.tar.gz "${MODEL_REGISTRY_URL}/tts-model/${MODEL_VERSION}/tts-model-${MODEL_VERSION}.tar.gz"
-  only:
-    - tags
-    - main
   needs:
-    - package:tts
+    - job: package:tts
+      artifacts: true
+  script: >
+    curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+    --upload-file tts-model-${MODEL_VERSION}.tar.gz
+    "${MODEL_REGISTRY_URL}/tts-model/${MODEL_VERSION}/tts-model-${MODEL_VERSION}.tar.gz"
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "main"
 
 release:notes:
   stage: release
@@ -241,7 +235,6 @@ release:notes:
     - echo "release ${MODEL_VERSION}"
   release:
     tag_name: "${CI_COMMIT_TAG}"
-    description: |
-      AI Models Release ${MODEL_VERSION}
-  only:
-    - tags
+    description: "AI Models Release ${MODEL_VERSION}"
+  rules:
+    - if: $CI_COMMIT_TAG
