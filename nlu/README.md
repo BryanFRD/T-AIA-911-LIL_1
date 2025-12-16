@@ -282,6 +282,22 @@ print(result)
 # }
 ```
 
+**Exemple avec plusieurs villes via :**
+```python
+result = predictor.predict("Je veux aller de Paris à Lyon via Dijon et Mâcon")
+print(result)
+# {
+#   "text": "Je veux aller de Paris à Lyon via Dijon et Mâcon",
+#   "intent": {"label": "trajet", "confidence": 0.95},
+#   "entities": {
+#     "from": "Paris",
+#     "to": "Lyon",
+#     "via": ["Dijon", "Mâcon"],
+#     "person": ""
+#   }
+# }
+```
+
 **Version simplifiée :**
 ```python
 result = predictor.predict_simple("Je veux aller de Paris à Lyon")
@@ -388,7 +404,9 @@ Si vous utilisez le NER seul, il faut :
 
 ### Q: Comment gérer plusieurs villes via ?
 
-Dans `templates.json`, créez un pattern avec `has_via: true` :
+Le système supporte maintenant plusieurs villes via dans une même phrase !
+
+**Pour 1 ville via :**
 ```json
 {
   "pattern": "De {from_city} à {to_city} via {via_city}",
@@ -397,9 +415,32 @@ Dans `templates.json`, créez un pattern avec `has_via: true` :
 }
 ```
 
-Le générateur crée automatiquement des exemples avec 1 ville via.
+**Pour 2 villes via :**
+```json
+{
+  "pattern": "Je veux aller de {from_city} à {to_city} via {via_city1} et {via_city2}",
+  "intent": "trajet",
+  "has_via": true,
+  "num_via": 2
+}
+```
 
-Pour plusieurs via dans une même phrase, ajoutez des exemples manuellement dans `train_generated.json` après génération.
+**Pour 3 villes via ou plus :**
+```json
+{
+  "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2} et {via_city3}",
+  "intent": "trajet",
+  "has_via": true,
+  "num_via": 3
+}
+```
+
+**Exemples de phrases générées :**
+- 1 via : "De Paris à Lyon via Dijon"
+- 2 via : "Je veux aller de Paris à Lyon via Dijon et Mâcon"
+- 3 via : "De Bordeaux à Strasbourg via Limoges, Clermont-Ferrand et Dijon"
+
+Le générateur sélectionne automatiquement des villes différentes pour chaque étape.
 
 ### Q: Comment éviter les faux positifs ?
 

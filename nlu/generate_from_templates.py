@@ -43,6 +43,7 @@ def generate_dataset(templates_data: Dict, cities: List[str], persons: List[str]
         pattern = template_info["pattern"]
         has_via = template_info.get("has_via", False)
         has_person = template_info.get("has_person", False)
+        num_via = template_info.get("num_via", 1)  # Nombre de villes via (1 par défaut)
 
         for _ in range(num_samples_per_template):
             # Choisir des villes aléatoires
@@ -56,13 +57,42 @@ def generate_dataset(templates_data: Dict, cities: List[str], persons: List[str]
                 person_name = ""
 
             if has_via:
-                # Choisir une ville via différente
-                via_city = random.choice([c for c in cities if c not in [from_city, to_city]])
-                if has_person:
-                    text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city, person=person_name) if person_name else pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "").format(from_city=from_city, to_city=to_city, via_city=via_city)
+                # Choisir plusieurs villes via différentes
+                used_cities = [from_city, to_city]
+                via_cities = []
+                for i in range(num_via):
+                    available_cities = [c for c in cities if c not in used_cities]
+                    if available_cities:
+                        via_city = random.choice(available_cities)
+                        via_cities.append(via_city)
+                        used_cities.append(via_city)
+
+                # Créer le dictionnaire de formatage
+                format_dict = {
+                    "from_city": from_city,
+                    "to_city": to_city,
+                    "person": person_name
+                }
+
+                # Ajouter les villes via avec leurs indices
+                if num_via == 1:
+                    format_dict["via_city"] = via_cities[0] if via_cities else ""
                 else:
-                    text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city)
-                via_list = [via_city]
+                    for i, via_city in enumerate(via_cities, 1):
+                        format_dict[f"via_city{i}"] = via_city
+
+                # Formater le texte
+                if has_person:
+                    if person_name:
+                        text = pattern.format(**format_dict)
+                    else:
+                        # Supprimer les placeholders de personne
+                        clean_pattern = pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "")
+                        text = clean_pattern.format(**{k: v for k, v in format_dict.items() if k != "person"})
+                else:
+                    text = pattern.format(**format_dict)
+
+                via_list = via_cities
             else:
                 # Vérifier si le pattern contient {via_city} (utilisé comme autre chose)
                 if "{via_city}" in pattern:

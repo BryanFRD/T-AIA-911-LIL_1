@@ -177,7 +177,10 @@ if __name__ == "__main__":
         "Dis Valérian je veux aller de Paris à Lyon",
         "Ok Simon aller de Marseille à Nice",
         "Hey Maude comment aller de Lille à Strasbourg",
-        "Jayce je voudrais aller de Bordeaux à Toulouse"
+        "Jayce je voudrais aller de Bordeaux à Toulouse",
+        "Je veux aller de Paris à Lyon via Dijon et Mâcon",
+        "Aller de Marseille à Lille en passant par Lyon et Dijon",
+        "De Bordeaux à Strasbourg via Limoges, Clermont-Ferrand et Dijon"
     ]
 
     # Prédicteur avec gazetteer

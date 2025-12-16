@@ -138,6 +138,34 @@
       "has_via": false,
       "has_person": true,
       "comment": "avec prénom"
+    },
+    {
+      "pattern": "Je veux aller de {from_city} à {to_city} via {via_city1} et {via_city2}",
+      "intent": "trajet",
+      "has_via": true,
+      "num_via": 2,
+      "comment": "2 villes via"
+    },
+    {
+      "pattern": "Aller de {from_city} à {to_city} en passant par {via_city1} et {via_city2}",
+      "intent": "trajet",
+      "has_via": true,
+      "num_via": 2,
+      "comment": "2 villes via"
+    },
+    {
+      "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2} et {via_city3}",
+      "intent": "trajet",
+      "has_via": true,
+      "num_via": 3,
+      "comment": "3 villes via"
+    },
+    {
+      "pattern": "Trajet de {from_city} à {to_city} en passant par {via_city1}, {via_city2} et {via_city3}",
+      "intent": "trajet",
+      "has_via": true,
+      "num_via": 3,
+      "comment": "3 villes via"
     }
   ],
   "negative_examples": [
