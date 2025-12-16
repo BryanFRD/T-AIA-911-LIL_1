@@ -1,29 +1,11 @@
-# PyTorch CPU only
+# Base
 torch==2.9.1
-torchaudio==2.2.0
+torchaudio==2.9.1
 torchvision==0.17.1
 
-# Numpy & scientific stack
 numpy==1.26.4
-scipy==1.11.1
-pandas==2.3.3
-
-# Hugging Face / Transformers (CPU)
 transformers==4.34.0
 datasets==2.14.5
 accelerate==0.23.0
 huggingface-hub==0.17.3
 tokenizers==0.14.1
-
-# NLP utils
-spacy==3.6.0
-nltk==3.9.0
-
-# Audio utils
-librosa==0.10.0
-soundfile==0.12.1
-
-# Others
-tqdm==4.67.1
-filelock==3.20.1
-requests==2.31.0
