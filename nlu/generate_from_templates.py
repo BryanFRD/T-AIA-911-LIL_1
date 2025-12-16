@@ -10,11 +10,15 @@ from typing import List, Dict
 
 # Importer l'augmenteur
 try:
-    from nlu.augment import NLUAugmenter
+    from nlu.augments import NLUAugmenter
     AUGMENTATION_AVAILABLE = True
 except ImportError:
-    AUGMENTATION_AVAILABLE = False
-    print("Warning: Module d'augmentation non disponible")
+    try:
+        from augments import NLUAugmenter
+        AUGMENTATION_AVAILABLE = True
+    except ImportError:
+        AUGMENTATION_AVAILABLE = False
+        print("Warning: Module d'augmentation non disponible")
 
 def load_templates(templates_file="nlu/data/templates.json") -> Dict:
     """Charge les templates"""

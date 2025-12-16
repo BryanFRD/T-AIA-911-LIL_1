@@ -9,7 +9,18 @@ nlu/
 ├── data/
 │   ├── templates.json           # Templates de phrases + exemples négatifs
 │   ├── cities.json              # Liste des villes françaises (193 villes)
-│   └── train_generated.json     # Dataset généré depuis templates (285 exemples)
+│   ├── persons.json             # Liste des prénoms
+│   └── train_generated.json     # Dataset généré depuis templates
+├── augments/                    # 📦 Module d'augmentation de données
+│   ├── __init__.py              # Point d'entrée
+│   ├── augmenter.py             # Classe principale NLUAugmenter
+│   ├── case_variations.py       # Variations de casse
+│   ├── punctuation.py           # Variations de ponctuation
+│   ├── fillers.py               # Mots de remplissage
+│   ├── typos.py                 # Fautes de frappe
+│   ├── synonyms.py              # Synonymes contextuels
+│   ├── contractions.py          # Contractions orales
+│   └── word_order.py            # Inversions d'ordre
 ├── models/
 │   ├── model_ner/               # Modèle NER entraîné
 │   └── model_intent/            # Modèle Intent entraîné
@@ -149,7 +160,11 @@ Hybride (fusion) :
 
 ## 🎯 Data Augmentation
 
-Le système inclut de la data augmentation automatique pour améliorer la robustesse du modèle. Les techniques appliquées :
+Le système inclut de la data augmentation automatique pour améliorer la robustesse du modèle.
+
+**Module dédié** : [augments/](augments/) - Architecture modulaire avec 7 techniques séparées
+
+Les techniques appliquées :
 
 ### Techniques d'augmentation
 
