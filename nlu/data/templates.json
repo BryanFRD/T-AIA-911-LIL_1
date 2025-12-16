@@ -96,6 +96,48 @@
       "intent": "trajet",
       "has_via": false,
       "comment": "contient 'monaco' mais c'est bien un trajet"
+    },
+    {
+      "pattern": "Dis {person} je veux aller de {from_city} à {to_city}",
+      "intent": "trajet",
+      "has_via": false,
+      "has_person": true,
+      "comment": "avec prénom"
+    },
+    {
+      "pattern": "Dis {person} aller de {from_city} à {to_city}",
+      "intent": "trajet",
+      "has_via": false,
+      "has_person": true,
+      "comment": "avec prénom"
+    },
+    {
+      "pattern": "Ok {person} aller de {from_city} à {to_city}",
+      "intent": "trajet",
+      "has_via": false,
+      "has_person": true,
+      "comment": "avec prénom"
+    },
+    {
+      "pattern": "Ok {person} trajet de {from_city} à {to_city}",
+      "intent": "trajet",
+      "has_via": false,
+      "has_person": true,
+      "comment": "avec prénom"
+    },
+    {
+      "pattern": "Hey {person} je veux aller de {from_city} à {to_city}",
+      "intent": "trajet",
+      "has_via": false,
+      "has_person": true,
+      "comment": "avec prénom"
+    },
+    {
+      "pattern": "{person} je voudrais aller de {from_city} à {to_city}",
+      "intent": "trajet",
+      "has_via": false,
+      "has_person": true,
+      "comment": "avec prénom"
     }
   ],
   "negative_examples": [

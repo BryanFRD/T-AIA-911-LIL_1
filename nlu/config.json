@@ -8,6 +8,6 @@
     "batch_size": 8,
     "learning_rate": 5e-5
   },
-  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA"],
+  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA", "B-PERSON", "I-PERSON"],
   "intent_labels": ["trajet", "other"]
 }

@@ -17,7 +17,12 @@ def load_cities(cities_file="nlu/data/cities.json") -> List[str]:
     with open(cities_file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def generate_dataset(templates_data: Dict, cities: List[str],
+def load_persons(persons_file="nlu/data/persons.json") -> List[str]:
+    """Charge la liste des prénoms"""
+    with open(persons_file, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def generate_dataset(templates_data: Dict, cities: List[str], persons: List[str],
                     num_samples_per_template: int = 10,
                     num_negative_samples: int = 20) -> List[Dict]:
     """
@@ -26,6 +31,7 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     Args:
         templates_data: Dict contenant templates et negative_examples
         cities: Liste des villes
+        persons: Liste des prénoms
         num_samples_per_template: Nombre d'exemples par template
         num_negative_samples: Nombre d'exemples négatifs à générer
     """
@@ -36,24 +42,40 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     for template_info in templates_data["templates"]:
         pattern = template_info["pattern"]
         has_via = template_info.get("has_via", False)
+        has_person = template_info.get("has_person", False)
 
         for _ in range(num_samples_per_template):
             # Choisir des villes aléatoires
             from_city = random.choice(cities)
             to_city = random.choice([c for c in cities if c != from_city])
 
+            # Déterminer le prénom (50% de chance d'être vide si has_person=True)
+            if has_person:
+                person_name = random.choice(persons) if random.random() > 0.5 else ""
+            else:
+                person_name = ""
+
             if has_via:
                 # Choisir une ville via différente
                 via_city = random.choice([c for c in cities if c not in [from_city, to_city]])
-                text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city)
+                if has_person:
+                    text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city, person=person_name) if person_name else pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "").format(from_city=from_city, to_city=to_city, via_city=via_city)
+                else:
+                    text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city)
                 via_list = [via_city]
             else:
                 # Vérifier si le pattern contient {via_city} (utilisé comme autre chose)
                 if "{via_city}" in pattern:
                     via_city = random.choice([c for c in cities if c not in [from_city, to_city]])
-                    text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city)
+                    if has_person:
+                        text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city, person=person_name) if person_name else pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "").format(from_city=from_city, to_city=to_city, via_city=via_city)
+                    else:
+                        text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city)
                 else:
-                    text = pattern.format(from_city=from_city, to_city=to_city)
+                    if has_person:
+                        text = pattern.format(from_city=from_city, to_city=to_city, person=person_name) if person_name else pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "").format(from_city=from_city, to_city=to_city)
+                    else:
+                        text = pattern.format(from_city=from_city, to_city=to_city)
                 via_list = []
 
             example = {
@@ -62,7 +84,8 @@ def generate_dataset(templates_data: Dict, cities: List[str],
                 "entities": {
                     "from": from_city,
                     "to": to_city,
-                    "via": via_list
+                    "via": via_list,
+                    "person": person_name
                 }
             }
             dataset.append(example)
@@ -92,7 +115,8 @@ def generate_dataset(templates_data: Dict, cities: List[str],
                 "entities": {
                     "from": "",
                     "to": "",
-                    "via": []
+                    "via": [],
+                    "person": ""
                 }
             }
             dataset.append(example)
@@ -117,11 +141,13 @@ def save_dataset(dataset: List[Dict], output_file="nlu/data/train_generated.json
     intent_trajet = sum(1 for x in dataset if x["intent"] == "trajet")
     intent_other = sum(1 for x in dataset if x["intent"] == "other")
     with_via = sum(1 for x in dataset if len(x["entities"]["via"]) > 0)
+    with_person = sum(1 for x in dataset if x["entities"].get("person", ""))
 
     print(f"\nStatistiques:")
     print(f"  - Intent 'trajet': {intent_trajet}")
     print(f"  - Intent 'other': {intent_other}")
     print(f"  - Avec VIA: {with_via}")
+    print(f"  - Avec PERSON: {with_person}")
 
 def show_sample(dataset: List[Dict], num_samples: int = 5):
     """Affiche quelques exemples"""
@@ -136,6 +162,8 @@ def show_sample(dataset: List[Dict], num_samples: int = 5):
             print(f"   TO: {example['entities']['to'] or '(vide)'}")
             if example['entities']['via']:
                 print(f"   VIA: {', '.join(example['entities']['via'])}")
+            if example['entities'].get('person'):
+                print(f"   PERSON: {example['entities']['person']}")
 
 if __name__ == "__main__":
     print("="*70)
@@ -152,11 +180,16 @@ if __name__ == "__main__":
     cities = load_cities()
     print(f"  {len(cities)} villes chargees")
 
+    print("\nChargement de la liste des prenoms...")
+    persons = load_persons()
+    print(f"  {len(persons)} prenoms charges")
+
     # Générer le dataset
     print("\n" + "="*70)
     dataset = generate_dataset(
         templates_data,
         cities,
+        persons,
         num_samples_per_template=10,  # 10 exemples par template
         num_negative_samples=100       # 100 exemples négatifs au total
     )

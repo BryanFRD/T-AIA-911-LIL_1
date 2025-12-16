@@ -35,13 +35,18 @@ Le NER est un modèle d'apprentissage automatique qui identifie et extrait les e
 Phrase : "Je veux aller de Paris à Lyon"
 Tags   :  O   O    O    O  B-FROM O B-TO
 
-B-FROM = Début d'une ville de départ
-I-FROM = Suite d'une ville de départ (pour noms composés)
-B-TO   = Début d'une ville d'arrivée
-I-TO   = Suite d'une ville d'arrivée
-B-VIA  = Début d'une ville étape
-I-VIA  = Suite d'une ville étape
-O      = Pas une entité
+Phrase : "Dis Valérian je veux aller de Paris à Lyon"
+Tags   :  O   B-PERSON O   O    O    O  B-FROM O B-TO
+
+B-FROM   = Début d'une ville de départ
+I-FROM   = Suite d'une ville de départ (pour noms composés)
+B-TO     = Début d'une ville d'arrivée
+I-TO     = Suite d'une ville d'arrivée
+B-VIA    = Début d'une ville étape
+I-VIA    = Suite d'une ville étape
+B-PERSON = Début d'un prénom
+I-PERSON = Suite d'un prénom
+O        = Pas une entité
 ```
 
 **Avantages :**
@@ -104,8 +109,28 @@ Combine NER + Gazetteer pour le meilleur des deux mondes.
 - Si le Gazetteer trouve une ville → on la prend
 - Sinon → on prend la prédiction du NER
 - Pour les VIA → on combine les deux sources
+- Pour les PERSON → on prend uniquement le NER (pas dans le Gazetteer)
 
 **Exemple :**
+```
+Phrase : "Dis Valérian je veux aller de Paris à Saint-Étienne"
+
+NER seul :
+  FROM: Paris
+  TO: Saint Étienne (peut séparer le nom)
+  PERSON: Valérian
+
+Gazetteer seul :
+  FROM: Paris
+  TO: Saint-Étienne (nom exact)
+
+Hybride (fusion) :
+  FROM: Paris
+  TO: Saint-Étienne (prend le Gazetteer, plus précis)
+  PERSON: Valérian (du NER)
+```
+
+**Exemple sans prénom :**
 ```
 Phrase : "Je veux aller de Paris à Saint-Étienne"
 
@@ -176,7 +201,7 @@ Ce script :
     "batch_size": 8,       // Taille des batches
     "learning_rate": 5e-5  // Taux d'apprentissage
   },
-  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA"],
+  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA", "B-PERSON", "I-PERSON"],
   "intent_labels": ["trajet", "other"]
 }
 ```
@@ -231,19 +256,36 @@ print(result)
   "entities": {
     "from": "Paris",
     "to": "Lyon",
-    "via": []
+    "via": [],
+    "person": ""
   },
   "sources": {
-    "ner": {"from": "Paris", "to": "Lyon", "via": []},
+    "ner": {"from": "Paris", "to": "Lyon", "via": [], "person": ""},
     "gazetteer": {"from": "Paris", "to": "Lyon", "via": []}
   }
 }
 ```
 
+**Exemple avec prénom :**
+```python
+result = predictor.predict("Dis Valérian je veux aller de Paris à Lyon")
+print(result)
+# {
+#   "text": "Dis Valérian je veux aller de Paris à Lyon",
+#   "intent": {"label": "trajet", "confidence": 0.95},
+#   "entities": {
+#     "from": "Paris",
+#     "to": "Lyon",
+#     "via": [],
+#     "person": "Valérian"
+#   }
+# }
+```
+
 **Version simplifiée :**
 ```python
 result = predictor.predict_simple("Je veux aller de Paris à Lyon")
-# {'intent': 'trajet', 'from': 'Paris', 'to': 'Lyon', 'via': []}
+# {'intent': 'trajet', 'from': 'Paris', 'to': 'Lyon', 'via': [], 'person': ''}
 ```
 
 ## 📊 Comparaison des approches
@@ -271,6 +313,29 @@ Modifiez `data/cities.json` :
 ```
 
 **Pas besoin de réentraîner** si vous utilisez le système hybride ! Le Gazetteer les reconnaîtra immédiatement.
+
+### Ajouter des prénoms
+
+Modifiez `data/persons.json` :
+```json
+[
+  "Maude",
+  "Valérian",
+  "Simon",
+  "Jayce",
+  "Votre-Prénom"
+]
+```
+
+**Important :** Les prénoms sont optionnels dans les phrases ! Le modèle peut détecter :
+- **Avec prénom** : "Dis Valérian je veux aller de Paris à Lyon" → person="Valérian"
+- **Sans prénom** : "Je veux aller de Paris à Lyon" → person=""
+
+Puis régénérez et réentraînez :
+```bash
+python nlu/generate_from_templates.py
+python nlu/train.py
+```
 
 ### Ajouter des patterns de phrases
 

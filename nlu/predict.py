@@ -94,7 +94,7 @@ class HybridNLUPredictor:
 
     def _extract_entities_from_ner(self, ner_result):
         """Extrait les entités du résultat NER"""
-        entities = {"from": "", "to": "", "via": []}
+        entities = {"from": "", "to": "", "via": [], "person": ""}
 
         for r in ner_result:
             entity_type = r.get("entity_group", r.get("entity")).replace("B-", "").replace("I-", "")
@@ -109,11 +109,14 @@ class HybridNLUPredictor:
                     entities["via"].append(word)
                 else:
                     entities["via"][-1] += " " + word
+            elif entity_type == "PERSON":
+                entities["person"] += (" " + word if entities["person"] else word)
 
         # Nettoyer les espaces
         entities["from"] = entities["from"].strip()
         entities["to"] = entities["to"].strip()
         entities["via"] = [v.strip() for v in entities["via"]]
+        entities["person"] = entities["person"].strip()
 
         return entities
 
@@ -123,7 +126,7 @@ class HybridNLUPredictor:
         Stratégie: Prioriser le gazetteer pour les villes reconnues,
         compléter avec NER si nécessaire
         """
-        merged = {"from": "", "to": "", "via": []}
+        merged = {"from": "", "to": "", "via": [], "person": ""}
 
         # Prioriser gazetteer pour FROM et TO (plus précis sur les villes)
         merged["from"] = gazetteer_entities["from"] or ner_entities["from"]
@@ -136,6 +139,9 @@ class HybridNLUPredictor:
         for via in ner_entities["via"]:
             via_set.add(via)
         merged["via"] = list(via_set)
+
+        # PERSON vient uniquement du NER (pas dans le gazetteer)
+        merged["person"] = ner_entities.get("person", "")
 
         return merged
 
@@ -167,7 +173,11 @@ if __name__ == "__main__":
         "Je veux faire Saint Denis Saint Etienne",
         "Aller de Lille à Strasbourg en passant par Reims",
         "Voyage de Bordeaux à La Rochelle via Rochefort",
-        "Je pars de Nantes pour aller à Montaigu"
+        "Je pars de Nantes pour aller à Montaigu",
+        "Dis Valérian je veux aller de Paris à Lyon",
+        "Ok Simon aller de Marseille à Nice",
+        "Hey Maude comment aller de Lille à Strasbourg",
+        "Jayce je voudrais aller de Bordeaux à Toulouse"
     ]
 
     # Prédicteur avec gazetteer
@@ -187,6 +197,7 @@ if __name__ == "__main__":
         print(f"  FROM: {result_ner['entities']['from'] or '(vide)'}")
         print(f"  TO: {result_ner['entities']['to'] or '(vide)'}")
         print(f"  VIA: {', '.join(result_ner['entities']['via']) or '(vide)'}")
+        print(f"  PERSON: {result_ner['entities'].get('person', '') or '(vide)'}")
 
         # Résultat hybride
         result_hybrid = predictor_hybrid.predict(text)
@@ -194,6 +205,7 @@ if __name__ == "__main__":
         print(f"  FROM: {result_hybrid['entities']['from'] or '(vide)'}")
         print(f"  TO: {result_hybrid['entities']['to'] or '(vide)'}")
         print(f"  VIA: {', '.join(result_hybrid['entities']['via']) or '(vide)'}")
+        print(f"  PERSON: {result_hybrid['entities'].get('person', '') or '(vide)'}")
 
         # Comparaison
         if result_ner['entities'] != result_hybrid['entities']:

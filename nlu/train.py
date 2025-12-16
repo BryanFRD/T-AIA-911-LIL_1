@@ -116,11 +116,13 @@ def tokenize_and_align_labels_ner(example):
     via_spans = []
     for via_item in example["entities"].get("via", []):
         via_spans.extend(find_entity_spans(example["text"], via_item))
+    person_spans = find_entity_spans(example["text"], example["entities"].get("person", ""))
 
     entity_spans_dict = {
         "FROM": from_spans,
         "TO": to_spans,
-        "VIA": via_spans
+        "VIA": via_spans,
+        "PERSON": person_spans
     }
 
     # Créer les labels pour chaque token
