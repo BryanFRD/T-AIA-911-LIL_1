@@ -127,6 +127,9 @@ train:tts:
 package:nlu:
   stage: package
   image: alpine:latest
+  needs:
+    - job: train:nlu
+      artifacts: true
   dependencies:
     - train:nlu
   before_script:
@@ -146,6 +149,9 @@ package:nlu:
 package:stt:
   stage: package
   image: alpine:latest
+  needs:
+    - job: train:stt
+      artifacts: true
   dependencies:
     - train:stt
   before_script:
@@ -165,6 +171,9 @@ package:stt:
 package:tts:
   stage: package
   image: alpine:latest
+  needs:
+    - job: train:tts
+      artifacts: true
   dependencies:
     - train:tts
   before_script:
