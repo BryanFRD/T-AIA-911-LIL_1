@@ -21,6 +21,7 @@ stages:
 # Base Python job
 # ===============================
 .python_base:
+  image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
   before_script:
     - python --version
     - mkdir -p /cache/pip /cache/venv
