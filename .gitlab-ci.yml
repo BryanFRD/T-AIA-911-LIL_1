@@ -12,8 +12,7 @@ variables:
 # Stages
 # ===============================
 stages:
-  - install
-  - test
+  - init
   - train
   - package
   - release
@@ -40,8 +39,10 @@ stages:
   script:
     - pip install --cache-dir=/cache/pip -r requirements.txt
 
-install:dependencies:
-  stage: install
+init:dependencies:
+  stage: init
+  tags:
+    - gpu
   extends: .install_dependencies
   rules:
     - if: $CI_COMMIT_BRANCH
@@ -50,21 +51,8 @@ install:dependencies:
 # ===============================
 # TESTS
 # ===============================
-test:lint:
-  stage: test
-  extends: .python_base
-  dependencies:
-    - install:dependencies
-  script:
-    - source /cache/venv/bin/activate
-    - pip install --cache-dir=/cache/pip flake8 pylint
-    - flake8 nlu/ stt/ tts/ common/ --max-line-length=120 --exclude=venv,__pycache__ || true
-    - pylint nlu/ stt/ tts/ common/ --disable=all --enable=E,F || true
-  rules:
-    - if: $CI_COMMIT_BRANCH
-
-test:sonarqube:
-  stage: test
+init:sonarqube:
+  stage: init
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
