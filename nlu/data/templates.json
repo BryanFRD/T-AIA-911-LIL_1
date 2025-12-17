@@ -39,11 +39,6 @@
     { "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2} et {via_city3}", "intent": "trajet" },
     { "pattern": "Trajet de {from_city} à {to_city} en passant par {via_city1}, {via_city2} et {via_city3}", "intent": "trajet" },
 
-    { "pattern": "Dis {person} je veux aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "{person} je voudrais aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Hey {person} aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Ok {person} trajet de {from_city} à {to_city}", "intent": "trajet" },
-
     { "pattern": "Je veux faire {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Aller {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Trajet {from_city} vers {to_city}", "intent": "trajet" },
@@ -73,7 +68,6 @@
 
     { "pattern": "Emmène-moi à {to_city}", "intent": "trajet" },
     { "pattern": "Amène-moi à {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux aller à {to_city}", "intent": "trajet" },
     { "pattern": "Aller à {to_city}", "intent": "trajet" },
     { "pattern": "Trajet pour {to_city}", "intent": "trajet" },
     { "pattern": "Route pour {to_city}", "intent": "trajet" },
@@ -81,7 +75,6 @@
     { "pattern": "Je vais à {to_city}", "intent": "trajet" },
     { "pattern": "Direction {to_city}", "intent": "trajet" },
     { "pattern": "Je pars pour {to_city}", "intent": "trajet" },
-    { "pattern": "Comment aller à {to_city}", "intent": "trajet" },
     { "pattern": "J'aimerais aller à {to_city}", "intent": "trajet" },
     { "pattern": "Je souhaite me rendre à {to_city}", "intent": "trajet" },
     { "pattern": "Je dois aller à {to_city}", "intent": "trajet" },
