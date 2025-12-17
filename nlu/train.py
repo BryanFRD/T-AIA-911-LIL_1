@@ -138,6 +138,9 @@ def main():
         per_device_train_batch_size=config["training"]["batch_size"],
         per_device_eval_batch_size=config["training"]["batch_size"],
         learning_rate=config["training"]["learning_rate"],
+        weight_decay=0.01,  # Régularisation L2 pour réduire overfitting
+        warmup_ratio=0.1,  # 10% warmup pour meilleure convergence
+        lr_scheduler_type="cosine",  # Cosine decay du learning rate
         logging_dir="./logs/ner",
         logging_steps=50,  # Réduit le logging pour accélérer
         eval_strategy="epoch",  # Évaluation à chaque epoch
@@ -219,6 +222,9 @@ def main():
         per_device_train_batch_size=config["training"]["batch_size"],
         per_device_eval_batch_size=config["training"]["batch_size"],
         learning_rate=config["training"]["learning_rate"],
+        weight_decay=0.01,  # Régularisation L2
+        warmup_ratio=0.1,  # 10% warmup
+        lr_scheduler_type="cosine",  # Cosine decay
         logging_dir="./logs/intent",
         logging_steps=50,  # Réduit le logging
         eval_strategy="epoch",  # Évaluation à chaque epoch
