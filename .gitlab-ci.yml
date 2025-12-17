@@ -2,7 +2,6 @@
 # Variables globales
 # ===============================
 variables:
-  PYTHON_VERSION: "3.11"
   PIP_CACHE_DIR: "/cache/pip"
   HF_HOME: "/cache/huggingface"
   XDG_CACHE_HOME: "/cache"
@@ -22,7 +21,7 @@ stages:
 # Base Python job
 # ===============================
 .python:
-  image: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+  image: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime-python3.11
   before_script:
     - python --version
     - mkdir -p /cache/pip /cache/huggingface
