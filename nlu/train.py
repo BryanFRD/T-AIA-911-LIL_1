@@ -13,6 +13,13 @@ from transformers import (
 from datasets import Dataset
 import torch
 
+# === Détection GPU automatique ===
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Device utilisé: {device.upper()}")
+if device == "cuda":
+    print(f"GPU détecté: {torch.cuda.get_device_name(0)}")
+    print(f"Mémoire GPU disponible: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+
 # === Config par défaut ===
 DEFAULT_MODEL = "camembert-base"
 CONFIG_FILE = "nlu/config.json"
@@ -150,7 +157,8 @@ training_args_ner = TrainingArguments(
     logging_dir="./logs/ner",
     logging_steps=10,
     save_strategy="epoch",
-    overwrite_output_dir=True
+    overwrite_output_dir=True,
+    no_cuda=(device == "cpu")
 )
 
 trainer_ner = Trainer(
@@ -202,7 +210,8 @@ training_args_intent = TrainingArguments(
     logging_dir="./logs/intent",
     logging_steps=10,
     save_strategy="epoch",
-    overwrite_output_dir=True
+    overwrite_output_dir=True,
+    no_cuda=(device == "cpu")
 )
 
 trainer_intent = Trainer(

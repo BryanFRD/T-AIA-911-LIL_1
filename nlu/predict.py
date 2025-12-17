@@ -2,6 +2,7 @@ import json
 import sys
 from pathlib import Path
 from transformers import pipeline
+import torch
 
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -18,19 +19,24 @@ class NLUPredictor:
                  intent_model_path="nlu/models/model_intent"):
         """Initialise les pipelines"""
 
+        # Détection GPU automatique (0 = GPU, -1 = CPU)
+        device = 0 if torch.cuda.is_available() else -1
+
         # Pipeline NER
         self.ner_pipeline = pipeline(
             "token-classification",
             model=ner_model_path,
             tokenizer=ner_model_path,
-            aggregation_strategy="simple"
+            aggregation_strategy="simple",
+            device=device
         )
 
         # Pipeline Intent
         self.intent_pipeline = pipeline(
             "text-classification",
             model=intent_model_path,
-            tokenizer=intent_model_path
+            tokenizer=intent_model_path,
+            device=device
         )
 
         # Charger la config
