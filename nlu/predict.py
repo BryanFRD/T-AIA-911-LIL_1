@@ -121,92 +121,188 @@ if __name__ == "__main__":
     print("TEST DU PREDICTEUR NLU")
     print("="*70)
 
-    test_texts = [
+    # Test cases avec résultats attendus
+    test_cases = [
         # === Cas simples (FROM -> TO) ===
-        "Je veux aller de Paris à Lyon",
-        "Trajet Marseille Nice",
-        "Comment me rendre à Port-Boulet depuis la gare de Tours ?",
+        {"text": "Je veux aller de Paris à Lyon", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": ""},
+        {"text": "Trajet Marseille Nice", "intent": "trajet", "from": "Marseille", "to": "Nice", "via": [], "person": ""},
+        {"text": "Comment me rendre à Port-Boulet depuis la gare de Tours ?", "intent": "trajet", "from": "Tours", "to": "Port-Boulet", "via": [], "person": ""},
 
         # === Sans FROM (position implicite) ===
-        "Emmène-moi à Lyon",
-        "Je veux aller à Bordeaux",
-        "Direction Marseille",
-        "Comment aller à Strasbourg",
+        {"text": "Emmène-moi à Lyon", "intent": "trajet", "from": "", "to": "Lyon", "via": [], "person": ""},
+        {"text": "Je veux aller à Bordeaux", "intent": "trajet", "from": "", "to": "Bordeaux", "via": [], "person": ""},
+        {"text": "Direction Marseille", "intent": "trajet", "from": "", "to": "Marseille", "via": [], "person": ""},
+        {"text": "Comment aller à Strasbourg", "intent": "trajet", "from": "", "to": "Strasbourg", "via": [], "person": ""},
 
         # === Avec VIA (1-3 villes) ===
-        "Je veux aller de Marseille à Nice en passant par Cannes",
-        "Aller de Lille à Strasbourg en passant par Reims",
-        "De Bordeaux à Strasbourg via Limoges, Clermont-Ferrand et Dijon",
-        "Route Paris Lyon via Dijon",
+        {"text": "Je veux aller de Marseille à Nice en passant par Cannes", "intent": "trajet", "from": "Marseille", "to": "Nice", "via": ["Cannes"], "person": ""},
+        {"text": "Aller de Lille à Strasbourg en passant par Reims", "intent": "trajet", "from": "Lille", "to": "Strasbourg", "via": ["Reims"], "person": ""},
+        {"text": "De Bordeaux à Strasbourg via Limoges, Clermont-Ferrand et Dijon", "intent": "trajet", "from": "Bordeaux", "to": "Strasbourg", "via": ["Limoges", "Clermont-Ferrand", "Dijon"], "person": ""},
+        {"text": "Route Paris Lyon via Dijon", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": ["Dijon"], "person": ""},
 
         # === Avec interpellations de personnes ===
-        "Hey Maude je veux aller de Paris à Lyon",
-        "Dis Valérian, emmène-moi à Marseille",
-        "Ok Simon aller de Marseille à Nice",
-        "Écoute Jayce, comment aller à Bordeaux",
-        "Yo Maude trajet Paris Lyon",
+        {"text": "Hey Maude je veux aller de Paris à Lyon", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": "Maude"},
+        {"text": "Dis Valérian, emmène-moi à Marseille", "intent": "trajet", "from": "", "to": "Marseille", "via": [], "person": "Valérian"},
+        {"text": "Ok Simon aller de Marseille à Nice", "intent": "trajet", "from": "Marseille", "to": "Nice", "via": [], "person": "Simon"},
+        {"text": "Écoute Jayce, comment aller à Bordeaux", "intent": "trajet", "from": "", "to": "Bordeaux", "via": [], "person": "Jayce"},
+        {"text": "Yo Maude trajet Paris Lyon", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": "Maude"},
 
         # === Langage oral / SMS ===
-        "jveux alé de paris a lyon",
-        "cmt aller a marseille",
-        "trajet pr bordeaux",
+        {"text": "jveux alé de paris a lyon", "intent": "trajet", "from": "paris", "to": "lyon", "via": [], "person": ""},
+        {"text": "cmt aller a marseille", "intent": "trajet", "from": "", "to": "marseille", "via": [], "person": ""},
+        {"text": "trajet pr bordeaux", "intent": "trajet", "from": "", "to": "bordeaux", "via": [], "person": ""},
 
         # === Avec fautes de frappe ===
-        "Je vuex aller de Pars à Lyin",
-        "Trahjet Marseil Nice",
+        {"text": "Je vuex aller de Pars à Lyin", "intent": "trajet", "from": "Pars", "to": "Lyin", "via": [], "person": ""},
+        {"text": "Trahjet Marseil Nice", "intent": "trajet", "from": "Marseil", "to": "Nice", "via": [], "person": ""},
 
         # === Avec contractions orales ===
-        "chuis à Paris, j'veux aller à Lyon",
-        "j'dois m'rendre de Marseille à Nice",
+        {"text": "chuis à Paris, j'veux aller à Lyon", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": ""},
+        {"text": "j'dois m'rendre de Marseille à Nice", "intent": "trajet", "from": "Marseille", "to": "Nice", "via": [], "person": ""},
 
         # === Avec mots parasites ===
-        "Genre je veux aller de Paris à Lyon tu vois",
-        "Bon euh je dois aller à Marseille enfin",
-        "Alors voilà je voudrais aller de Lille à Strasbourg",
+        {"text": "Genre je veux aller de Paris à Lyon tu vois", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": ""},
+        {"text": "Bon euh je dois aller à Marseille enfin", "intent": "trajet", "from": "", "to": "Marseille", "via": [], "person": ""},
+        {"text": "Alors voilà je voudrais aller de Lille à Strasbourg", "intent": "trajet", "from": "Lille", "to": "Strasbourg", "via": [], "person": ""},
 
         # === Avec répétitions / bégaiement ===
-        "Je je veux aller de Paris à Lyon",
-        "tra- trajet Marseille Nice",
+        {"text": "Je je veux aller de Paris à Lyon", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": ""},
+        {"text": "tra- trajet Marseille Nice", "intent": "trajet", "from": "Marseille", "to": "Nice", "via": [], "person": ""},
 
         # === Ordre des mots inversé ===
-        "De Paris à Lyon je veux aller",
-        "Aller à Marseille je dois",
+        {"text": "De Paris à Lyon je veux aller", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": ""},
+        {"text": "Aller à Marseille je dois", "intent": "trajet", "from": "", "to": "Marseille", "via": [], "person": ""},
 
         # === Cas complexes (plusieurs difficultés combinées) ===
-        "Hey Maude euh genre jveux alé d paris a lyon tu vois",
-        "Dis Simon, chuis à Bordeaux, j'dois m'rendre à Toulouse via Agen",
-        "Yo Valérian trajet pr marseille stp",
-        "Écoute Jayce euh... je je veux aller de Lille à Strasbourg en passant par Reims et Metz",
+        {"text": "Hey Maude euh genre jveux alé d paris a lyon tu vois", "intent": "trajet", "from": "paris", "to": "lyon", "via": [], "person": "Maude"},
+        {"text": "Dis Simon, chuis à Bordeaux, j'dois m'rendre à Toulouse via Agen", "intent": "trajet", "from": "Bordeaux", "to": "Toulouse", "via": ["Agen"], "person": "Simon"},
+        {"text": "Yo Valérian trajet pr marseille stp", "intent": "trajet", "from": "", "to": "marseille", "via": [], "person": "Valérian"},
+        {"text": "Écoute Jayce euh... je je veux aller de Lille à Strasbourg en passant par Reims et Metz", "intent": "trajet", "from": "Lille", "to": "Strasbourg", "via": ["Reims", "Metz"], "person": "Jayce"},
 
         # === Lowercase / UPPERCASE / MiXeD ===
-        "je veux aller de paris à lyon",
-        "JE VEUX ALLER DE PARIS À LYON",
-        "Je VeUx AlLeR dE pArIs À lYoN",
+        {"text": "je veux aller de paris à lyon", "intent": "trajet", "from": "paris", "to": "lyon", "via": [], "person": ""},
+        {"text": "JE VEUX ALLER DE PARIS À LYON", "intent": "trajet", "from": "PARIS", "to": "LYON", "via": [], "person": ""},
+        {"text": "Je VeUx AlLeR dE pArIs À lYoN", "intent": "trajet", "from": "pArIs", "to": "lYoN", "via": [], "person": ""},
 
         # === Ponctuation variée ===
-        "Je veux aller de Paris à Lyon!",
-        "Trajet Paris Lyon...",
-        "Comment aller de Marseille à Nice?",
+        {"text": "Je veux aller de Paris à Lyon!", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": ""},
+        {"text": "Trajet Paris Lyon...", "intent": "trajet", "from": "Paris", "to": "Lyon", "via": [], "person": ""},
+        {"text": "Comment aller de Marseille à Nice?", "intent": "trajet", "from": "Marseille", "to": "Nice", "via": [], "person": ""},
 
         # === Exemples négatifs (pas de trajet) ===
-        "Quelle heure est-il",
-        "J'adore Paris",
-        "Mon frère habite à Lyon",
-        "Je veux boire un café",
+        {"text": "Quelle heure est-il", "intent": "other", "from": "", "to": "", "via": [], "person": ""},
+        {"text": "J'adore Paris", "intent": "other", "from": "", "to": "", "via": [], "person": ""},
+        {"text": "Mon frère habite à Lyon", "intent": "other", "from": "", "to": "", "via": [], "person": ""},
+        {"text": "Je veux boire un café", "intent": "other", "from": "", "to": "", "via": [], "person": ""},
     ]
 
     # Prédicteur NLU
     predictor = NLUPredictor()
 
-    for text in test_texts:
-        print(f"\n{'='*70}")
-        print(f"Texte : {text}")
-        print(f"{'='*70}")
+    # Statistiques
+    total = len(test_cases)
+    correct_intent = 0
+    correct_from = 0
+    correct_to = 0
+    correct_via = 0
+    correct_person = 0
+    fully_correct = 0
+
+    results = []
+
+    for i, test_case in enumerate(test_cases, 1):
+        text = test_case["text"]
+        expected = test_case
 
         # Résultat
         result = predictor.predict(text)
-        print(f"\n[Intent] {result['intent']['label']} ({result['intent']['confidence']:.2%})")
-        print(f"  FROM: {result['entities']['from'] or '(vide)'}")
-        print(f"  TO: {result['entities']['to'] or '(vide)'}")
-        print(f"  VIA: {', '.join(result['entities']['via']) or '(vide)'}")
-        print(f"  PERSON: {result['entities'].get('person', '') or '(vide)'}")
+        predicted = {
+            "intent": result["intent"]["label"],
+            "from": result["entities"]["from"].lower() if result["entities"]["from"] else "",
+            "to": result["entities"]["to"].lower() if result["entities"]["to"] else "",
+            "via": [v.lower() for v in result["entities"]["via"]],
+            "person": result["entities"].get("person", "")
+        }
+
+        # Normaliser les attendus pour comparaison (case-insensitive)
+        expected_norm = {
+            "intent": expected["intent"],
+            "from": expected["from"].lower() if expected["from"] else "",
+            "to": expected["to"].lower() if expected["to"] else "",
+            "via": [v.lower() for v in expected["via"]],
+            "person": expected["person"]
+        }
+
+        # Vérification
+        is_intent_correct = predicted["intent"] == expected_norm["intent"]
+        is_from_correct = predicted["from"] == expected_norm["from"]
+        is_to_correct = predicted["to"] == expected_norm["to"]
+        is_via_correct = predicted["via"] == expected_norm["via"]
+        is_person_correct = predicted["person"] == expected_norm["person"]
+        is_fully_correct = all([is_intent_correct, is_from_correct, is_to_correct, is_via_correct, is_person_correct])
+
+        if is_intent_correct:
+            correct_intent += 1
+        if is_from_correct:
+            correct_from += 1
+        if is_to_correct:
+            correct_to += 1
+        if is_via_correct:
+            correct_via += 1
+        if is_person_correct:
+            correct_person += 1
+        if is_fully_correct:
+            fully_correct += 1
+
+        # Affichage détaillé
+        print(f"\n{'='*70}")
+        print(f"Test {i}/{total}: {text}")
+        print(f"{'='*70}")
+        print(f"\n[Intent] {result['intent']['label']} ({result['intent']['confidence']:.2%}) {'✅' if is_intent_correct else '❌ (attendu: ' + expected['intent'] + ')'}")
+        print(f"  FROM: {result['entities']['from'] or '(vide)'} {'✅' if is_from_correct else '❌ (attendu: ' + (expected['from'] or '(vide)') + ')'}")
+        print(f"  TO: {result['entities']['to'] or '(vide)'} {'✅' if is_to_correct else '❌ (attendu: ' + (expected['to'] or '(vide)') + ')'}")
+        print(f"  VIA: {', '.join(result['entities']['via']) or '(vide)'} {'✅' if is_via_correct else '❌ (attendu: ' + (', '.join(expected['via']) or '(vide)') + ')'}")
+        print(f"  PERSON: {result['entities'].get('person', '') or '(vide)'} {'✅' if is_person_correct else '❌ (attendu: ' + (expected['person'] or '(vide)') + ')'}")
+
+        if is_fully_correct:
+            print("  ✅ SUCCÈS COMPLET")
+        else:
+            print("  ❌ ERREUR(S) DÉTECTÉE(S)")
+
+        results.append({
+            "text": text,
+            "correct": is_fully_correct,
+            "errors": {
+                "intent": not is_intent_correct,
+                "from": not is_from_correct,
+                "to": not is_to_correct,
+                "via": not is_via_correct,
+                "person": not is_person_correct
+            }
+        })
+
+    # Résumé final
+    print(f"\n{'='*70}")
+    print("RÉSUMÉ DES RÉSULTATS")
+    print(f"{'='*70}\n")
+
+    print(f"Tests réussis: {fully_correct}/{total} ({fully_correct/total*100:.1f}%)")
+    print("\nDétail par composant:")
+    print(f"  Intent:  {correct_intent}/{total} ({correct_intent/total*100:.1f}%)")
+    print(f"  FROM:    {correct_from}/{total} ({correct_from/total*100:.1f}%)")
+    print(f"  TO:      {correct_to}/{total} ({correct_to/total*100:.1f}%)")
+    print(f"  VIA:     {correct_via}/{total} ({correct_via/total*100:.1f}%)")
+    print(f"  PERSON:  {correct_person}/{total} ({correct_person/total*100:.1f}%)")
+
+    # Tests échoués
+    failed_tests = [r for r in results if not r["correct"]]
+    if failed_tests:
+        print(f"\n{'='*70}")
+        print(f"TESTS ÉCHOUÉS ({len(failed_tests)})")
+        print(f"{'='*70}\n")
+        for i, failed in enumerate(failed_tests, 1):
+            error_types = [k for k, v in failed["errors"].items() if v]
+            print(f"{i}. {failed['text']}")
+            print(f"   Erreurs: {', '.join(error_types)}")
+
+    print(f"\n{'='*70}")
