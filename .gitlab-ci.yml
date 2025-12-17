@@ -78,7 +78,7 @@ train:nlu:
     - gpu
   extends: .python_base
   dependencies:
-    - install:dependencies
+    - init:dependencies
   script:
     - source /cache/venv/bin/activate
     - python nlu/generate_from_templates.py
@@ -101,7 +101,7 @@ train:stt:
     - gpu
   extends: .python_base
   dependencies:
-    - install:dependencies
+    - init:dependencies
   script:
     - source /cache/venv/bin/activate
     - python stt/train.py
@@ -121,7 +121,7 @@ train:tts:
     - gpu
   extends: .python_base
   dependencies:
-    - install:dependencies
+    - init:dependencies
   script:
     - source /cache/venv/bin/activate
     - python tts/train.py
