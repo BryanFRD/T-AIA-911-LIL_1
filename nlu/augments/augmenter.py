@@ -17,6 +17,7 @@ from .stuttering import augment_stuttering
 from .sms_language import augment_sms_language
 from .narrative_context import augment_narrative_context
 from .parasite_words import augment_parasite_words
+from .person_prefix import augment_person_prefix
 
 
 class NLUAugmenter:
@@ -36,6 +37,7 @@ class NLUAugmenter:
     10. Langage SMS/chat (j ve alé, komen)
     11. Contexte narratif (alors, donc, voilà, etc.)
     12. Mots parasites (genre, enfin, tu sais, etc.)
+    13. Interpellations de personnes (Hey Maude, Dis Simon, etc.)
     """
 
     def __init__(self):
@@ -53,6 +55,7 @@ class NLUAugmenter:
             augment_sms_language,
             augment_narrative_context,
             augment_parasite_words,
+            augment_person_prefix,
         ]
 
     def augment_example(self, text: str, entities: Dict,
