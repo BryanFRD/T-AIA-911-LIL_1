@@ -12,6 +12,11 @@ from .typos import augment_typos
 from .synonyms import augment_synonyms
 from .contractions import augment_contractions
 from .word_order import augment_word_order
+from .abbreviations import augment_abbreviations
+from .stuttering import augment_stuttering
+from .sms_language import augment_sms_language
+from .narrative_context import augment_narrative_context
+from .parasite_words import augment_parasite_words
 
 
 class NLUAugmenter:
@@ -26,6 +31,11 @@ class NLUAugmenter:
     5. Synonymes contextuels
     6. Contractions orales françaises
     7. Inversions ordre des mots
+    8. Abréviations courantes (jveux, cmt, etc.)
+    9. Répétitions et bégaiement (je je veux, tra- trajet)
+    10. Langage SMS/chat (j ve alé, komen)
+    11. Contexte narratif (alors, donc, voilà, etc.)
+    12. Mots parasites (genre, enfin, tu sais, etc.)
     """
 
     def __init__(self):
@@ -38,6 +48,11 @@ class NLUAugmenter:
             augment_synonyms,
             augment_contractions,
             augment_word_order,
+            augment_abbreviations,
+            augment_stuttering,
+            augment_sms_language,
+            augment_narrative_context,
+            augment_parasite_words,
         ]
 
     def augment_example(self, text: str, entities: Dict,
