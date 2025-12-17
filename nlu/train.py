@@ -178,7 +178,7 @@ def main():
         lr_scheduler_type="cosine",  # Cosine decay du learning rate
         logging_dir="./logs/ner",
         logging_steps=50,  # Réduit le logging pour accélérer
-        eval_strategy="epoch",  # Évaluation à chaque epoch
+        evaluation_strategy="epoch",  # Évaluation à chaque epoch
         save_strategy="epoch",  # Sauvegarder le meilleur modèle
         load_best_model_at_end=True,  # Charger le meilleur modèle à la fin
         metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
@@ -281,7 +281,7 @@ def main():
         lr_scheduler_type="cosine",  # Cosine decay
         logging_dir="./logs/intent",
         logging_steps=50,  # Réduit le logging
-        eval_strategy="epoch",  # Évaluation à chaque epoch
+        evaluation_strategy="epoch",  # Évaluation à chaque epoch
         save_strategy="epoch",  # Sauvegarder le meilleur modèle
         load_best_model_at_end=True,  # Charger le meilleur modèle
         metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
