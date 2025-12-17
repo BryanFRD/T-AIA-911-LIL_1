@@ -4,8 +4,7 @@ Génère un dataset d'entraînement à partir de templates et d'une liste de vil
 
 import json
 import random
-import sys
-from pathlib import Path
+import re
 from typing import List, Dict
 
 # Importer l'augmenteur
@@ -30,211 +29,227 @@ def load_cities(cities_file="nlu/data/cities.json") -> List[str]:
     with open(cities_file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def load_persons(persons_file="nlu/data/persons.json") -> List[str]:
-    """Charge la liste des prénoms"""
-    with open(persons_file, 'r', encoding='utf-8') as f:
-        return json.load(f)
+def get_placeholders(pattern: str) -> List[str]:
+    """Extrait tous les placeholders d'un pattern"""
+    return re.findall(r'\{([^}]+)\}', pattern)
 
-def generate_dataset(templates_data: Dict, cities: List[str], persons: List[str],
-                    num_samples_per_template: int = 10,
-                    num_negative_samples: int = 20) -> List[Dict]:
+def generate_from_template(pattern: str, cities: List[str], people: List[str]) -> Dict:
     """
-    Génère un dataset à partir des templates
+    Génère un exemple à partir d'un template
 
-    Args:
-        templates_data: Dict contenant templates et negative_examples
-        cities: Liste des villes
-        persons: Liste des prénoms
-        num_samples_per_template: Nombre d'exemples par template
-        num_negative_samples: Nombre d'exemples négatifs à générer
+    Returns:
+        Dict avec 'text' et 'entities' (from, to, via, person)
+    """
+    placeholders = get_placeholders(pattern)
+
+    # Déterminer les villes nécessaires
+    from_city = None
+    to_city = None
+    via_cities = []
+    person = None
+
+    format_dict = {}
+    used_cities = set()
+
+    for placeholder in placeholders:
+        if placeholder == "from_city":
+            from_city = random.choice(cities)
+            format_dict["from_city"] = from_city
+            used_cities.add(from_city)
+        elif placeholder == "to_city":
+            available = [c for c in cities if c not in used_cities]
+            to_city = random.choice(available)
+            format_dict["to_city"] = to_city
+            used_cities.add(to_city)
+        elif placeholder.startswith("via_city"):
+            available = [c for c in cities if c not in used_cities]
+            via_city = random.choice(available)
+            format_dict[placeholder] = via_city
+            via_cities.append(via_city)
+            used_cities.add(via_city)
+        elif placeholder == "person":
+            person = random.choice(people)
+            format_dict["person"] = person
+        elif placeholder == "city":
+            # Pour les exemples négatifs
+            city = random.choice(cities)
+            format_dict["city"] = city
+
+    text = pattern.format(**format_dict)
+
+    return {
+        "text": text,
+        "entities": {
+            "from": from_city or "",
+            "to": to_city or "",
+            "via": via_cities,
+            "person": person or ""
+        }
+    }
+
+def text_to_bio(text: str, entities: Dict) -> tuple:
+    """
+    Convertit un texte et ses entités en format BIO
+
+    Returns:
+        (tokens, bio_labels)
+    """
+    # Tokenization simple
+    tokens = text.replace("?", "").replace("!", "").replace(".", "").replace(",", "").split()
+    bio_labels = ["O"] * len(tokens)
+
+    def tag_entity(entity_text: str, entity_type: str):
+        """Tag une entité dans les tokens"""
+        if not entity_text:
+            return
+
+        entity_tokens = entity_text.split()
+
+        # Chercher l'entité dans les tokens
+        for i in range(len(tokens) - len(entity_tokens) + 1):
+            if tokens[i:i+len(entity_tokens)] == entity_tokens:
+                bio_labels[i] = f"B-{entity_type}"
+                for j in range(1, len(entity_tokens)):
+                    bio_labels[i+j] = f"I-{entity_type}"
+                break
+
+    # Tagger les entités
+    tag_entity(entities["from"], "FROM")
+    tag_entity(entities["to"], "TO")
+    for via in entities["via"]:
+        tag_entity(via, "VIA")
+    tag_entity(entities["person"], "PERSON")
+
+    return tokens, bio_labels
+
+def generate_dataset(templates_data: Dict, cities: List[str],
+                     num_samples_per_template: int = 10) -> List[Dict]:
+    """
+    Génère le dataset complet
+
+    Returns:
+        Liste de dicts avec 'text', 'intent', 'entities'
     """
     dataset = []
+    people = templates_data.get("people", [])
 
-    # 1. Générer les exemples positifs (trajets)
-    print(f"\nGeneration des exemples positifs...")
-    for template_info in templates_data["templates"]:
-        pattern = template_info["pattern"]
-        has_via = template_info.get("has_via", False)
-        has_person = template_info.get("has_person", False)
-        num_via = template_info.get("num_via", 1)  # Nombre de villes via (1 par défaut)
-
-        for _ in range(num_samples_per_template):
-            # Choisir des villes aléatoires
-            from_city = random.choice(cities)
-            to_city = random.choice([c for c in cities if c != from_city])
-
-            # Déterminer le prénom (50% de chance d'être vide si has_person=True)
-            if has_person:
-                person_name = random.choice(persons) if random.random() > 0.5 else ""
-            else:
-                person_name = ""
-
-            if has_via:
-                # Choisir plusieurs villes via différentes
-                used_cities = [from_city, to_city]
-                via_cities = []
-                for i in range(num_via):
-                    available_cities = [c for c in cities if c not in used_cities]
-                    if available_cities:
-                        via_city = random.choice(available_cities)
-                        via_cities.append(via_city)
-                        used_cities.append(via_city)
-
-                # Créer le dictionnaire de formatage
-                format_dict = {
-                    "from_city": from_city,
-                    "to_city": to_city,
-                    "person": person_name
-                }
-
-                # Ajouter les villes via avec leurs indices
-                if num_via == 1:
-                    format_dict["via_city"] = via_cities[0] if via_cities else ""
-                else:
-                    for i, via_city in enumerate(via_cities, 1):
-                        format_dict[f"via_city{i}"] = via_city
-
-                # Formater le texte
-                if has_person:
-                    if person_name:
-                        text = pattern.format(**format_dict)
-                    else:
-                        # Supprimer les placeholders de personne
-                        clean_pattern = pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "")
-                        text = clean_pattern.format(**{k: v for k, v in format_dict.items() if k != "person"})
-                else:
-                    text = pattern.format(**format_dict)
-
-                via_list = via_cities
-            else:
-                # Vérifier si le pattern contient {via_city} (utilisé comme autre chose)
-                if "{via_city}" in pattern:
-                    via_city = random.choice([c for c in cities if c not in [from_city, to_city]])
-                    if has_person:
-                        text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city, person=person_name) if person_name else pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "").format(from_city=from_city, to_city=to_city, via_city=via_city)
-                    else:
-                        text = pattern.format(from_city=from_city, to_city=to_city, via_city=via_city)
-                else:
-                    if has_person:
-                        text = pattern.format(from_city=from_city, to_city=to_city, person=person_name) if person_name else pattern.replace("Dis {person} ", "").replace("Ok {person} ", "").replace("Hey {person} ", "").replace("{person} ", "").format(from_city=from_city, to_city=to_city)
-                    else:
-                        text = pattern.format(from_city=from_city, to_city=to_city)
-                via_list = []
-
-            example = {
-                "text": text,
-                "intent": template_info["intent"],
-                "entities": {
-                    "from": from_city,
-                    "to": to_city,
-                    "via": via_list,
-                    "person": person_name
-                }
-            }
-            dataset.append(example)
-
-    print(f"  {len(dataset)} exemples positifs generes")
-
-    # 2. Générer les exemples négatifs
-    print(f"\nGeneration des exemples negatifs...")
-    negative_count = 0
-    for neg_template in templates_data["negative_examples"]:
-        pattern = neg_template["pattern"]
-
-        # Déterminer combien d'exemples générer pour ce template
-        samples_for_this = num_negative_samples // len(templates_data["negative_examples"])
-
-        for _ in range(samples_for_this):
-            # Remplacer {city} si présent
-            if "{city}" in pattern:
-                city = random.choice(cities)
-                text = pattern.format(city=city)
-            else:
-                text = pattern
-
-            example = {
-                "text": text,
-                "intent": neg_template["intent"],
-                "entities": {
-                    "from": "",
-                    "to": "",
-                    "via": [],
-                    "person": ""
-                }
-            }
-            dataset.append(example)
-            negative_count += 1
-
-    print(f"  {negative_count} exemples negatifs generes")
-
-    # Mélanger le dataset
-    random.shuffle(dataset)
-
-    return dataset
-
-def save_dataset(dataset: List[Dict], output_file="nlu/data/train_generated.json"):
-    """Sauvegarde le dataset"""
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(dataset, f, ensure_ascii=False, indent=2)
-
-    print(f"\nDataset sauvegarde dans: {output_file}")
-    print(f"Total: {len(dataset)} exemples")
-
-    # Statistiques
-    intent_trajet = sum(1 for x in dataset if x["intent"] == "trajet")
-    intent_other = sum(1 for x in dataset if x["intent"] == "other")
-    with_via = sum(1 for x in dataset if len(x["entities"]["via"]) > 0)
-    with_person = sum(1 for x in dataset if x["entities"].get("person", ""))
-
-    print(f"\nStatistiques:")
-    print(f"  - Intent 'trajet': {intent_trajet}")
-    print(f"  - Intent 'other': {intent_other}")
-    print(f"  - Avec VIA: {with_via}")
-    print(f"  - Avec PERSON: {with_person}")
-
-def show_sample(dataset: List[Dict], num_samples: int = 5):
-    """Affiche quelques exemples"""
-    print(f"\n{'='*70}")
-    print(f"EXEMPLES GENERES ({num_samples} premiers)")
-    print(f"{'='*70}")
-
-    for i, example in enumerate(dataset[:num_samples], 1):
-        print(f"\n{i}. [{example['intent']}] {example['text']}")
-        if example['intent'] == 'trajet':
-            print(f"   FROM: {example['entities']['from'] or '(vide)'}")
-            print(f"   TO: {example['entities']['to'] or '(vide)'}")
-            if example['entities']['via']:
-                print(f"   VIA: {', '.join(example['entities']['via'])}")
-            if example['entities'].get('person'):
-                print(f"   PERSON: {example['entities']['person']}")
-
-if __name__ == "__main__":
     print("="*70)
     print("GENERATION DE DATASET A PARTIR DE TEMPLATES")
     print("="*70)
 
-    # Charger les données
-    print("\nChargement des templates...")
-    templates_data = load_templates()
+    print(f"\nChargement des templates...")
     print(f"  {len(templates_data['templates'])} templates positifs")
     print(f"  {len(templates_data['negative_examples'])} templates negatifs")
 
-    print("\nChargement de la liste des villes...")
-    cities = load_cities()
+    print(f"\nChargement de la liste des villes...")
     print(f"  {len(cities)} villes chargees")
 
-    print("\nChargement de la liste des prenoms...")
-    persons = load_persons()
-    print(f"  {len(persons)} prenoms charges")
+    print(f"\nChargement de la liste des prenoms...")
+    print(f"  {len(people)} prenoms charges")
+
+    print("\n" + "="*70)
+
+    # Exemples positifs (trajet)
+    print("\nGeneration des exemples positifs...")
+    for template in templates_data["templates"]:
+        pattern = template["pattern"]
+        intent = template["intent"]
+
+        for _ in range(num_samples_per_template):
+            example = generate_from_template(pattern, cities, people)
+            example["intent"] = intent
+            dataset.append(example)
+
+    print(f"  {len(dataset)} exemples positifs generes")
+
+    # Exemples négatifs (other)
+    print("\nGeneration des exemples negatifs...")
+    num_negative_samples = max(50, len(dataset) // 3)  # Environ 1/3 du dataset
+    per_template = max(1, num_negative_samples // len(templates_data["negative_examples"]))
+
+    negative_count_start = len(dataset)
+    for template in templates_data["negative_examples"]:
+        pattern = template["pattern"]
+        intent = template["intent"]
+
+        for _ in range(per_template):
+            example = generate_from_template(pattern, cities, people)
+            example["intent"] = intent
+            dataset.append(example)
+
+    print(f"  {len(dataset) - negative_count_start} exemples negatifs generes")
+
+    # Mélanger
+    random.shuffle(dataset)
+
+    print("\n" + "="*70)
+
+    return dataset
+
+def save_dataset(dataset: List[Dict], output_file: str):
+    """Sauvegarde le dataset au format JSON"""
+    # Convertir en format avec tokens et BIO labels pour l'entraînement
+    training_data = []
+
+    for example in dataset:
+        tokens, bio_labels = text_to_bio(example["text"], example["entities"])
+        training_data.append({
+            "tokens": tokens,
+            "labels": bio_labels,
+            "intent": example["intent"]
+        })
+
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(training_data, f, ensure_ascii=False, indent=2)
+
+    print(f"\nDataset sauvegarde dans: {output_file}")
+    print(f"Total: {len(training_data)} exemples")
+
+    # Statistiques
+    intent_counts = {}
+    via_count = 0
+    person_count = 0
+
+    for example in dataset:
+        intent = example["intent"]
+        intent_counts[intent] = intent_counts.get(intent, 0) + 1
+
+        if example["entities"]["via"]:
+            via_count += 1
+        if example["entities"]["person"]:
+            person_count += 1
+
+    print("\nStatistiques:")
+    for intent, count in intent_counts.items():
+        print(f"  - Intent '{intent}': {count}")
+    print(f"  - Avec VIA: {via_count}")
+    print(f"  - Avec PERSON: {person_count}")
+
+    print("\n" + "="*70)
+    print("EXEMPLES GENERES (10 premiers)")
+    print("="*70)
+
+    for i, example in enumerate(dataset[:10], 1):
+        print(f"\n{i}. [{example['intent']}] {example['text']}")
+        if example['entities']['from']:
+            print(f"   FROM: {example['entities']['from']}")
+        if example['entities']['to']:
+            print(f"   TO: {example['entities']['to']}")
+        if example['entities']['via']:
+            print(f"   VIA: {', '.join(example['entities']['via'])}")
+        if example['entities']['person']:
+            print(f"   PERSON: {example['entities']['person']}")
+
+if __name__ == "__main__":
+    # Charger les données
+    templates_data = load_templates()
+    cities = load_cities()
 
     # Générer le dataset
-    print("\n" + "="*70)
     dataset = generate_dataset(
         templates_data,
         cities,
-        persons,
-        num_samples_per_template=10,  # 10 exemples par template
-        num_negative_samples=100       # 100 exemples négatifs au total
+        num_samples_per_template=10
     )
 
     # Appliquer l'augmentation si disponible
@@ -247,10 +262,7 @@ if __name__ == "__main__":
             dataset,
             augmentation_factor=2.0  # Double la taille du dataset
         )
+        print("\n" + "="*70)
 
     # Sauvegarder
-    print("\n" + "="*70)
-    save_dataset(dataset)
-
-    # Afficher quelques exemples
-    show_sample(dataset, num_samples=10)
+    save_dataset(dataset, "nlu/data/train_generated.json")

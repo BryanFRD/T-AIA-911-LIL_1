@@ -6,22 +6,17 @@ from transformers import pipeline
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nlu.gazetteer import CityGazetteer
-
-class HybridNLUPredictor:
+class NLUPredictor:
     """
-    Prédicteur NLU hybride combinant:
+    Prédicteur NLU combinant:
     - Modèle NER (apprentissage contextuel)
-    - Gazetteer (liste de villes connues)
     - Classification d'intent
     """
 
     def __init__(self,
                  ner_model_path="nlu/models/model_ner",
-                 intent_model_path="nlu/models/model_intent",
-                 cities_file="nlu/data/cities.json",
-                 use_gazetteer=True):
-        """Initialise les pipelines et le gazetteer"""
+                 intent_model_path="nlu/models/model_intent"):
+        """Initialise les pipelines"""
 
         # Pipeline NER
         self.ner_pipeline = pipeline(
@@ -37,13 +32,6 @@ class HybridNLUPredictor:
             model=intent_model_path,
             tokenizer=intent_model_path
         )
-
-        # Gazetteer
-        self.use_gazetteer = use_gazetteer
-        if use_gazetteer:
-            self.gazetteer = CityGazetteer(cities_file)
-        else:
-            self.gazetteer = None
 
         # Charger la config
         config_path = Path(ner_model_path) / "labels_config.json"
@@ -68,16 +56,7 @@ class HybridNLUPredictor:
 
         # Extraire les entités avec le modèle NER
         ner_result = self.ner_pipeline(text)
-        entities_ner = self._extract_entities_from_ner(ner_result)
-
-        # Si le gazetteer est activé, on l'utilise aussi
-        if self.use_gazetteer and self.gazetteer:
-            entities_gazetteer = self.gazetteer.extract_entities_with_context(text)
-
-            # Fusionner les résultats (prioriser le gazetteer si plus précis)
-            entities = self._merge_entities(entities_ner, entities_gazetteer)
-        else:
-            entities = entities_ner
+        entities = self._extract_entities_from_ner(ner_result)
 
         return {
             "text": text,
@@ -85,11 +64,7 @@ class HybridNLUPredictor:
                 "label": intent_result["label"],
                 "confidence": intent_result["score"]
             },
-            "entities": entities,
-            "sources": {
-                "ner": entities_ner,
-                "gazetteer": entities_gazetteer if self.use_gazetteer else None
-            }
+            "entities": entities
         }
 
     def _extract_entities_from_ner(self, ner_result):
@@ -120,31 +95,6 @@ class HybridNLUPredictor:
 
         return entities
 
-    def _merge_entities(self, ner_entities, gazetteer_entities):
-        """
-        Fusionne les résultats NER et Gazetteer
-        Stratégie: Prioriser le gazetteer pour les villes reconnues,
-        compléter avec NER si nécessaire
-        """
-        merged = {"from": "", "to": "", "via": [], "person": ""}
-
-        # Prioriser gazetteer pour FROM et TO (plus précis sur les villes)
-        merged["from"] = gazetteer_entities["from"] or ner_entities["from"]
-        merged["to"] = gazetteer_entities["to"] or ner_entities["to"]
-
-        # Combiner les VIA (gazetteer + ner)
-        via_set = set()
-        for via in gazetteer_entities["via"]:
-            via_set.add(via)
-        for via in ner_entities["via"]:
-            via_set.add(via)
-        merged["via"] = list(via_set)
-
-        # PERSON vient uniquement du NER (pas dans le gazetteer)
-        merged["person"] = ner_entities.get("person", "")
-
-        return merged
-
     def batch_predict(self, texts):
         """Prédit plusieurs textes en batch"""
         return [self.predict(text) for text in texts]
@@ -161,9 +111,8 @@ class HybridNLUPredictor:
 
 
 if __name__ == "__main__":
-    # Comparaison avec et sans gazetteer
     print("="*70)
-    print("COMPARAISON : NER seul vs NER + Gazetteer")
+    print("TEST DU PREDICTEUR NLU")
     print("="*70)
 
     test_texts = [
@@ -183,33 +132,18 @@ if __name__ == "__main__":
         "De Bordeaux à Strasbourg via Limoges, Clermont-Ferrand et Dijon"
     ]
 
-    # Prédicteur avec gazetteer
-    predictor_hybrid = HybridNLUPredictor(use_gazetteer=True)
-
-    # Prédicteur sans gazetteer
-    predictor_ner_only = HybridNLUPredictor(use_gazetteer=False)
+    # Prédicteur NLU
+    predictor = NLUPredictor()
 
     for text in test_texts:
         print(f"\n{'='*70}")
         print(f"Texte : {text}")
         print(f"{'='*70}")
 
-        # Résultat NER seul
-        result_ner = predictor_ner_only.predict(text)
-        print(f"\n[NER seul]")
-        print(f"  FROM: {result_ner['entities']['from'] or '(vide)'}")
-        print(f"  TO: {result_ner['entities']['to'] or '(vide)'}")
-        print(f"  VIA: {', '.join(result_ner['entities']['via']) or '(vide)'}")
-        print(f"  PERSON: {result_ner['entities'].get('person', '') or '(vide)'}")
-
-        # Résultat hybride
-        result_hybrid = predictor_hybrid.predict(text)
-        print(f"\n[NER + Gazetteer]")
-        print(f"  FROM: {result_hybrid['entities']['from'] or '(vide)'}")
-        print(f"  TO: {result_hybrid['entities']['to'] or '(vide)'}")
-        print(f"  VIA: {', '.join(result_hybrid['entities']['via']) or '(vide)'}")
-        print(f"  PERSON: {result_hybrid['entities'].get('person', '') or '(vide)'}")
-
-        # Comparaison
-        if result_ner['entities'] != result_hybrid['entities']:
-            print(f"\n  >> Amelioration detectee avec le gazetteer!")
+        # Résultat
+        result = predictor.predict(text)
+        print(f"\n[Intent] {result['intent']['label']} ({result['intent']['confidence']:.2%})")
+        print(f"  FROM: {result['entities']['from'] or '(vide)'}")
+        print(f"  TO: {result['entities']['to'] or '(vide)'}")
+        print(f"  VIA: {', '.join(result['entities']['via']) or '(vide)'}")
+        print(f"  PERSON: {result['entities'].get('person', '') or '(vide)'}")

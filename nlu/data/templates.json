@@ -1,249 +1,65 @@
 {
-  "templates": [
-    {
-      "pattern": "Je veux aller de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Comment aller de {from_city} à {to_city} ?",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Je pars de {from_city} pour aller à {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Aller de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Voyage de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Je veux aller de {from_city} à {to_city} en passant par {via_city}",
-      "intent": "trajet",
-      "has_via": true
-    },
-    {
-      "pattern": "Aller de {from_city} à {to_city} via {via_city}",
-      "intent": "trajet",
-      "has_via": true
-    },
-    {
-      "pattern": "Je pars de {from_city} pour aller à {to_city} en passant par {via_city}",
-      "intent": "trajet",
-      "has_via": true
-    },
-    {
-      "pattern": "Comment me rendre à {to_city} depuis {from_city} ?",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Il y a-t-il des trains de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Je souhaite me rendre de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Trajet {from_city} {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "Depuis {from_city} vers {to_city}",
-      "intent": "trajet",
-      "has_via": false
-    },
-    {
-      "pattern": "De {from_city} à {to_city} par {via_city}",
-      "intent": "trajet",
-      "has_via": true
-    },
-    {
-      "pattern": "{from_city} à {to_city} en passant par {via_city}",
-      "intent": "trajet",
-      "has_via": true
-    },
-    {
-      "pattern": "Route de {from_city} à {to_city} en passant par {via_city}",
-      "intent": "trajet",
-      "has_via": true
-    },
-    {
-      "pattern": "Trajet {from_city} {to_city} avec escale à {via_city}",
-      "intent": "trajet",
-      "has_via": true
-    },
-    {
-      "pattern": "Je veux aller voir mon ami {via_city} à {to_city} en partant de {from_city}",
-      "intent": "trajet",
-      "has_via": false,
-      "comment": "via_city est utilisé comme nom de personne, pas une ville étape"
-    },
-    {
-      "pattern": "Depuis {from_city} je veux aller à {to_city} pour boire un monaco",
-      "intent": "trajet",
-      "has_via": false,
-      "comment": "contient 'monaco' mais c'est bien un trajet"
-    },
-    {
-      "pattern": "Dis {person} je veux aller de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false,
-      "has_person": true,
-      "comment": "avec prénom"
-    },
-    {
-      "pattern": "Dis {person} aller de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false,
-      "has_person": true,
-      "comment": "avec prénom"
-    },
-    {
-      "pattern": "Ok {person} aller de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false,
-      "has_person": true,
-      "comment": "avec prénom"
-    },
-    {
-      "pattern": "Ok {person} trajet de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false,
-      "has_person": true,
-      "comment": "avec prénom"
-    },
-    {
-      "pattern": "Hey {person} je veux aller de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false,
-      "has_person": true,
-      "comment": "avec prénom"
-    },
-    {
-      "pattern": "{person} je voudrais aller de {from_city} à {to_city}",
-      "intent": "trajet",
-      "has_via": false,
-      "has_person": true,
-      "comment": "avec prénom"
-    },
-    {
-      "pattern": "Je veux aller de {from_city} à {to_city} via {via_city1} et {via_city2}",
-      "intent": "trajet",
-      "has_via": true,
-      "num_via": 2,
-      "comment": "2 villes via"
-    },
-    {
-      "pattern": "Aller de {from_city} à {to_city} en passant par {via_city1} et {via_city2}",
-      "intent": "trajet",
-      "has_via": true,
-      "num_via": 2,
-      "comment": "2 villes via"
-    },
-    {
-      "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2} et {via_city3}",
-      "intent": "trajet",
-      "has_via": true,
-      "num_via": 3,
-      "comment": "3 villes via"
-    },
-    {
-      "pattern": "Trajet de {from_city} à {to_city} en passant par {via_city1}, {via_city2} et {via_city3}",
-      "intent": "trajet",
-      "has_via": true,
-      "num_via": 3,
-      "comment": "3 villes via"
-    }
+  "people": [
+    "Maude",
+    "Valérian",
+    "Simon",
+    "Jayce"
   ],
+
+  "templates": [
+    { "pattern": "Je veux aller de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Aller de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Voyage de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Trajet de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Je pars de {from_city} pour aller à {to_city}", "intent": "trajet" },
+    { "pattern": "Je vais de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Il faut que j'aille de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Je dois aller à {to_city} depuis {from_city}", "intent": "trajet" },
+    { "pattern": "Je veux aller à {to_city} depuis {from_city}", "intent": "trajet" },
+    { "pattern": "Aller à {to_city} depuis {from_city}", "intent": "trajet" },
+    { "pattern": "Comment aller de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Comment me rendre à {to_city} depuis {from_city}", "intent": "trajet" },
+    { "pattern": "Quel est le trajet de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Il y a-t-il des trains de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "{from_city} {to_city}", "intent": "trajet" },
+    { "pattern": "{from_city} vers {to_city}", "intent": "trajet" },
+    { "pattern": "{from_city} -> {to_city}", "intent": "trajet" },
+    { "pattern": "Trajet {from_city} {to_city}", "intent": "trajet" },
+    
+    { "pattern": "Je veux aller de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
+    { "pattern": "Aller de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
+    { "pattern": "De {from_city} à {to_city} par {via_city}", "intent": "trajet" },
+    { "pattern": "{from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
+    { "pattern": "Trajet de {from_city} vers {to_city} via {via_city}", "intent": "trajet" },
+    { "pattern": "De {from_city} à {to_city} avec un arrêt à {via_city}", "intent": "trajet" },
+
+    { "pattern": "Je veux aller de {from_city} à {to_city} via {via_city1} et {via_city2}", "intent": "trajet" },
+    { "pattern": "Aller de {from_city} à {to_city} en passant par {via_city1} et {via_city2}", "intent": "trajet" },
+    { "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2}", "intent": "trajet" },
+    { "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2} et {via_city3}", "intent": "trajet" },
+    { "pattern": "Trajet de {from_city} à {to_city} en passant par {via_city1}, {via_city2} et {via_city3}", "intent": "trajet" },
+
+    { "pattern": "Dis {person} je veux aller de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "{person} je voudrais aller de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Hey {person} aller de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Ok {person} trajet de {from_city} à {to_city}", "intent": "trajet" },
+
+    { "pattern": "Je veux faire {from_city} {to_city}", "intent": "trajet" },
+    { "pattern": "Aller {from_city} {to_city}", "intent": "trajet" },
+    { "pattern": "Trajet {from_city} vers {to_city}", "intent": "trajet" },
+    { "pattern": "Comment aller à {to_city}", "intent": "trajet" },
+    { "pattern": "Je veux aller à {to_city}", "intent": "trajet" }
+  ],
+
   "negative_examples": [
-    {
-      "pattern": "Je veux boire un monaco à {city}",
-      "intent": "other"
-    },
-    {
-      "pattern": "J'aimerais commander un monaco bien frais",
-      "intent": "other"
-    },
-    {
-      "pattern": "Est-ce que vous servez des monaco ?",
-      "intent": "other"
-    },
-    {
-      "pattern": "Un monaco et une pinte s'il vous plaît",
-      "intent": "other"
-    },
-    {
-      "pattern": "Quel est le prix d'un monaco ici ?",
-      "intent": "other"
-    },
-    {
-      "pattern": "Je vais prendre un café",
-      "intent": "other"
-    },
-    {
-      "pattern": "Il fait beau aujourd'hui",
-      "intent": "other"
-    },
-    {
-      "pattern": "Quelle heure est-il ?",
-      "intent": "other"
-    },
-    {
-      "pattern": "Bonjour comment allez-vous ?",
-      "intent": "other"
-    },
-    {
-      "pattern": "Je voudrais réserver une table pour deux",
-      "intent": "other"
-    },
-    {
-      "pattern": "Avez-vous le wifi ?",
-      "intent": "other"
-    },
-    {
-      "pattern": "Combien coûte ce billet ?",
-      "intent": "other"
-    },
-    {
-      "pattern": "Je cherche les toilettes",
-      "intent": "other"
-    },
-    {
-      "pattern": "Pouvez-vous m'aider ?",
-      "intent": "other"
-    },
-    {
-      "pattern": "{city} est une belle ville",
-      "intent": "other"
-    },
-    {
-      "pattern": "J'adore {city}",
-      "intent": "other"
-    },
-    {
-      "pattern": "{city} en été c'est magnifique",
-      "intent": "other"
-    },
-    {
-      "pattern": "Je suis né à {city}",
-      "intent": "other"
-    },
-    {
-      "pattern": "Mon frère habite à {city}",
-      "intent": "other"
-    }
+    { "pattern": "Je veux boire un monaco", "intent": "other" },
+    { "pattern": "Un monaco s'il vous plaît", "intent": "other" },
+    { "pattern": "Je vais prendre un café", "intent": "other" },
+    { "pattern": "Quelle heure est-il", "intent": "other" },
+    { "pattern": "Bonjour comment ça va", "intent": "other" },
+    { "pattern": "{city} est une belle ville", "intent": "other" },
+    { "pattern": "J'adore {city}", "intent": "other" },
+    { "pattern": "Je suis né à {city}", "intent": "other" },
+    { "pattern": "Mon frère habite à {city}", "intent": "other" }
   ]
 }

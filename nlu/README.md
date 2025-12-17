@@ -26,8 +26,7 @@ nlu/
 │   └── model_intent/            # Modèle Intent entraîné
 ├── train.py                     # Entraînement des modèles
 ├── generate_from_templates.py   # Génère le dataset depuis templates
-├── gazetteer.py                 # Classe CityGazetteer (liste de villes)
-└── predict.py                   # Prédiction hybride (NER + Gazetteer)
+└── predict.py                   # Prédiction NLU (NER + Intent)
 ```
 
 ## 🎯 Concepts clés
@@ -88,75 +87,6 @@ Classification d'intention qui détermine ce que l'utilisateur veut faire.
 - Évite les faux positifs (ex: "monaco" dans "boire un monaco")
 - Permet de filtrer les demandes non pertinentes
 
-### 3. **Gazetteer**
-Liste de villes françaises connues avec recherche par pattern matching.
-
-**Comment ça marche ?**
-- Liste explicite de 193 villes dans `cities.json`
-- Recherche ces villes dans le texte avec regex
-- Utilise le contexte pour déterminer FROM/TO/VIA
-  - "de X" → FROM
-  - "à X", "vers X" → TO
-  - "via X", "en passant par X" → VIA
-
-**Avantages :**
-- 100% précis sur les villes répertoriées
-- Pas besoin d'entraînement
-- Gère parfaitement les noms composés ("Saint-Étienne")
-
-**Inconvénients :**
-- Ne connaît que les villes de la liste
-- Peut manquer des variantes ou nouvelles villes
-
-### 4. **Système Hybride** (Recommandé)
-Combine NER + Gazetteer pour le meilleur des deux mondes.
-
-**Comment ça marche ?**
-1. Le modèle NER fait sa prédiction
-2. Le Gazetteer fait sa recherche
-3. Les résultats sont fusionnés en priorisant le Gazetteer
-
-**Stratégie de fusion :**
-- Si le Gazetteer trouve une ville → on la prend
-- Sinon → on prend la prédiction du NER
-- Pour les VIA → on combine les deux sources
-- Pour les PERSON → on prend uniquement le NER (pas dans le Gazetteer)
-
-**Exemple :**
-```
-Phrase : "Dis Valérian je veux aller de Paris à Saint-Étienne"
-
-NER seul :
-  FROM: Paris
-  TO: Saint Étienne (peut séparer le nom)
-  PERSON: Valérian
-
-Gazetteer seul :
-  FROM: Paris
-  TO: Saint-Étienne (nom exact)
-
-Hybride (fusion) :
-  FROM: Paris
-  TO: Saint-Étienne (prend le Gazetteer, plus précis)
-  PERSON: Valérian (du NER)
-```
-
-**Exemple sans prénom :**
-```
-Phrase : "Je veux aller de Paris à Saint-Étienne"
-
-NER seul :
-  FROM: Paris
-  TO: Saint Étienne (peut séparer le nom)
-
-Gazetteer seul :
-  FROM: Paris
-  TO: Saint-Étienne (nom exact)
-
-Hybride (fusion) :
-  FROM: Paris
-  TO: Saint-Étienne (prend le Gazetteer, plus précis)
-```
 
 ## 🎯 Data Augmentation
 
@@ -296,15 +226,14 @@ python nlu/predict.py
 
 Ce script :
 - Charge les modèles depuis `models/`
-- Teste avec et sans Gazetteer
-- Affiche une comparaison des résultats
+- Teste plusieurs exemples
+- Affiche les résultats de prédiction
 
 **Utiliser en Python :**
 ```python
-from nlu.predict import HybridNLUPredictor
+from nlu.predict import NLUPredictor
 
-# Avec Gazetteer (recommandé)
-predictor = HybridNLUPredictor(use_gazetteer=True)
+predictor = NLUPredictor()
 
 result = predictor.predict("Je veux aller de Paris à Lyon")
 print(result)
@@ -323,10 +252,6 @@ print(result)
     "to": "Lyon",
     "via": [],
     "person": ""
-  },
-  "sources": {
-    "ner": {"from": "Paris", "to": "Lyon", "via": [], "person": ""},
-    "gazetteer": {"from": "Paris", "to": "Lyon", "via": []}
   }
 }
 ```
@@ -369,16 +294,6 @@ result = predictor.predict_simple("Je veux aller de Paris à Lyon")
 # {'intent': 'trajet', 'from': 'Paris', 'to': 'Lyon', 'via': [], 'person': ''}
 ```
 
-## 📊 Comparaison des approches
-
-| Approche | Entraînement | Prédiction | Précision | Flexibilité |
-|----------|--------------|------------|-----------|-------------|
-| **NER seul** | ✅ Nécessaire | Rapide | Moyenne | Haute |
-| **Gazetteer seul** | ❌ Aucun | Rapide | Haute* | Basse |
-| **Hybride** | ✅ Nécessaire | Rapide | Très haute | Haute |
-
-\* Sur villes connues uniquement
-
 ## 📝 Personnalisation
 
 ### Ajouter des villes
@@ -393,7 +308,11 @@ Modifiez `data/cities.json` :
 ]
 ```
 
-**Pas besoin de réentraîner** si vous utilisez le système hybride ! Le Gazetteer les reconnaîtra immédiatement.
+Ensuite, **régénérez le dataset** et **réentraînez le modèle** :
+```bash
+python nlu/generate_from_templates.py
+python nlu/train.py
+```
 
 ### Ajouter des prénoms
 
@@ -460,9 +379,7 @@ python nlu/train.py
 
 ### Q: Faut-il réentraîner si j'ajoute une ville ?
 
-**Non**, si vous utilisez le système hybride ! Ajoutez simplement la ville dans `cities.json` et le Gazetteer la reconnaîtra immédiatement.
-
-Si vous utilisez le NER seul, il faut :
+**Oui**, pour que le modèle apprenne à reconnaître la nouvelle ville :
 1. Ajouter la ville dans `cities.json`
 2. Régénérer le dataset : `python nlu/generate_from_templates.py`
 3. Réentraîner : `python nlu/train.py`
@@ -542,21 +459,15 @@ Puis réentraînez : `python nlu/train.py`
 1. **Ajouter plus de templates** dans `templates.json`
 2. **Augmenter le nombre d'exemples** par template dans `generate_from_templates.py`
 3. **Augmenter les époques** d'entraînement dans `config.json` (ex: 10 au lieu de 5)
-4. **Utiliser le système hybride** (NER + Gazetteer)
-5. **Ajouter des exemples négatifs** pour éviter les faux positifs
+4. **Ajouter des exemples négatifs** pour éviter les faux positifs
 
 ## 📈 Performances attendues
 
-### Modèle simple (285 exemples)
+### Modèle avec augmentation (600+ exemples)
 - Intent : ~95% de confiance
 - Entités FROM/TO : 85-90% de précision
-- Entités VIA : 70-80% de précision
-
-### Système hybride (modèle + gazetteer)
-- Intent : ~95% de confiance
-- Entités FROM/TO : 95-98% de précision (sur villes connues)
-- Entités VIA : 85-95% de précision
-- Excellente gestion des noms composés
+- Entités VIA : 75-85% de précision
+- Robustesse aux variations de langage
 
 ## 🛠️ Dépendances
 
