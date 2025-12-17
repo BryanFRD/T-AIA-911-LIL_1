@@ -253,7 +253,7 @@ if __name__ == "__main__":
     dataset = generate_dataset(
         templates_data,
         cities,
-        num_samples_per_template=10
+        num_samples_per_template=20  # Augmenté de 10 à 20
     )
 
     # Appliquer l'augmentation si disponible
@@ -264,7 +264,7 @@ if __name__ == "__main__":
         augmenter = NLUAugmenter()
         dataset = augmenter.augment_dataset(
             dataset,
-            augmentation_factor=2.0  # Double la taille du dataset
+            augmentation_factor=3.0  # Augmenté de 2.0 à 3.0
         )
         print("\n" + "="*70)
 

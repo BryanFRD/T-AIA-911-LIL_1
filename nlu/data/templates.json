@@ -48,7 +48,39 @@
     { "pattern": "Aller {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Trajet {from_city} vers {to_city}", "intent": "trajet" },
     { "pattern": "Comment aller à {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux aller à {to_city}", "intent": "trajet" }
+    { "pattern": "Je veux aller à {to_city}", "intent": "trajet" },
+
+    { "pattern": "Trajet depuis {from_city} direction {to_city}", "intent": "trajet" },
+    { "pattern": "Me rendre de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Besoin d'aller de {from_city} vers {to_city}", "intent": "trajet" },
+    { "pattern": "Un billet de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Prendre le train de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Rejoindre {to_city} depuis {from_city}", "intent": "trajet" },
+    { "pattern": "Je cherche un trajet de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Je voudrais partir de {from_city} pour {to_city}", "intent": "trajet" },
+    { "pattern": "Départ de {from_city} arrivée à {to_city}", "intent": "trajet" },
+    { "pattern": "Comment rejoindre {to_city} depuis {from_city}", "intent": "trajet" },
+    { "pattern": "Itinéraire de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Route de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Partir de {from_city} direction {to_city}", "intent": "trajet" },
+    { "pattern": "Je souhaite aller de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Quelle est la route de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Y a-t-il un train de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Connexion {from_city} {to_city}", "intent": "trajet" },
+    { "pattern": "De {from_city} direction {to_city}", "intent": "trajet" },
+    { "pattern": "Je prends le train de {from_city} à {to_city}", "intent": "trajet" },
+    { "pattern": "Je dois me rendre de {from_city} à {to_city}", "intent": "trajet" },
+
+    { "pattern": "Route de {from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
+    { "pattern": "Itinéraire {from_city} {to_city} via {via_city}", "intent": "trajet" },
+    { "pattern": "Je veux passer par {via_city} entre {from_city} et {to_city}", "intent": "trajet" },
+    { "pattern": "Trajet {from_city} {to_city} avec escale à {via_city}", "intent": "trajet" },
+    { "pattern": "Depuis {from_city} vers {to_city} par {via_city}", "intent": "trajet" },
+    { "pattern": "Comment aller de {from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
+
+    { "pattern": "Route {from_city} {to_city} via {via_city1} {via_city2}", "intent": "trajet" },
+    { "pattern": "Itinéraire de {from_city} à {to_city} par {via_city1} et {via_city2}", "intent": "trajet" },
+    { "pattern": "{from_city} vers {to_city} en passant par {via_city1} {via_city2}", "intent": "trajet" }
   ],
 
   "negative_examples": [
