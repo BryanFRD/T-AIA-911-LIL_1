@@ -26,7 +26,6 @@ def main():
     print(f"\nDevice sélectionné: {device.upper()}")
     print("="*70 + "\n")
 
-    # === Config et dataset ===
     DEFAULT_MODEL = "camembert-base"
     CONFIG_FILE = "nlu/config.json"
     OUTPUT_DIR_NER = "nlu/models/model_ner"
@@ -41,7 +40,7 @@ def main():
     else:
         config = {
             "tokenizer": {"type": DEFAULT_MODEL, "max_length": 128},
-            "training": {"epochs": 5, "batch_size": 8, "learning_rate": 5e-5},
+            "training": {"epochs": 5, "batch_size": 16, "learning_rate": 5e-5},  # Augmenté de 8 à 16
             "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA"],
             "intent_labels": ["trajet", "other"]
         }
@@ -62,7 +61,6 @@ def main():
 
     tokenizer = AutoTokenizer.from_pretrained(config["tokenizer"]["type"])
 
-    # === NER ===
     id2label_ner = dict(enumerate(config["entity_labels"]))
     label2id_ner = {label: i for i, label in enumerate(config["entity_labels"])}
     model_ner = AutoModelForTokenClassification.from_pretrained(
@@ -72,7 +70,7 @@ def main():
         label2id=label2id_ner
     )
     model_ner.to(device)
-    model_ner.gradient_checkpointing_enable()
+    # gradient_checkpointing désactivé pour plus de vitesse (CamemBERT-base tient en mémoire)
 
     def tokenize_and_align_labels_ner(examples):
         all_input = []
@@ -116,8 +114,8 @@ def main():
     tokenized_dataset_ner = dataset.map(
         tokenize_and_align_labels_ner,
         batched=True,
-        batch_size=32,
-        num_proc=1  # <-- mettre 1 sur Windows pour éviter les crashs
+        batch_size=64,  # Augmenté de 32 à 64
+        num_proc=4  # Multi-threading pour tokenisation
     )
     data_collator_ner = DataCollatorForTokenClassification(tokenizer, pad_to_multiple_of=8)
 
@@ -127,11 +125,13 @@ def main():
         per_device_train_batch_size=config["training"]["batch_size"],
         learning_rate=config["training"]["learning_rate"],
         logging_dir="./logs/ner",
-        logging_steps=10,
-        save_strategy="epoch",
+        logging_steps=50,  # Réduit le logging pour accélérer
+        save_strategy="no",  # Ne sauvegarder qu'à la fin
         overwrite_output_dir=True,
         fp16=(device=="cuda"),
-        gradient_accumulation_steps=2
+        gradient_accumulation_steps=1,  # Réduit de 2 à 1 (batch_size doublé)
+        dataloader_num_workers=2,  # Accélère chargement données
+        dataloader_pin_memory=True  # Optimisation GPU
     )
 
     trainer_ner = Trainer(
@@ -142,11 +142,87 @@ def main():
         data_collator=data_collator_ner
     )
 
+    print("\n" + "="*70)
+    print("ENTRAÎNEMENT DU MODÈLE NER")
+    print("="*70)
     trainer_ner.train()
     model_ner.save_pretrained(OUTPUT_DIR_NER)
     tokenizer.save_pretrained(OUTPUT_DIR_NER)
-    print(f"[OK] Modèle NER sauvegardé dans {OUTPUT_DIR_NER}")
+
+    with open(f"{OUTPUT_DIR_NER}/labels_config.json", "w") as f:
+        json.dump({"entity_labels": config["entity_labels"]}, f, indent=2)
+
+    print(f"\n[OK] Modèle NER sauvegardé dans {OUTPUT_DIR_NER}")
+
+    print("\n" + "="*70)
+    print("ENTRAÎNEMENT DU MODÈLE INTENT")
+    print("="*70)
+
+    # Créer les mappings intent
+    id2label_intent = dict(enumerate(config["intent_labels"]))
+    label2id_intent = {label: i for i, label in enumerate(config["intent_labels"])}
+
+    model_intent = AutoModelForSequenceClassification.from_pretrained(
+        config["tokenizer"]["type"],
+        num_labels=len(config["intent_labels"]),
+        id2label=id2label_intent,
+        label2id=label2id_intent
+    )
+    model_intent.to(device)
+    # gradient_checkpointing désactivé pour plus de vitesse
+
+    def tokenize_intent(examples):
+        tokenized = tokenizer(
+            examples["text"],
+            truncation=True,
+            max_length=config["tokenizer"]["max_length"]
+            # Pas de padding ici, fait dynamiquement par le DataCollator (plus efficace)
+        )
+        tokenized["labels"] = [label2id_intent[intent] for intent in examples["intent"]]
+        return tokenized
+
+    tokenized_dataset_intent = dataset.map(
+        tokenize_intent,
+        batched=True,
+        batch_size=64,  # Augmenté de 32 à 64
+        num_proc=4  # Multi-threading
+    )
+
+    training_args_intent = TrainingArguments(
+        output_dir=OUTPUT_DIR_INTENT,
+        num_train_epochs=config["training"]["epochs"],
+        per_device_train_batch_size=config["training"]["batch_size"],
+        learning_rate=config["training"]["learning_rate"],
+        logging_dir="./logs/intent",
+        logging_steps=50,  # Réduit le logging
+        save_strategy="no",  # Ne sauvegarder qu'à la fin
+        overwrite_output_dir=True,
+        fp16=(device=="cuda"),
+        gradient_accumulation_steps=1,  # Réduit de 2 à 1
+        dataloader_num_workers=2,  # Accélère chargement
+        dataloader_pin_memory=True  # Optimisation GPU
+    )
+
+    trainer_intent = Trainer(
+        model=model_intent,
+        args=training_args_intent,
+        train_dataset=tokenized_dataset_intent,
+        tokenizer=tokenizer
+    )
+
+    trainer_intent.train()
+    model_intent.save_pretrained(OUTPUT_DIR_INTENT)
+    tokenizer.save_pretrained(OUTPUT_DIR_INTENT)
+
+    with open(f"{OUTPUT_DIR_INTENT}/labels_config.json", "w") as f:
+        json.dump({"intent_labels": config["intent_labels"]}, f, indent=2)
+
+    print(f"\n[OK] Modèle Intent sauvegardé dans {OUTPUT_DIR_INTENT}")
+
+    print("\n" + "="*70)
+    print("ENTRAÎNEMENT TERMINÉ")
+    print("="*70)
 
 if __name__ == "__main__":
-    freeze_support()  # nécessaire sur Windows pour multiprocessing
+    freeze_support()
     main()
