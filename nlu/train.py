@@ -14,11 +14,28 @@ from datasets import Dataset
 import torch
 
 # === Détection GPU automatique ===
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Device utilisé: {device.upper()}")
-if device == "cuda":
-    print(f"GPU détecté: {torch.cuda.get_device_name(0)}")
-    print(f"Mémoire GPU disponible: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+print("="*70)
+print("CONFIGURATION SYSTÈME")
+print("="*70)
+
+# Informations PyTorch
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA disponible: {torch.cuda.is_available()}")
+
+if torch.cuda.is_available():
+    print(f"CUDA version: {torch.version.cuda}")
+    print(f"cuDNN version: {torch.backends.cudnn.version()}")
+    print(f"Nombre de GPU: {torch.cuda.device_count()}")
+    print(f"GPU actuel: {torch.cuda.current_device()}")
+    print(f"Nom du GPU: {torch.cuda.get_device_name(0)}")
+    print(f"Mémoire GPU totale: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+    device = "cuda"
+else:
+    print("Aucun GPU CUDA détecté - utilisation du CPU")
+    device = "cpu"
+
+print(f"\nDevice sélectionné pour l'entraînement: {device.upper()}")
+print("="*70 + "\n")
 
 # === Config par défaut ===
 DEFAULT_MODEL = "camembert-base"
@@ -55,10 +72,13 @@ dataset_path = "nlu/data/train_generated.json"
 if os.path.exists(dataset_path):
     with open(dataset_path) as f:
         raw_data = json.load(f)
+
+    # Le dataset généré contient déjà tokens, labels (BIO), et intent
+    # On va reconstruire le texte à partir des tokens
     dataset = Dataset.from_list([{
-        "text": item["text"],
+        "text": " ".join(item["tokens"]),
         "intent": item["intent"],
-        "entities": item["entities"]
+        "labels_bio": item["labels"]  # Labels BIO pré-calculés
     } for item in raw_data])
     print(f"Dataset charge: {dataset_path} ({len(dataset)} exemples)")
 else:
@@ -83,63 +103,54 @@ model_ner = AutoModelForTokenClassification.from_pretrained(
     label2id=label2id_ner
 )
 
-def find_entity_spans(text, entity_value):
-    """Trouve les indices de début et fin d'une entité dans le texte"""
-    if not entity_value:
-        return []
-    text_lower = text.lower()
-    entity_lower = entity_value.lower()
-    start = text_lower.find(entity_lower)
-    if start == -1:
-        return []
-    return [(start, start + len(entity_lower))]
-
-def get_token_label(start, end, offsets, entity_spans_dict):
-    """Détermine le label BIO d'un token donné"""
-    for entity_type, spans in entity_spans_dict.items():
-        for span_start, span_end in spans:
-            if start >= span_start and end <= span_end:
-                # Vérifier si c'est le début de l'entité (B-) ou la suite (I-)
-                offset_idx = offsets.index((start, end))
-                is_begin = (start == span_start) or (offset_idx > 0 and offsets[offset_idx - 1][1] < span_start)
-                prefix = "B-" if is_begin else "I-"
-                return prefix + entity_type
-    return "O"
-
 def tokenize_and_align_labels_ner(example):
-    """Tokenize et aligne les labels BIO pour NER"""
+    """
+    Tokenize avec CamemBERT et aligne les labels BIO pré-calculés
+
+    Les labels BIO sont déjà calculés au niveau des mots. Il faut les aligner
+    avec les sous-tokens du tokenizer CamemBERT.
+    """
     tokenized_inputs = tokenizer(
         example["text"],
         truncation=True,
         max_length=config["tokenizer"]["max_length"],
-        return_offsets_mapping=True
+        return_offsets_mapping=True,
+        is_split_into_words=False
     )
 
     offsets = tokenized_inputs["offset_mapping"]
+    labels_bio = example["labels_bio"]
 
-    # Collecter tous les spans d'entités
-    from_spans = find_entity_spans(example["text"], example["entities"].get("from", ""))
-    to_spans = find_entity_spans(example["text"], example["entities"].get("to", ""))
-    via_spans = []
-    for via_item in example["entities"].get("via", []):
-        via_spans.extend(find_entity_spans(example["text"], via_item))
-    person_spans = find_entity_spans(example["text"], example["entities"].get("person", ""))
+    # Reconstruire un mapping position → label BIO
+    # Les labels_bio correspondent aux mots séparés par des espaces
+    words = example["text"].split()
 
-    entity_spans_dict = {
-        "FROM": from_spans,
-        "TO": to_spans,
-        "VIA": via_spans,
-        "PERSON": person_spans
-    }
+    # Créer un mapping: position dans le texte → label BIO
+    char_to_label = {}
+    char_pos = 0
+    for word_idx, word in enumerate(words):
+        # Trouver la position du mot dans le texte
+        word_start = example["text"].find(word, char_pos)
+        if word_start == -1:
+            continue
+        word_end = word_start + len(word)
 
-    # Créer les labels pour chaque token
+        # Assigner le label à toutes les positions de ce mot
+        if word_idx < len(labels_bio):
+            for i in range(word_start, word_end):
+                char_to_label[i] = labels_bio[word_idx]
+
+        char_pos = word_end
+
+    # Aligner les labels avec les tokens du tokenizer
     labels = []
     for start, end in offsets:
-        if start == end:  # Token spécial
+        if start == end:  # Token spécial (CLS, SEP, PAD)
             labels.append(-100)
         else:
-            label = get_token_label(start, end, offsets, entity_spans_dict)
-            labels.append(config["entity_labels"].index(label))
+            # Prendre le label du premier caractère du token
+            label_str = char_to_label.get(start, "O")
+            labels.append(config["entity_labels"].index(label_str))
 
     tokenized_inputs.pop("offset_mapping")
     tokenized_inputs["labels"] = labels
@@ -158,7 +169,7 @@ training_args_ner = TrainingArguments(
     logging_steps=10,
     save_strategy="epoch",
     overwrite_output_dir=True,
-    no_cuda=(device == "cpu")
+    use_cpu=(device == "cpu")
 )
 
 trainer_ner = Trainer(
@@ -168,6 +179,11 @@ trainer_ner = Trainer(
     tokenizer=tokenizer,
     data_collator=data_collator_ner
 )
+
+# Vérifier le device du modèle avant l'entraînement
+print(f"\n[INFO] Modèle NER sur device: {next(model_ner.parameters()).device}")
+print(f"[INFO] Nombre total de steps: {len(tokenized_dataset_ner) // config['training']['batch_size'] * config['training']['epochs']}")
+print()
 
 trainer_ner.train()
 model_ner.save_pretrained(OUTPUT_DIR_NER)
@@ -211,7 +227,7 @@ training_args_intent = TrainingArguments(
     logging_steps=10,
     save_strategy="epoch",
     overwrite_output_dir=True,
-    no_cuda=(device == "cpu")
+    use_cpu=(device == "cpu")
 )
 
 trainer_intent = Trainer(
@@ -220,6 +236,11 @@ trainer_intent = Trainer(
     train_dataset=tokenized_dataset_intent,
     tokenizer=tokenizer
 )
+
+# Vérifier le device du modèle avant l'entraînement
+print(f"\n[INFO] Modèle Intent sur device: {next(model_intent.parameters()).device}")
+print(f"[INFO] Nombre total de steps: {len(tokenized_dataset_intent) // config['training']['batch_size'] * config['training']['epochs']}")
+print()
 
 trainer_intent.train()
 model_intent.save_pretrained(OUTPUT_DIR_INTENT)
