@@ -31,7 +31,7 @@ stages:
     # Installer torch et torchvision depuis l'index PyTorch
     - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed torch==2.0.1+cu117 torchvision==0.15.2+cu117 --index-url https://download.pytorch.org/whl/cu117
     # Installer le reste depuis PyPI normal
-    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed numpy==1.26.4 transformers==4.30.2 datasets==4.4.1 accelerate==1.12.0 huggingface-hub==0.36.0 pyarrow==22.0.0
+    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed numpy==1.26.4 transformers==4.30.2 datasets==4.4.1 accelerate==1.12.0 huggingface-hub==0.36.0 pyarrow==22.0.0 scikit-learn>=1.3.0
     - python -c "import torch; print('CUDA:', torch.cuda.is_available(), 'GPUs:', torch.cuda.device_count(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)"
 
 # ===============================
