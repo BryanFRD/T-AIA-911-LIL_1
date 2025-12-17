@@ -38,7 +38,7 @@ stages:
   extends: .python_base
   script:
     - pip install --cache-dir=/cache/pip -r requirements.txt
-    - nvidia-smi && python -c "import torch; print('CUDA:', torch.cuda.is_available(), 'GPUs:', torch.cuda.device_count(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)"
+    - python -c "import torch; print('CUDA:', torch.cuda.is_available(), 'GPUs:', torch.cuda.device_count(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)"
 
 init:dependencies:
   stage: init
