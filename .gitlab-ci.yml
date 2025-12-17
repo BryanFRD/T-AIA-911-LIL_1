@@ -24,12 +24,10 @@ stages:
   image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
   before_script:
     - python --version
-    - mkdir -p /cache/pip /cache/venv
+    - mkdir -p /cache/pip
     - export PIP_CACHE_DIR="/cache/pip"
     - export XDG_CACHE_HOME="/cache"
     - pip install --upgrade pip
-    - python -m venv /cache/venv
-    - source /cache/venv/bin/activate
 
 # ===============================
 # INIT
