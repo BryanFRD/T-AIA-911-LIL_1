@@ -4,6 +4,7 @@
 variables:
   PYTHON_VERSION: "3.11"
   PIP_CACHE_DIR: "/cache/pip"
+  HF_HOME: "/cache/huggingface"
   XDG_CACHE_HOME: "/cache"
   MODEL_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
   MODEL_VERSION: "${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
@@ -24,7 +25,7 @@ stages:
   image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
   before_script:
     - python --version
-    - mkdir -p /cache/pip
+    - mkdir -p /cache/pip /cache/huggingface
     - export PIP_CACHE_DIR="/cache/pip"
     - export XDG_CACHE_HOME="/cache"
     - pip install --upgrade pip
