@@ -122,20 +122,77 @@ if __name__ == "__main__":
     print("="*70)
 
     test_texts = [
+        # === Cas simples (FROM -> TO) ===
         "Je veux aller de Paris à Lyon",
-        "Je veux aller de Marseille à Nice en passant par Cannes",
+        "Trajet Marseille Nice",
         "Comment me rendre à Port-Boulet depuis la gare de Tours ?",
-        "Je veux faire Saint Denis Saint Etienne",
+
+        # === Sans FROM (position implicite) ===
+        "Emmène-moi à Lyon",
+        "Je veux aller à Bordeaux",
+        "Direction Marseille",
+        "Comment aller à Strasbourg",
+
+        # === Avec VIA (1-3 villes) ===
+        "Je veux aller de Marseille à Nice en passant par Cannes",
         "Aller de Lille à Strasbourg en passant par Reims",
-        "Voyage de Bordeaux à La Rochelle via Rochefort",
-        "Je pars de Nantes pour aller à Montaigu",
-        "Dis Valérian je veux aller de Paris à Lyon",
+        "De Bordeaux à Strasbourg via Limoges, Clermont-Ferrand et Dijon",
+        "Route Paris Lyon via Dijon",
+
+        # === Avec interpellations de personnes ===
+        "Hey Maude je veux aller de Paris à Lyon",
+        "Dis Valérian, emmène-moi à Marseille",
         "Ok Simon aller de Marseille à Nice",
-        "Hey Maude comment aller de Lille à Strasbourg",
-        "Jayce je voudrais aller de Bordeaux à Toulouse",
-        "Je veux aller de Paris à Lyon via Dijon et Mâcon",
-        "Aller de Marseille à Lille en passant par Lyon et Dijon",
-        "De Bordeaux à Strasbourg via Limoges, Clermont-Ferrand et Dijon"
+        "Écoute Jayce, comment aller à Bordeaux",
+        "Yo Maude trajet Paris Lyon",
+
+        # === Langage oral / SMS ===
+        "jveux alé de paris a lyon",
+        "cmt aller a marseille",
+        "trajet pr bordeaux",
+
+        # === Avec fautes de frappe ===
+        "Je vuex aller de Pars à Lyin",
+        "Trahjet Marseil Nice",
+
+        # === Avec contractions orales ===
+        "chuis à Paris, j'veux aller à Lyon",
+        "j'dois m'rendre de Marseille à Nice",
+
+        # === Avec mots parasites ===
+        "Genre je veux aller de Paris à Lyon tu vois",
+        "Bon euh je dois aller à Marseille enfin",
+        "Alors voilà je voudrais aller de Lille à Strasbourg",
+
+        # === Avec répétitions / bégaiement ===
+        "Je je veux aller de Paris à Lyon",
+        "tra- trajet Marseille Nice",
+
+        # === Ordre des mots inversé ===
+        "De Paris à Lyon je veux aller",
+        "Aller à Marseille je dois",
+
+        # === Cas complexes (plusieurs difficultés combinées) ===
+        "Hey Maude euh genre jveux alé d paris a lyon tu vois",
+        "Dis Simon, chuis à Bordeaux, j'dois m'rendre à Toulouse via Agen",
+        "Yo Valérian trajet pr marseille stp",
+        "Écoute Jayce euh... je je veux aller de Lille à Strasbourg en passant par Reims et Metz",
+
+        # === Lowercase / UPPERCASE / MiXeD ===
+        "je veux aller de paris à lyon",
+        "JE VEUX ALLER DE PARIS À LYON",
+        "Je VeUx AlLeR dE pArIs À lYoN",
+
+        # === Ponctuation variée ===
+        "Je veux aller de Paris à Lyon!",
+        "Trajet Paris Lyon...",
+        "Comment aller de Marseille à Nice?",
+
+        # === Exemples négatifs (pas de trajet) ===
+        "Quelle heure est-il",
+        "J'adore Paris",
+        "Mon frère habite à Lyon",
+        "Je veux boire un café",
     ]
 
     # Prédicteur NLU
