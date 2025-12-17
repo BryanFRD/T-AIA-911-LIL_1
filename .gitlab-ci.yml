@@ -69,8 +69,19 @@ train:nlu:
     - python nlu/predict.py
   artifacts:
     paths:
-      - nlu/models/
-      - nlu/data/train_generated.json
+      # Modèles finaux uniquement (pas les checkpoints)
+      - nlu/models/model_ner/*.bin
+      - nlu/models/model_ner/*.json
+      - nlu/models/model_ner/*.txt
+      - nlu/models/model_ner/*.onnx
+      - nlu/models/model_ner/*.pt
+      - nlu/models/model_intent/*.bin
+      - nlu/models/model_intent/*.json
+      - nlu/models/model_intent/*.txt
+      - nlu/models/model_intent/*.onnx
+      - nlu/models/model_intent/*.pt
+      # Optionnel: données générées pour debugging
+      # - nlu/data/train_generated.json
     expire_in: 7 days
   rules:
     - changes:
@@ -89,7 +100,12 @@ train:stt:
     - python stt/train.py
   artifacts:
     paths:
-      - stt/models/
+      # Modèles finaux uniquement (pas les checkpoints)
+      - stt/models/*.bin
+      - stt/models/*.json
+      - stt/models/*.txt
+      - stt/models/*.onnx
+      - stt/models/*.pt
     expire_in: 7 days
   rules:
     - changes:
@@ -108,7 +124,12 @@ train:tts:
     - python tts/train.py
   artifacts:
     paths:
-      - tts/models/
+      # Modèles finaux uniquement (pas les checkpoints)
+      - tts/models/*.bin
+      - tts/models/*.json
+      - tts/models/*.txt
+      - tts/models/*.onnx
+      - tts/models/*.pt
     expire_in: 7 days
   rules:
     - changes:
