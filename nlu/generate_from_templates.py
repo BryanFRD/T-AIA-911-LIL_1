@@ -99,15 +99,19 @@ def text_to_bio(text: str, entities: Dict) -> tuple:
     bio_labels = ["O"] * len(tokens)
 
     def tag_entity(entity_text: str, entity_type: str):
-        """Tag une entité dans les tokens"""
+        """Tag une entité dans les tokens (insensible à la casse)"""
         if not entity_text:
             return
 
         entity_tokens = entity_text.split()
 
-        # Chercher l'entité dans les tokens
+        # Chercher l'entité dans les tokens (comparaison insensible à la casse)
         for i in range(len(tokens) - len(entity_tokens) + 1):
-            if tokens[i:i+len(entity_tokens)] == entity_tokens:
+            # Comparer en minuscules
+            tokens_lower = [t.lower() for t in tokens[i:i+len(entity_tokens)]]
+            entity_tokens_lower = [t.lower() for t in entity_tokens]
+
+            if tokens_lower == entity_tokens_lower:
                 bio_labels[i] = f"B-{entity_type}"
                 for j in range(1, len(entity_tokens)):
                     bio_labels[i+j] = f"I-{entity_type}"
