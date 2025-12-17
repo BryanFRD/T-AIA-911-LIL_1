@@ -76,7 +76,8 @@ train:nlu:
     - changes:
         - nlu/**/*
         - .gitlab-ci.yml
-  when: manual
+      when: on_success
+    - when: manual 
 
 train:stt:
   stage: train
@@ -93,7 +94,8 @@ train:stt:
     - changes:
         - stt/**/*
         - .gitlab-ci.yml
-  when: manual
+      when: on_success
+    - when: manual
 
 train:tts:
   stage: train
@@ -110,7 +112,8 @@ train:tts:
     - changes:
         - tts/**/*
         - .gitlab-ci.yml
-  when: manual
+      when: on_success
+    - when: manual
 
 # ===============================
 # PACKAGE

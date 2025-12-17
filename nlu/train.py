@@ -49,12 +49,19 @@ def main():
     if os.path.exists(dataset_path):
         with open(dataset_path) as f:
             raw_data = json.load(f)
-        dataset = Dataset.from_list([{
+        full_dataset = Dataset.from_list([{
             "text": " ".join(item["tokens"]),
             "intent": item["intent"],
             "labels_bio": item["labels"]
         } for item in raw_data])
-        print(f"Dataset chargé: {len(dataset)} exemples")
+        print(f"Dataset chargé: {len(full_dataset)} exemples")
+
+        # Split train/validation (90/10)
+        split = full_dataset.train_test_split(test_size=0.1, seed=42)
+        dataset = split["train"]
+        val_dataset = split["test"]
+        print(f"  Train: {len(dataset)} exemples")
+        print(f"  Validation: {len(val_dataset)} exemples")
     else:
         print(f"ERREUR: {dataset_path} n'existe pas!")
         return
@@ -117,16 +124,27 @@ def main():
         batch_size=64,  # Augmenté de 32 à 64
         num_proc=4  # Multi-threading pour tokenisation
     )
+    tokenized_val_dataset_ner = val_dataset.map(
+        tokenize_and_align_labels_ner,
+        batched=True,
+        batch_size=64,
+        num_proc=4
+    )
     data_collator_ner = DataCollatorForTokenClassification(tokenizer, pad_to_multiple_of=8)
 
     training_args_ner = TrainingArguments(
         output_dir=OUTPUT_DIR_NER,
         num_train_epochs=config["training"]["epochs"],
         per_device_train_batch_size=config["training"]["batch_size"],
+        per_device_eval_batch_size=config["training"]["batch_size"],
         learning_rate=config["training"]["learning_rate"],
         logging_dir="./logs/ner",
         logging_steps=50,  # Réduit le logging pour accélérer
-        save_strategy="no",  # Ne sauvegarder qu'à la fin
+        eval_strategy="epoch",  # Évaluation à chaque epoch
+        save_strategy="epoch",  # Sauvegarder le meilleur modèle
+        load_best_model_at_end=True,  # Charger le meilleur modèle à la fin
+        metric_for_best_model="eval_loss",  # Métrique pour best model
+        greater_is_better=False,  # Plus petite loss = mieux
         overwrite_output_dir=True,
         fp16=(device=="cuda"),
         gradient_accumulation_steps=1,  # Réduit de 2 à 1 (batch_size doublé)
@@ -138,6 +156,7 @@ def main():
         model=model_ner,
         args=training_args_ner,
         train_dataset=tokenized_dataset_ner,
+        eval_dataset=tokenized_val_dataset_ner,  # Dataset de validation
         tokenizer=tokenizer,
         data_collator=data_collator_ner
     )
@@ -187,15 +206,26 @@ def main():
         batch_size=64,  # Augmenté de 32 à 64
         num_proc=4  # Multi-threading
     )
+    tokenized_val_dataset_intent = val_dataset.map(
+        tokenize_intent,
+        batched=True,
+        batch_size=64,
+        num_proc=4
+    )
 
     training_args_intent = TrainingArguments(
         output_dir=OUTPUT_DIR_INTENT,
         num_train_epochs=config["training"]["epochs"],
         per_device_train_batch_size=config["training"]["batch_size"],
+        per_device_eval_batch_size=config["training"]["batch_size"],
         learning_rate=config["training"]["learning_rate"],
         logging_dir="./logs/intent",
         logging_steps=50,  # Réduit le logging
-        save_strategy="no",  # Ne sauvegarder qu'à la fin
+        eval_strategy="epoch",  # Évaluation à chaque epoch
+        save_strategy="epoch",  # Sauvegarder le meilleur modèle
+        load_best_model_at_end=True,  # Charger le meilleur modèle
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
         overwrite_output_dir=True,
         fp16=(device=="cuda"),
         gradient_accumulation_steps=1,  # Réduit de 2 à 1
@@ -207,6 +237,7 @@ def main():
         model=model_intent,
         args=training_args_intent,
         train_dataset=tokenized_dataset_intent,
+        eval_dataset=tokenized_val_dataset_intent,  # Dataset de validation
         tokenizer=tokenizer
     )
 
