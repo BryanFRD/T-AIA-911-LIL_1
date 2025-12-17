@@ -5,19 +5,21 @@ Augmentation : Fautes de frappe courantes
 import random
 from typing import List, Dict
 
-
 # Fautes de frappe courantes (patterns)
 TYPO_RULES = {
-    "aller": ["alé", "allé", "allez"],
-    "veux": ["veu", "veut"],
-    "de": ["dé", "de"],
-    "à": ["a", "à"],
-    "comment": ["comen", "comman"],
-    "trajet": ["trajé", "trajais"],
+    "aller": ["alé", "allé", "allez", "alér", "alléé"],
+    "veux": ["veu", "veut", "veuxx", "vveux"],
+    "de": ["dé", "de", "dè", "dd"],
+    "à": ["a", "à", "aa", "aà"],
+    "comment": ["comen", "comman", "comnt", "comennt"],
+    "trajet": ["trajé", "trajais", "trajèt", "trajettt"],
+    "je": ["jee", "jé", "jéé"],
+    "prends": ["prend", "prendz", "prendsx"],
+    "billet": ["billet", "bilet", "billettt", "bilé"],
+    "train": ["trn", "traiin", "trainn"],
 }
 
-
-def augment_typos(text: str, entities: Dict) -> List[tuple]:
+def augment_typos(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Introduit des fautes de frappe courantes (sans toucher aux entités)
 
@@ -50,7 +52,7 @@ def augment_typos(text: str, entities: Dict) -> List[tuple]:
 
         # Appliquer les règles de typo
         if word_lower in TYPO_RULES:
-            if random.random() < 0.3:  # 30% de chance de faute
+            if random.random() < probability:
                 typo_variant = random.choice(TYPO_RULES[word_lower])
                 # Conserver la casse originale
                 if word[0].isupper():

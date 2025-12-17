@@ -6,7 +6,7 @@ import random
 from typing import List, Dict
 
 
-def augment_case_variations(text: str, entities: Dict) -> List[tuple]:
+def augment_case_variations(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Génère des variations de casse
 
@@ -24,7 +24,7 @@ def augment_case_variations(text: str, entities: Dict) -> List[tuple]:
     variations.append((text.capitalize(), entities.copy()))
 
     # Tout en majuscules (rare mais possible dans certains contextes)
-    if random.random() < 0.1:  # 10% de chance
+    if random.random() < probability:  # 10% de chance
         variations.append((text.upper(), entities.copy()))
 
     # Majuscule après ponctuation

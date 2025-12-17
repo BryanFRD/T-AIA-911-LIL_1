@@ -8,70 +8,80 @@ from typing import List, Dict
 
 # Abréviations courantes en français
 ABBREVIATIONS = {
-    "aller": ["all", "allé"],
-    "je veux": ["jveux", "je vx", "jvx"],
-    "veux": ["vx"],
-    "trajet": ["traj"],
+    "aller": ["all", "allé", "al"],
+    "je veux": ["jveux", "je vx", "jvx", "je v"],
+    "veux": ["vx", "v"],
+    "trajet": ["traj", "trj"],
     "comment": ["cmt", "cmnt"],
-    "train": ["trn"],
-    "depuis": ["dps", "dpuis"],
-    "passant": ["passan", "passa"],
-    "arrivée": ["arrivé", "arriv"],
-    "départ": ["dép", "depar"],
-    "direction": ["dir"],
-    "connexion": ["co", "connex"],
-    "itinéraire": ["itin", "itinér"],
-    "billet": ["bil"],
-    "rejoindre": ["rjoindre", "rejoind"],
-    "cherche": ["cherch"],
-    "prendre": ["prend", "prendr"],
+    "train": ["trn", "tr"],
+    "depuis": ["dps", "dpuis", "dep"],
+    "passant": ["passan", "passa", "psnt"],
+    "arrivée": ["arrivé", "arriv", "arr"],
+    "départ": ["dép", "depar", "dep"],
+    "direction": ["dir", "dirn"],
+    "connexion": ["co", "connex", "cx"],
+    "itinéraire": ["itin", "itinér", "itn"],
+    "billet": ["bil", "blt"],
+    "rejoindre": ["rjoindre", "rejoind", "rjdr"],
+    "cherche": ["cherch", "chrc", "chch"],
+    "prendre": ["prend", "prendr", "prnd"],
+    "pour": ["pr"],
+    "avec": ["avc"],
+    "sans": ["sn"],
 }
 
-
-def augment_abbreviations(text: str, entities: Dict) -> List[tuple]:
+def augment_abbreviations(text: str, entities: Dict, probability: float, max_modifications: int = 2) -> List[tuple]:
     """
-    Ajoute des abréviations courantes (sans toucher aux entités)
+    Applique des abréviations courantes en français, en protégeant les entités.
 
-    Exemples:
-    - "Je veux aller" -> "Jveux all"
-    - "Comment aller" -> "Cmt aller"
-    - "Trajet de Paris" -> "Traj de Paris"
+    Args:
+        text: phrase originale
+        entities: dictionnaire des entités
+        probability: probabilité d'appliquer une abréviation par occurrence
+        max_modifications: nombre maximal de modifications par phrase
+
+    Returns:
+        Liste de tuples (texte_modifié, entités)
     """
     variations = []
-
-    # Ne pas modifier les noms de villes et prénoms
     protected_words = set()
-    if entities.get("from"):
-        for word in entities["from"].split():
-            protected_words.add(word.lower())
-    if entities.get("to"):
-        for word in entities["to"].split():
-            protected_words.add(word.lower())
-    for via in entities.get("via", []):
-        for word in via.split():
-            protected_words.add(word.lower())
-    if entities.get("person"):
-        for word in entities["person"].split():
-            protected_words.add(word.lower())
 
-    # Appliquer les abréviations (max 2 par phrase pour rester naturel)
+    for key in ["from", "to", "via", "person"]:
+        if entities.get(key):
+            if isinstance(entities[key], list):
+                for item in entities[key]:
+                    protected_words.update([w.lower() for w in item.split()])
+            else:
+                protected_words.update([w.lower() for w in entities[key].split()])
+
     text_lower = text.lower()
     modified_count = 0
-    max_modifications = 2
+    seen_texts = set()
 
     for phrase, abbrevs in ABBREVIATIONS.items():
-        if phrase in text_lower and modified_count < max_modifications:
-            # Vérifier que la phrase ne contient pas de mots protégés
-            phrase_words = set(phrase.split())
-            if not phrase_words.intersection(protected_words):
-                if random.random() < 0.3:  # 30% de chance
-                    abbrev = random.choice(abbrevs)
-                    # Remplacer en conservant la casse du premier mot
-                    if text.split()[0][0].isupper():
-                        abbrev = abbrev.capitalize()
-                    new_text = text.replace(phrase, abbrev, 1)
-                    if new_text != text:
-                        variations.append((new_text, entities.copy()))
-                        modified_count += 1
+        start = 0
+        while start < len(text_lower) and modified_count < max_modifications:
+            idx = text_lower.find(phrase, start)
+            if idx == -1:
+                break
+
+            phrase_words = phrase.split()
+            if not phrase_words or phrase_words[0] in protected_words:
+                start = idx + 1
+                continue
+
+            if random.random() < probability:
+                abbrev = random.choice(abbrevs)
+                # Conserver la casse du premier caractère de la phrase à remplacer
+                if text[idx].isupper():
+                    abbrev = abbrev.capitalize()
+
+                new_text = text[:idx] + abbrev + text[idx+len(phrase):]
+                if new_text not in seen_texts:
+                    variations.append((new_text, entities.copy()))
+                    seen_texts.add(new_text)
+                    modified_count += 1
+
+            start = idx + len(phrase)
 
     return variations

@@ -10,7 +10,7 @@ Ajoute des interpellations au début de la phrase:
 import random
 from typing import List, Dict
 
-# Préfixes d'interpellation
+# Préfixes d'interpellation enrichis
 INTERPELLATIONS = [
     "Hey {person}",
     "Dis {person}",
@@ -25,6 +25,11 @@ INTERPELLATIONS = [
     "Ouais {person}",
     "{person} écoute",
     "{person} bon",
+    "Hé {person} alors",
+    "Tu sais {person}",
+    "Écoute-moi {person}",
+    "Bon {person}",
+    "Eh bien {person}",
 ]
 
 # Personnes disponibles
@@ -35,7 +40,7 @@ PEOPLE = [
     "Jayce"
 ]
 
-def augment_person_prefix(text: str, entities: Dict, probability: float = 0.15) -> List[tuple]:
+def augment_person_prefix(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Ajoute une interpellation de personne au début de la phrase
 

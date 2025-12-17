@@ -32,7 +32,7 @@ SMS_TRANSFORMATIONS = {
 }
 
 
-def augment_sms_language(text: str, entities: Dict) -> List[tuple]:
+def augment_sms_language(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Transforme le texte en langage SMS/chat
 
@@ -70,7 +70,7 @@ def augment_sms_language(text: str, entities: Dict) -> List[tuple]:
             new_words.append(word)
         # Si on a une transformation SMS, l'appliquer avec une probabilité
         elif word_clean in SMS_TRANSFORMATIONS:
-            if random.random() < 0.4:  # 40% de chance
+            if random.random() < probability:  # 40% de chance
                 sms_version = random.choice(SMS_TRANSFORMATIONS[word_clean])
                 # Conserver la ponctuation
                 if word[-1] in ".,!?":

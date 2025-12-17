@@ -3,13 +3,14 @@ Augmentation : Variations de ponctuation
 """
 
 from typing import List, Dict
+import random
 
 
 # Variations de ponctuation possibles
 PUNCTUATION_VARIANTS = ["", ".", "!", "?", "...", " ?", " !", " ."]
 
 
-def augment_punctuation(text: str, entities: Dict) -> List[tuple]:
+def augment_punctuation(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Ajoute des variations de ponctuation
 
@@ -20,6 +21,9 @@ def augment_punctuation(text: str, entities: Dict) -> List[tuple]:
     - "Je veux aller de Paris à Lyon?"
     """
     variations = []
+    
+    if random.random() > probability:
+        return variations
 
     for punct in PUNCTUATION_VARIANTS:
         # Supprimer toute ponctuation existante à la fin

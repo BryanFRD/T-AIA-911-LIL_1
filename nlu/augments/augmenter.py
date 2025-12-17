@@ -43,19 +43,19 @@ class NLUAugmenter:
     def __init__(self):
         """Initialise l'augmenteur avec toutes les techniques disponibles"""
         self.techniques = [
-            augment_case_variations,
-            augment_punctuation,
-            augment_fillers,
-            augment_typos,
-            augment_synonyms,
-            augment_contractions,
-            augment_word_order,
-            augment_abbreviations,
-            augment_stuttering,
-            augment_sms_language,
-            augment_narrative_context,
-            augment_parasite_words,
-            augment_person_prefix,
+            (augment_case_variations, 0.5),
+            (augment_punctuation, 0.7),
+            (augment_fillers, 0.6),
+            (augment_typos, 0.4),
+            (augment_synonyms, 0.3),
+            (augment_contractions, 0.3),
+            (augment_word_order, 0.2),
+            (augment_abbreviations, 0.3),
+            (augment_stuttering, 0.1),
+            (augment_sms_language, 0.2),
+            (augment_narrative_context, 0.4),
+            (augment_parasite_words, 0.3),
+            (augment_person_prefix, 0.3),
         ]
 
     def augment_example(self, text: str, entities: Dict,
@@ -74,9 +74,9 @@ class NLUAugmenter:
         all_variants = [(text, entities)]  # Inclure l'original
 
         # Appliquer chaque technique
-        for technique in self.techniques:
+        for technique, probability in self.techniques:
             try:
-                variants = technique(text, entities)
+                variants = technique(text, entities, probability)
                 all_variants.extend(variants)
             except Exception as e:
                 print(f"Warning: {technique.__name__} failed: {e}")

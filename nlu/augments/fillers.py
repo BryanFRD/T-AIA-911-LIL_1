@@ -9,11 +9,13 @@ from typing import List, Dict
 # Mots de remplissage (fillers) français
 FILLERS = [
     "euh", "hein", "ben", "bah", "alors", "donc", "voilà",
-    "tu vois", "genre", "en fait", "quoi", "hein", "du coup"
+    "tu vois", "genre", "en fait", "quoi", "du coup",
+    "t'sais", "quoi là", "hein là", "en gros", "si tu veux",
+    "ok", "bon", "allez", "vois-tu"
 ]
 
 
-def augment_fillers(text: str, entities: Dict) -> List[tuple]:
+def augment_fillers(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Ajoute des mots de remplissage (hésitations naturelles)
 
@@ -25,7 +27,7 @@ def augment_fillers(text: str, entities: Dict) -> List[tuple]:
     variations = []
 
     # 20% de chance d'ajouter un filler au début
-    if random.random() < 0.2:
+    if random.random() < probability:
         filler = random.choice(FILLERS)
         new_text = f"{filler.capitalize()} {text[0].lower() + text[1:]}"
         variations.append((new_text, entities.copy()))

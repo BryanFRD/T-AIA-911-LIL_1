@@ -8,7 +8,7 @@
   - "Trajet pour aller Paris" (manque préposition)
   - "De Paris je veux Lyon" (ordre incorrect)
 
-- [ ] **Ajouter des templates avec formulations régionales**
+- [X] **Ajouter des templates avec formulations régionales**
   - "Je pars sur Paris" (sur au lieu de à)
   - "Je monte à Paris" (régionalisme)
   - "Je descends à Lyon" (régionalisme)

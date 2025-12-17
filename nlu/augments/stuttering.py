@@ -6,7 +6,7 @@ import random
 from typing import List, Dict
 
 
-def augment_stuttering(text: str, entities: Dict) -> List[tuple]:
+def augment_stuttering(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Ajoute des répétitions et bégaiements naturels
 
@@ -37,7 +37,7 @@ def augment_stuttering(text: str, entities: Dict) -> List[tuple]:
             protected_words.add(word.lower())
 
     # Répétition simple (15% de chance)
-    if random.random() < 0.15:
+    if random.random() < probability:
         # Répéter un mot (généralement le premier)
         repeat_idx = 0
         if words[repeat_idx].lower() not in protected_words:
@@ -46,7 +46,7 @@ def augment_stuttering(text: str, entities: Dict) -> List[tuple]:
             variations.append((" ".join(new_words), entities.copy()))
 
     # Bégaiement avec tiret (10% de chance)
-    if random.random() < 0.10:
+    if random.random() < probability:
         stutter_idx = random.randint(0, min(2, len(words) - 1))
         word = words[stutter_idx]
         if word.lower() not in protected_words and len(word) > 3:
@@ -57,7 +57,7 @@ def augment_stuttering(text: str, entities: Dict) -> List[tuple]:
             variations.append((" ".join(new_words), entities.copy()))
 
     # Répétition d'un mot au milieu (10% de chance)
-    if random.random() < 0.10 and len(words) > 2:
+    if random.random() < probability and len(words) > 2:
         repeat_idx = random.randint(1, len(words) - 1)
         if words[repeat_idx].lower() not in protected_words:
             new_words = words.copy()

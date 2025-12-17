@@ -5,8 +5,7 @@ Augmentation : Mots parasites
 import random
 from typing import List, Dict
 
-
-# Mots parasites courants en français
+# Mots parasites courants en français - version enrichie
 PARASITE_WORDS = [
     "genre",
     "style",
@@ -32,10 +31,17 @@ PARASITE_WORDS = [
     "littéralement",
     "pratiquement",
     "limite",
+    "tu vois",
+    "vous voyez",
+    "quoi",
+    "quoi donc",
+    "ok",
+    "tu comprends",
+    "vous comprenez",
+    "hein",
 ]
 
-
-def augment_parasite_words(text: str, entities: Dict) -> List[tuple]:
+def augment_parasite_words(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Insère des mots parasites dans le texte
 
@@ -51,14 +57,14 @@ def augment_parasite_words(text: str, entities: Dict) -> List[tuple]:
         return variations
 
     # Insérer un mot parasite au début (15% de chance)
-    if random.random() < 0.15:
+    if random.random() < probability:
         parasite = random.choice(PARASITE_WORDS)
         # Ajuster la casse
         new_text = f"{parasite.capitalize()} {text[0].lower() + text[1:]}"
         variations.append((new_text, entities.copy()))
 
     # Insérer un mot parasite au milieu (20% de chance)
-    if random.random() < 0.20 and len(words) >= 3:
+    if random.random() < probability and len(words) >= 3:
         parasite = random.choice(PARASITE_WORDS)
         # Position aléatoire au milieu (pas au début ni à la fin)
         insert_pos = random.randint(1, len(words) - 1)
@@ -73,12 +79,12 @@ def augment_parasite_words(text: str, entities: Dict) -> List[tuple]:
         variations.append((" ".join(new_words), entities.copy()))
 
     # Insérer un mot parasite à la fin (15% de chance)
-    if random.random() < 0.15:
+    if random.random() < probability:
         parasite = random.choice(PARASITE_WORDS)
         variations.append((f"{text} {parasite}", entities.copy()))
 
     # Insérer deux mots parasites (10% de chance)
-    if random.random() < 0.10 and len(words) >= 4:
+    if random.random() < probability / 2 and len(words) >= 4:
         parasite1 = random.choice(PARASITE_WORDS)
         parasite2 = random.choice(PARASITE_WORDS)
 

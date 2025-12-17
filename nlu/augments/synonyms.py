@@ -15,7 +15,7 @@ SYNONYMS = {
 }
 
 
-def augment_synonyms(text: str, entities: Dict) -> List[tuple]:
+def augment_synonyms(text: str, entities: Dict, probability: float) -> List[tuple]:
     """
     Remplace certains mots par des synonymes
 
@@ -31,7 +31,7 @@ def augment_synonyms(text: str, entities: Dict) -> List[tuple]:
         word_lower = word.lower().strip(".,!?")
 
         if word_lower in SYNONYMS:
-            if random.random() < 0.4:  # 40% de chance de remplacement
+            if random.random() < probability:
                 synonym = random.choice(SYNONYMS[word_lower])
                 # Conserver la casse
                 if word[0].isupper():

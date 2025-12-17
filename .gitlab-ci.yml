@@ -86,6 +86,8 @@ test:sonarqube:
 # ===============================
 train:nlu:
   stage: train
+  tags:
+    - gpu
   extends: .python_base
   dependencies:
     - install:dependencies
@@ -107,6 +109,8 @@ train:nlu:
 
 train:stt:
   stage: train
+  tags:
+    - gpu
   extends: .python_base
   dependencies:
     - install:dependencies
@@ -125,6 +129,8 @@ train:stt:
 
 train:tts:
   stage: train
+  tags:
+    - gpu
   extends: .python_base
   dependencies:
     - install:dependencies

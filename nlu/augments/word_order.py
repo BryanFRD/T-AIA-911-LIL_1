@@ -6,31 +6,34 @@ import random
 from typing import List, Dict
 
 
-def augment_word_order(text: str, entities: Dict) -> List[tuple]:
-    """
-    Génère des inversions d'ordre naturelles en français
-
-    Exemples:
-    - "De Paris à Lyon, je veux aller"
-    - "À Lyon je veux aller depuis Paris"
-    """
+def augment_word_order(text: str, entities: Dict, probability: float) -> List[tuple]:
+    import random
     variations = []
 
-    # Extraction des parties de la phrase
-    if entities.get("from") and entities.get("to"):
-        from_city = entities["from"]
-        to_city = entities["to"]
+    if random.random() > probability:
+        return variations
 
-        # Différents ordres possibles
-        patterns = [
-            f"De {from_city} à {to_city} comment aller",
-            f"Pour aller de {from_city} à {to_city}",
-            f"Un trajet de {from_city} vers {to_city}",
-            f"{to_city} depuis {from_city} comment y aller",
-        ]
+    words = text.split()
+    # Identifier les indices des mots protégés
+    protected_words = set()
+    for key in ["from", "to", "via", "person"]:
+        val = entities.get(key)
+        if val:
+            if isinstance(val, list):
+                protected_words.update(val)
+            else:
+                protected_words.update(val.split())
 
-        for pattern in patterns:
-            if random.random() < 0.3:  # 30% de chance
-                variations.append((pattern, entities.copy()))
+    # Séparer les mots protégés et non protégés
+    protected_list = [w for w in words if w in protected_words]
+    free_list = [w for w in words if w not in protected_words]
+
+    # Mélanger les mots libres
+    random.shuffle(free_list)
+
+    # Recomposer
+    new_text = " ".join(free_list + protected_list)
+    if new_text != text:
+        variations.append((new_text, entities.copy()))
 
     return variations

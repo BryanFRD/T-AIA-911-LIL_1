@@ -204,7 +204,7 @@ def save_dataset(dataset: List[Dict], output_file: str):
         })
 
     with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(training_data, f, ensure_ascii=False, indent=2)
+        json.dump(training_data, f, ensure_ascii=False, indent=None, separators=(',', ':'))
 
     print(f"\nDataset sauvegarde dans: {output_file}")
     print(f"Total: {len(training_data)} exemples")
@@ -228,21 +228,6 @@ def save_dataset(dataset: List[Dict], output_file: str):
         print(f"  - Intent '{intent}': {count}")
     print(f"  - Avec VIA: {via_count}")
     print(f"  - Avec PERSON: {person_count}")
-
-    print("\n" + "="*70)
-    print("EXEMPLES GENERES (10 premiers)")
-    print("="*70)
-
-    for i, example in enumerate(dataset[:10], 1):
-        print(f"\n{i}. [{example['intent']}] {example['text']}")
-        if example['entities']['from']:
-            print(f"   FROM: {example['entities']['from']}")
-        if example['entities']['to']:
-            print(f"   TO: {example['entities']['to']}")
-        if example['entities']['via']:
-            print(f"   VIA: {', '.join(example['entities']['via'])}")
-        if example['entities']['person']:
-            print(f"   PERSON: {example['entities']['person']}")
 
 if __name__ == "__main__":
     # Charger les données
