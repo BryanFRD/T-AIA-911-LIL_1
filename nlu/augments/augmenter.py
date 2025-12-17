@@ -10,9 +10,8 @@ from .punctuation import augment_punctuation
 from .fillers import augment_fillers
 from .typos import augment_typos
 from .synonyms import augment_synonyms
-from .contractions import augment_contractions
+from .oral_transformations import augment_oral_transformations
 from .word_order import augment_word_order
-from .abbreviations import augment_abbreviations
 from .stuttering import augment_stuttering
 from .sms_language import augment_sms_language
 from .narrative_context import augment_narrative_context
@@ -30,14 +29,13 @@ class NLUAugmenter:
     3. Ajout de mots de remplissage (euh, hein, etc.)
     4. Fautes de frappe courantes
     5. Synonymes contextuels
-    6. Contractions orales françaises
+    6. Transformations orales (contractions + abréviations: jveux, cmt, etc.)
     7. Inversions ordre des mots
-    8. Abréviations courantes (jveux, cmt, etc.)
-    9. Répétitions et bégaiement (je je veux, tra- trajet)
-    10. Langage SMS/chat (j ve alé, komen)
-    11. Contexte narratif (alors, donc, voilà, etc.)
-    12. Mots parasites (genre, enfin, tu sais, etc.)
-    13. Interpellations de personnes (Hey Maude, Dis Simon, etc.)
+    8. Répétitions et bégaiement (je je veux, tra- trajet)
+    9. Langage SMS/chat (j ve alé, komen)
+    10. Contexte narratif (alors, donc, voilà, etc.)
+    11. Mots parasites (genre, enfin, tu sais, etc.)
+    12. Interpellations de personnes (Hey Maude, Dis Simon, etc.)
     """
 
     def __init__(self):
@@ -48,9 +46,8 @@ class NLUAugmenter:
             (augment_fillers, 0.6),
             (augment_typos, 0.4),
             (augment_synonyms, 0.3),
-            (augment_contractions, 0.3),
+            (augment_oral_transformations, 0.4),  # Fusionne contractions + abbreviations
             (augment_word_order, 0.2),
-            (augment_abbreviations, 0.3),
             (augment_stuttering, 0.1),
             (augment_sms_language, 0.2),
             (augment_narrative_context, 0.4),
