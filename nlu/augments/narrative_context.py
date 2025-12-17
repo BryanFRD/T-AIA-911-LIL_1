@@ -68,7 +68,10 @@ def augment_narrative_context(text: str, entities: Dict, probability: float) -> 
     if random.random() < probability:
         prefix = random.choice(NARRATIVE_PREFIXES)
         # Ajuster la casse du texte original si on ajoute un préfixe
-        new_text = text[0].lower() + text[1:] if len(text) > 0 else text
+        if len(text) > 1:
+            new_text = text[0].lower() + text[1:]
+        else:
+            new_text = text.lower()
         variations.append((f"{prefix} {new_text}", entities.copy()))
 
     # Ajouter un suffixe (25% de chance)
@@ -80,7 +83,10 @@ def augment_narrative_context(text: str, entities: Dict, probability: float) -> 
     if random.random() < probability / 2:
         prefix = random.choice(NARRATIVE_PREFIXES)
         suffix = random.choice(NARRATIVE_SUFFIXES)
-        new_text = text[0].lower() + text[1:] if len(text) > 0 else text
+        if len(text) > 1:
+            new_text = text[0].lower() + text[1:]
+        else:
+            new_text = text.lower()
         variations.append((f"{prefix} {new_text} {suffix}", entities.copy()))
 
     return variations

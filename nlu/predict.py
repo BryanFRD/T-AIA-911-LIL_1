@@ -66,8 +66,9 @@ class NLUPredictor:
 
     def _extract_entities_from_ner(self, ner_result):
         entities = {"from": "", "to": "", "via": [], "person": ""}
+        last_via_idx = -1
 
-        for r in ner_result:
+        for idx, r in enumerate(ner_result):
             entity_type = r.get("entity_group", r.get("entity")).replace("B-", "").replace("I-", "")
             word = r["word"].replace("▁", " ").strip()
 
@@ -76,10 +77,14 @@ class NLUPredictor:
             elif entity_type == "TO":
                 entities["to"] += (" " + word if entities["to"] else word)
             elif entity_type == "VIA":
-                if not entities["via"] or word not in entities["via"][-1]:
-                    entities["via"].append(word)
-                else:
+                # Utiliser index de token pour détecter tokens consécutifs (évite substring matching)
+                if idx == last_via_idx + 1 and entities["via"]:
+                    # Token consécutif: fusionner avec la dernière entité VIA
                     entities["via"][-1] += " " + word
+                else:
+                    # Nouvelle entité VIA
+                    entities["via"].append(word)
+                last_via_idx = idx
             elif entity_type == "PERSON":
                 entities["person"] += (" " + word if entities["person"] else word)
 

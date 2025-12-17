@@ -29,7 +29,10 @@ def augment_fillers(text: str, entities: Dict, probability: float) -> List[tuple
     # 20% de chance d'ajouter un filler au début
     if random.random() < probability:
         filler = random.choice(FILLERS)
-        new_text = f"{filler.capitalize()} {text[0].lower() + text[1:]}"
+        if len(text) > 1:
+            new_text = f"{filler.capitalize()} {text[0].lower() + text[1:]}"
+        else:
+            new_text = f"{filler.capitalize()} {text.lower()}"
         variations.append((new_text, entities.copy()))
 
     # 15% de chance d'ajouter un filler au milieu
