@@ -133,6 +133,9 @@ package:nlu:
     - apk add --no-cache tar gzip
   script:
     - echo "{\"model_name\":\"nlu\",\"version\":\"${MODEL_VERSION}\",\"commit\":\"${CI_COMMIT_SHA}\",\"branch\":\"${CI_COMMIT_REF_NAME}\",\"pipeline_id\":\"${CI_PIPELINE_ID}\",\"created_at\":\"$(date -Iseconds)\"}" > nlu/models/metadata.json
+    - |
+      # Supprimer les checkpoints pour réduire la taille
+      find nlu/models -type d -name "checkpoint-*" -exec rm -rf {} + 2>/dev/null || true
     - tar -czf nlu-model-${MODEL_VERSION}.tar.gz nlu/models/ nlu/data/cities.json nlu/data/templates.json common/
   artifacts:
     paths:
@@ -156,6 +159,9 @@ package:stt:
     - apk add --no-cache tar gzip
   script:
     - echo "{\"model_name\":\"stt\",\"version\":\"${MODEL_VERSION}\",\"commit\":\"${CI_COMMIT_SHA}\",\"branch\":\"${CI_COMMIT_REF_NAME}\",\"pipeline_id\":\"${CI_PIPELINE_ID}\",\"created_at\":\"$(date -Iseconds)\"}" > stt/models/metadata.json
+    - |
+      # Supprimer les checkpoints pour réduire la taille
+      find stt/models -type d -name "checkpoint-*" -exec rm -rf {} + 2>/dev/null || true
     - tar -czf stt-model-${MODEL_VERSION}.tar.gz stt/models/ common/
   artifacts:
     paths:
@@ -179,6 +185,9 @@ package:tts:
     - apk add --no-cache tar gzip
   script:
     - echo "{\"model_name\":\"tts\",\"version\":\"${MODEL_VERSION}\",\"commit\":\"${CI_COMMIT_SHA}\",\"branch\":\"${CI_COMMIT_REF_NAME}\",\"pipeline_id\":\"${CI_PIPELINE_ID}\",\"created_at\":\"$(date -Iseconds)\"}" > tts/models/metadata.json
+    - |
+      # Supprimer les checkpoints pour réduire la taille
+      find tts/models -type d -name "checkpoint-*" -exec rm -rf {} + 2>/dev/null || true
     - tar -czf tts-model-${MODEL_VERSION}.tar.gz tts/models/ common/
   artifacts:
     paths:
