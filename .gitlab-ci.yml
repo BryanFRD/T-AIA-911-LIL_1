@@ -76,7 +76,6 @@ train:nlu:
   dependencies:
     - init:dependencies
   script:
-    - source /cache/venv/bin/activate
     - python nlu/generate_from_templates.py
     - python nlu/train.py
     - python nlu/predict.py
@@ -99,7 +98,6 @@ train:stt:
   dependencies:
     - init:dependencies
   script:
-    - source /cache/venv/bin/activate
     - python stt/train.py
   artifacts:
     paths:
@@ -119,7 +117,6 @@ train:tts:
   dependencies:
     - init:dependencies
   script:
-    - source /cache/venv/bin/activate
     - python tts/train.py
   artifacts:
     paths:
