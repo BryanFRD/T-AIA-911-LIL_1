@@ -219,6 +219,7 @@ release:nlu:
   needs:
     - job: package:nlu
       artifacts: true
+      optional: true
   script: >
     curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
     --upload-file nlu-model-${MODEL_VERSION}.tar.gz
@@ -226,6 +227,9 @@ release:nlu:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - nlu/**/*
+        - .gitlab-ci.yml
 
 release:stt:
   stage: release
@@ -233,6 +237,7 @@ release:stt:
   needs:
     - job: package:stt
       artifacts: true
+      optional: true
   script: >
     curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
     --upload-file stt-model-${MODEL_VERSION}.tar.gz
@@ -240,6 +245,9 @@ release:stt:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - stt/**/*
+        - .gitlab-ci.yml
 
 release:tts:
   stage: release
@@ -247,6 +255,7 @@ release:tts:
   needs:
     - job: package:tts
       artifacts: true
+      optional: true
   script: >
     curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
     --upload-file tts-model-${MODEL_VERSION}.tar.gz
@@ -254,6 +263,9 @@ release:tts:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - tts/**/*
+        - .gitlab-ci.yml
 
 release:notes:
   stage: release
