@@ -21,7 +21,7 @@ def augment_punctuation(text: str, entities: Dict, probability: float) -> List[t
     - "Je veux aller de Paris à Lyon?"
     """
     variations = []
-    
+
     if random.random() > probability:
         return variations
 

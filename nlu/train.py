@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from pathlib import Path
 from transformers import (
@@ -13,6 +14,12 @@ from transformers import (
 from datasets import Dataset
 import torch
 from multiprocessing import freeze_support
+import numpy as np
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+
+# Importer le module common pour exports (ONNX, TorchScript)
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from common.save_model import export_to_onnx, export_to_torchscript
 
 def main():
     # === Détection GPU automatique ===
@@ -132,6 +139,34 @@ def main():
     )
     data_collator_ner = DataCollatorForTokenClassification(tokenizer, pad_to_multiple_of=8)
 
+    # Fonction de calcul des métriques pour NER
+    def compute_metrics_ner(pred):
+        predictions, labels = pred
+        predictions = np.argmax(predictions, axis=2)
+
+        # Flatten et filtrer les labels -100 (padding)
+        true_labels = []
+        pred_labels = []
+
+        for pred_seq, label_seq in zip(predictions, labels):
+            for pred_label, true_label in zip(pred_seq, label_seq):
+                if true_label != -100:  # Ignorer padding
+                    true_labels.append(true_label)
+                    pred_labels.append(pred_label)
+
+        # Calculer les métriques
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            true_labels, pred_labels, average='weighted', zero_division=0
+        )
+        acc = accuracy_score(true_labels, pred_labels)
+
+        return {
+            'accuracy': acc,
+            'f1': f1,
+            'precision': precision,
+            'recall': recall
+        }
+
     training_args_ner = TrainingArguments(
         output_dir=OUTPUT_DIR_NER,
         num_train_epochs=config["training"]["epochs"],
@@ -143,11 +178,11 @@ def main():
         lr_scheduler_type="cosine",  # Cosine decay du learning rate
         logging_dir="./logs/ner",
         logging_steps=50,  # Réduit le logging pour accélérer
-        evaluation_strategy="epoch",  # Évaluation à chaque epoch (ancienne version: evaluation_strategy)
+        eval_strategy="epoch",  # Évaluation à chaque epoch
         save_strategy="epoch",  # Sauvegarder le meilleur modèle
         load_best_model_at_end=True,  # Charger le meilleur modèle à la fin
-        metric_for_best_model="eval_loss",  # Métrique pour best model
-        greater_is_better=False,  # Plus petite loss = mieux
+        metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
+        greater_is_better=True,  # Plus grand F1 = mieux
         overwrite_output_dir=True,
         fp16=(device=="cuda"),
         gradient_accumulation_steps=1,  # Réduit de 2 à 1 (batch_size doublé)
@@ -161,7 +196,8 @@ def main():
         train_dataset=tokenized_dataset_ner,
         eval_dataset=tokenized_val_dataset_ner,  # Dataset de validation
         tokenizer=tokenizer,
-        data_collator=data_collator_ner
+        data_collator=data_collator_ner,
+        compute_metrics=compute_metrics_ner  # Ajout des métriques F1/Precision/Recall
     )
 
     print("\n" + "="*70)
@@ -216,6 +252,24 @@ def main():
         num_proc=4
     )
 
+    # Fonction de calcul des métriques pour Intent
+    def compute_metrics_intent(pred):
+        predictions, labels = pred
+        predictions = np.argmax(predictions, axis=1)
+
+        # Calculer les métriques
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            labels, predictions, average='weighted', zero_division=0
+        )
+        acc = accuracy_score(labels, predictions)
+
+        return {
+            'accuracy': acc,
+            'f1': f1,
+            'precision': precision,
+            'recall': recall
+        }
+
     training_args_intent = TrainingArguments(
         output_dir=OUTPUT_DIR_INTENT,
         num_train_epochs=config["training"]["epochs"],
@@ -227,11 +281,11 @@ def main():
         lr_scheduler_type="cosine",  # Cosine decay
         logging_dir="./logs/intent",
         logging_steps=50,  # Réduit le logging
-        evaluation_strategy="epoch",  # Évaluation à chaque epoch (ancienne version: evaluation_strategy)
+        eval_strategy="epoch",  # Évaluation à chaque epoch
         save_strategy="epoch",  # Sauvegarder le meilleur modèle
         load_best_model_at_end=True,  # Charger le meilleur modèle
-        metric_for_best_model="eval_loss",
-        greater_is_better=False,
+        metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
+        greater_is_better=True,  # Plus grand F1 = mieux
         overwrite_output_dir=True,
         fp16=(device=="cuda"),
         gradient_accumulation_steps=1,  # Réduit de 2 à 1
@@ -244,7 +298,8 @@ def main():
         args=training_args_intent,
         train_dataset=tokenized_dataset_intent,
         eval_dataset=tokenized_val_dataset_intent,  # Dataset de validation
-        tokenizer=tokenizer
+        tokenizer=tokenizer,
+        compute_metrics=compute_metrics_intent  # Ajout des métriques F1/Precision/Recall
     )
 
     trainer_intent.train()
@@ -255,6 +310,41 @@ def main():
         json.dump({"intent_labels": config["intent_labels"]}, f, indent=2)
 
     print(f"\n[OK] Modèle Intent sauvegardé dans {OUTPUT_DIR_INTENT}")
+
+    # Export ONNX et TorchScript pour DJL Java
+    print("\n" + "="*70)
+    print("EXPORT DES MODÈLES POUR PRODUCTION (ONNX + TorchScript)")
+    print("="*70)
+
+    # Export NER
+    export_to_onnx(
+        model_ner,
+        tokenizer,
+        f"{OUTPUT_DIR_NER}/model_ner.onnx",
+        task="ner",
+        max_length=config["tokenizer"]["max_length"]
+    )
+    export_to_torchscript(
+        model_ner,
+        tokenizer,
+        f"{OUTPUT_DIR_NER}/model_ner_jit.pt",
+        max_length=config["tokenizer"]["max_length"]
+    )
+
+    # Export Intent
+    export_to_onnx(
+        model_intent,
+        tokenizer,
+        f"{OUTPUT_DIR_INTENT}/model_intent.onnx",
+        task="intent",
+        max_length=config["tokenizer"]["max_length"]
+    )
+    export_to_torchscript(
+        model_intent,
+        tokenizer,
+        f"{OUTPUT_DIR_INTENT}/model_intent_jit.pt",
+        max_length=config["tokenizer"]["max_length"]
+    )
 
     print("\n" + "="*70)
     print("ENTRAÎNEMENT TERMINÉ")

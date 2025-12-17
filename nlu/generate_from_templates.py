@@ -241,16 +241,39 @@ if __name__ == "__main__":
         num_samples_per_template=30  # Augmenté de 20 à 30 pour plus de variété
     )
 
-    # Appliquer l'augmentation si disponible
+    # Appliquer l'augmentation si disponible (séparément pour trajet et other)
     if AUGMENTATION_AVAILABLE:
         print("\n" + "="*70)
         print("APPLICATION DE LA DATA AUGMENTATION")
         print("="*70)
         augmenter = NLUAugmenter()
-        dataset = augmenter.augment_dataset(
-            dataset,
-            augmentation_factor=4.0  # Augmenté de 3.0 à 4.0 pour plus d'exemples
+
+        # Séparer trajet et other
+        trajet_examples = [ex for ex in dataset if ex["intent"] == "trajet"]
+        other_examples = [ex for ex in dataset if ex["intent"] == "other"]
+
+        print(f"\nAvant augmentation:")
+        print(f"  - trajet: {len(trajet_examples)} exemples")
+        print(f"  - other: {len(other_examples)} exemples")
+        print(f"  - Ratio: {len(trajet_examples)/len(other_examples):.1f}:1")
+
+        # Augmenter avec des facteurs différents
+        augmented_trajet = augmenter.augment_dataset(
+            trajet_examples,
+            augmentation_factor=4.0  # Fort pour trajet
         )
+        augmented_other = augmenter.augment_dataset(
+            other_examples,
+            augmentation_factor=2.0  # Modéré pour other (augmenté pour réduire ratio)
+        )
+
+        # Combiner
+        dataset = augmented_trajet + augmented_other
+
+        print(f"\nAprès augmentation:")
+        print(f"  - trajet: {len(augmented_trajet)} exemples")
+        print(f"  - other: {len(augmented_other)} exemples")
+        print(f"  - Ratio: {len(augmented_trajet)/len(augmented_other):.1f}:1 (cible: 3:1)")
         print("\n" + "="*70)
 
     # Sauvegarder
