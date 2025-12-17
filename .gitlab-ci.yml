@@ -29,7 +29,7 @@ stages:
     - export PIP_CACHE_DIR="/cache/pip"
     - export XDG_CACHE_HOME="/cache"
     - pip install --upgrade pip
-    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed torch==2.0.1+cu117 torchvision==0.15.2+cu117 numpy==1.26.4 transformers==4.56.2 datasets==4.4.1 accelerate==1.12.0 huggingface-hub==0.36.0 tokenizers==0.22.1 pyarrow==22.0.0 --index-url https://download.pytorch.org/whl/cu117
+    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed torch==2.0.1+cu117 torchvision==0.15.2+cu117 numpy==1.26.4 transformers==4.57.3 datasets==4.4.1 accelerate==1.12.0 huggingface-hub==0.36.0 tokenizers==0.22.1 pyarrow==22.0.0 --index-url https://download.pytorch.org/whl/cu117
     - python -c "import torch; print('CUDA:', torch.cuda.is_available(), 'GPUs:', torch.cuda.device_count(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)"
 
 # ===============================
