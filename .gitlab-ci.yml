@@ -22,7 +22,7 @@ stages:
 # Base Python job
 # ===============================
 .python:
-  image: nvidia/cuda:12.4.1-cudnn8-runtime-ubuntu22.04
+  image: nvidia/cuda:12.4.0-cudnn8-runtime-ubuntu22.04
   before_script:
     - python --version
     - mkdir -p /cache/pip /cache/huggingface
