@@ -107,6 +107,10 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
             # Ajuster le mask pour exclure les positions avec -100
             crf_mask = crf_mask & (labels != -100)
 
+            # IMPORTANT: Le CRF exige que le premier timestep soit toujours True
+            # Forcer le premier token à True même si c'était un token spécial
+            crf_mask[:, 0] = True
+
             # Calculer la negative log-likelihood du CRF
             # Le CRF maximise P(labels | emissions, mask)
             log_likelihood = self.crf(emissions, labels_masked, mask=crf_mask, reduction='mean')

@@ -19,7 +19,7 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 # Importer le modèle NER avec CRF et export TorchScript
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from nlu.models.ner_crf import CamembertForTokenClassificationWithCRF
+from nlu.layers.ner_crf import CamembertForTokenClassificationWithCRF
 from common.save_model import export_to_torchscript
 
 def main():

@@ -1,7 +1,7 @@
 """
-NLU Models Module
+NLU Custom Layers Module
 
-Custom model architectures for NLU tasks
+Custom neural network layers for NLU tasks
 """
 
 from .ner_crf import CamembertForTokenClassificationWithCRF
