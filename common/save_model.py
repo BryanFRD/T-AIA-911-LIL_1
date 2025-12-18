@@ -80,6 +80,37 @@ def export_to_torchscript(
     print(f"[OK] Modèle exporté en TorchScript: {output_path}")
 
 
+def export_simple_model_to_torchscript(
+    model,
+    output_path: str,
+    input_shape: tuple = (1, 10)
+):
+    """
+    Exporte un modèle PyTorch simple en TorchScript (sans tokenizer)
+
+    Args:
+        model: Modèle PyTorch à exporter
+        output_path: Chemin du fichier TorchScript de sortie (.pt)
+        input_shape: Shape de l'input factice pour le tracing
+
+    Note:
+        Pour modèles simples (STT/TTS dummy) sans tokenizer
+    """
+    model.eval()
+    device = next(model.parameters()).device
+
+    # Créer input factice
+    dummy_input = torch.randn(*input_shape).to(device)
+
+    # Tracer le modèle
+    with torch.no_grad():
+        traced_model = torch.jit.trace(model, dummy_input)
+
+    # Sauvegarder
+    traced_model.save(output_path)
+    print(f"[OK] Modèle exporté en TorchScript: {output_path}")
+
+
 def save_nlu_model_complete(
     model_ner,
     model_intent,

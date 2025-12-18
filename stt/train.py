@@ -6,9 +6,16 @@ pour permettre de tester le packaging et le déploiement
 """
 
 import os
+import sys
 import json
 import torch
 import torch.nn as nn
+from pathlib import Path
+
+# Ajouter le répertoire parent au path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from common.save_model import export_simple_model_to_torchscript
 
 
 class DummySTTModel(nn.Module):
@@ -61,8 +68,16 @@ def main():
     with open(f"{output_dir}/metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
 
+    # Export TorchScript
+    export_simple_model_to_torchscript(
+        model,
+        f"{output_dir}/model_stt_jit.pt",
+        input_shape=(1, 10)
+    )
+
     print(f"\n[OK] Modèle STT dummy créé dans {output_dir}")
     print("     - model.pt")
+    print("     - model_stt_jit.pt (TorchScript)")
     print("     - config.json")
     print("     - metadata.json")
     print("\n" + "="*70)
