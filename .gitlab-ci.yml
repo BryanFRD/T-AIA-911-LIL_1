@@ -25,7 +25,7 @@ test:
   script:
     - *install_dependencies
     - npm run type-check
-    - npm test -- --coverage --watchAll=false
+    - npm run test:coverage -- --watchAll=false
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     reports:
@@ -80,7 +80,7 @@ sonarqube:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
 
-# Build Expo bundle
+# Build Expo bundle (all platforms)
 build:
   stage: build
   script:
@@ -95,36 +95,3 @@ build:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
-
-# Build for Android (optional)
-build:android:
-  stage: build
-  image: reactnativecommunity/react-native-android:latest
-  script:
-    - *install_dependencies
-    - npx expo prebuild --platform android
-    - cd android
-    - ./gradlew assembleRelease
-  artifacts:
-    paths:
-      - android/app/build/outputs/apk/release/
-    expire_in: 1 week
-  only:
-    - tags
-  when: manual
-
-# Build for iOS (optional - requires macOS runner)
-build:ios:
-  stage: build
-  script:
-    - *install_dependencies
-    - npx expo prebuild --platform ios
-    - cd ios
-    - xcodebuild -workspace *.xcworkspace -scheme * -configuration Release archive
-  artifacts:
-    paths:
-      - ios/build/
-    expire_in: 1 week
-  only:
-    - tags
-  when: manual
