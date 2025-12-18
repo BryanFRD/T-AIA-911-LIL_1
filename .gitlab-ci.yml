@@ -100,12 +100,12 @@ train:stt:
     - python stt/train.py
   artifacts:
     paths:
-      # Modèles finaux uniquement (pas les checkpoints)
-      - stt/models/*.bin
-      - stt/models/*.json
-      - stt/models/*.txt
-      - stt/models/*.onnx
-      - stt/models/*.pt
+      # Modèles finaux (avec sous-dossiers)
+      - stt/models/**/*.bin
+      - stt/models/**/*.json
+      - stt/models/**/*.txt
+      - stt/models/**/*.onnx
+      - stt/models/**/*.pt
     expire_in: 7 days
   rules:
     - changes:
@@ -124,12 +124,12 @@ train:tts:
     - python tts/train.py
   artifacts:
     paths:
-      # Modèles finaux uniquement (pas les checkpoints)
-      - tts/models/*.bin
-      - tts/models/*.json
-      - tts/models/*.txt
-      - tts/models/*.onnx
-      - tts/models/*.pt
+      # Modèles finaux (avec sous-dossiers)
+      - tts/models/**/*.bin
+      - tts/models/**/*.json
+      - tts/models/**/*.txt
+      - tts/models/**/*.onnx
+      - tts/models/**/*.pt
     expire_in: 7 days
   rules:
     - changes:
@@ -153,6 +153,7 @@ package:nlu:
   before_script:
     - apk add --no-cache tar gzip
   script:
+    - mkdir -p nlu/models
     - echo "{\"model_name\":\"nlu\",\"version\":\"${MODEL_VERSION}\",\"commit\":\"${CI_COMMIT_SHA}\",\"branch\":\"${CI_COMMIT_REF_NAME}\",\"pipeline_id\":\"${CI_PIPELINE_ID}\",\"created_at\":\"$(date -Iseconds)\"}" > nlu/models/metadata.json
     - |
       # Supprimer les checkpoints pour réduire la taille
@@ -179,6 +180,7 @@ package:stt:
   before_script:
     - apk add --no-cache tar gzip
   script:
+    - mkdir -p stt/models
     - echo "{\"model_name\":\"stt\",\"version\":\"${MODEL_VERSION}\",\"commit\":\"${CI_COMMIT_SHA}\",\"branch\":\"${CI_COMMIT_REF_NAME}\",\"pipeline_id\":\"${CI_PIPELINE_ID}\",\"created_at\":\"$(date -Iseconds)\"}" > stt/models/metadata.json
     - |
       # Supprimer les checkpoints pour réduire la taille
@@ -205,6 +207,7 @@ package:tts:
   before_script:
     - apk add --no-cache tar gzip
   script:
+    - mkdir -p tts/models
     - echo "{\"model_name\":\"tts\",\"version\":\"${MODEL_VERSION}\",\"commit\":\"${CI_COMMIT_SHA}\",\"branch\":\"${CI_COMMIT_REF_NAME}\",\"pipeline_id\":\"${CI_PIPELINE_ID}\",\"created_at\":\"$(date -Iseconds)\"}" > tts/models/metadata.json
     - |
       # Supprimer les checkpoints pour réduire la taille
