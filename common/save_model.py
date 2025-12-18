@@ -1,10 +1,9 @@
 """
-Module de sauvegarde et export de modèles pour différents backends
+Module de sauvegarde et export de modèles pour production
 
 Supporte:
 - PyTorch natif (.pt, .pth)
-- ONNX (.onnx) - pour DJL Java, TensorRT, etc.
-- TorchScript (.pt) - pour production PyTorch
+- TorchScript (.pt) - pour production PyTorch et DJL Java
 """
 
 import os
@@ -38,104 +37,6 @@ def save_pytorch_model(model, tokenizer, output_dir: str, config: Optional[Dict]
     print(f"[OK] Modèle PyTorch sauvegardé dans {output_dir}")
 
 
-def export_to_onnx(
-    model,
-    tokenizer,
-    output_path: str,
-    task: str = "ner",
-    max_length: int = 128,
-    opset_version: int = 17,
-    optimize: bool = True
-):
-    """
-    Exporte un modèle HuggingFace en ONNX pour DJL Java
-
-    Args:
-        model: Modèle HuggingFace à exporter
-        tokenizer: Tokenizer associé
-        output_path: Chemin du fichier ONNX de sortie (.onnx)
-        task: Type de tâche ("ner" pour token classification, "intent" pour sequence classification)
-        max_length: Longueur max des séquences
-        opset_version: Version ONNX (17 recommandé pour DJL)
-        optimize: Appliquer optimisations ONNX Runtime
-
-    Notes DJL Java:
-        - DJL supporte ONNX Runtime via ai.djl:onnxruntime
-        - Format compatible avec PyTorch ONNX export
-        - Batch dynamique supporté
-    """
-    model.eval()
-    device = next(model.parameters()).device
-
-    # Créer inputs factices pour traçage
-    dummy_text = "Je veux aller de Paris à Lyon"
-    inputs = tokenizer(
-        dummy_text,
-        return_tensors="pt",
-        truncation=True,
-        max_length=max_length,
-        padding="max_length"
-    ).to(device)
-
-    # Noms des inputs/outputs
-    input_names = ["input_ids", "attention_mask"]
-    output_names = ["logits"]
-
-    # Axes dynamiques pour batch variable
-    if task == "ner":
-        # Token classification: (batch, seq_len, num_labels)
-        dynamic_axes = {
-            "input_ids": {0: "batch_size", 1: "seq_len"},
-            "attention_mask": {0: "batch_size", 1: "seq_len"},
-            "logits": {0: "batch_size", 1: "seq_len"}
-        }
-    elif task == "intent":
-        # Sequence classification: (batch, num_labels)
-        dynamic_axes = {
-            "input_ids": {0: "batch_size", 1: "seq_len"},
-            "attention_mask": {0: "batch_size", 1: "seq_len"},
-            "logits": {0: "batch_size"}
-        }
-    else:
-        raise ValueError(f"Task inconnue: {task}")
-
-    # Export ONNX
-    with torch.no_grad():
-        torch.onnx.export(
-            model,
-            (inputs["input_ids"], inputs["attention_mask"]),
-            output_path,
-            input_names=input_names,
-            output_names=output_names,
-            dynamic_axes=dynamic_axes,
-            opset_version=opset_version,
-            do_constant_folding=True,  # Optimisation compile-time
-            export_params=True,
-            verbose=False
-        )
-
-    print(f"[OK] Modèle exporté en ONNX: {output_path}")
-
-    # Optimisation ONNX Runtime (optionnel)
-    if optimize:
-        try:
-            import onnx
-            from onnxruntime.transformers import optimizer
-
-            # Charger et optimiser
-            model_onnx = onnx.load(output_path)
-            optimized_model = optimizer.optimize_model(
-                output_path,
-                model_type='bert',  # CamemBERT est basé sur BERT
-                num_heads=12,
-                hidden_size=768
-            )
-            optimized_model.save_model_to_file(output_path)
-            print(f"[OK] Modèle ONNX optimisé pour inférence")
-        except ImportError:
-            print("[WARN] onnxruntime non installé, optimisation ignorée")
-
-
 def export_to_torchscript(
     model,
     tokenizer,
@@ -143,7 +44,7 @@ def export_to_torchscript(
     max_length: int = 128
 ):
     """
-    Exporte un modèle HuggingFace en TorchScript
+    Exporte un modèle HuggingFace en TorchScript pour production
 
     Args:
         model: Modèle HuggingFace à exporter
@@ -152,8 +53,7 @@ def export_to_torchscript(
         max_length: Longueur max des séquences
 
     Note:
-        TorchScript est recommandé pour déploiement PyTorch natif (C++, mobile)
-        Pour DJL Java, préférer ONNX
+        TorchScript est utilisé pour déploiement PyTorch natif (C++, mobile) et DJL Java
     """
     model.eval()
     device = next(model.parameters()).device
@@ -186,10 +86,10 @@ def save_nlu_model_complete(
     tokenizer,
     output_dir: str,
     config: Dict,
-    export_formats: list = ["pytorch", "onnx"]
+    export_torchscript: bool = True
 ):
     """
-    Sauvegarde complète d'un système NLU (NER + Intent) avec exports multiples
+    Sauvegarde complète d'un système NLU (NER + Intent)
 
     Args:
         model_ner: Modèle NER (token classification)
@@ -197,19 +97,19 @@ def save_nlu_model_complete(
         tokenizer: Tokenizer partagé
         output_dir: Répertoire racine de sortie
         config: Configuration (entity_labels, intent_labels, etc.)
-        export_formats: Liste des formats d'export ("pytorch", "onnx", "torchscript")
+        export_torchscript: Exporter également en TorchScript
 
     Structure de sortie:
         output_dir/
         ├── model_ner/
         │   ├── pytorch_model.bin
         │   ├── config.json
-        │   ├── model_ner.onnx (si onnx)
+        │   ├── model_ner_jit.pt (si torchscript)
         │   └── labels_config.json
         ├── model_intent/
         │   ├── pytorch_model.bin
         │   ├── config.json
-        │   ├── model_intent.onnx (si onnx)
+        │   ├── model_intent_jit.pt (si torchscript)
         │   └── labels_config.json
         └── tokenizer/
             ├── tokenizer.json
@@ -221,113 +121,91 @@ def save_nlu_model_complete(
     tokenizer_dir = output_dir / "tokenizer"
 
     # PyTorch natif
-    if "pytorch" in export_formats:
-        save_pytorch_model(
-            model_ner,
-            tokenizer,
-            str(ner_dir),
-            {"entity_labels": config.get("entity_labels", [])}
-        )
-        save_pytorch_model(
-            model_intent,
-            tokenizer,
-            str(intent_dir),
-            {"intent_labels": config.get("intent_labels", [])}
-        )
+    save_pytorch_model(
+        model_ner,
+        tokenizer,
+        str(ner_dir),
+        {"entity_labels": config.get("entity_labels", [])}
+    )
+    save_pytorch_model(
+        model_intent,
+        tokenizer,
+        str(intent_dir),
+        {"intent_labels": config.get("intent_labels", [])}
+    )
 
-        # Tokenizer séparé
-        tokenizer.save_pretrained(str(tokenizer_dir))
-
-    # ONNX (pour DJL Java)
-    if "onnx" in export_formats:
-        export_to_onnx(
-            model_ner,
-            tokenizer,
-            str(ner_dir / "model_ner.onnx"),
-            task="ner",
-            max_length=config.get("max_length", 128)
-        )
-        export_to_onnx(
-            model_intent,
-            tokenizer,
-            str(intent_dir / "model_intent.onnx"),
-            task="intent",
-            max_length=config.get("max_length", 128)
-        )
+    # Tokenizer séparé
+    tokenizer.save_pretrained(str(tokenizer_dir))
 
     # TorchScript
-    if "torchscript" in export_formats:
+    if export_torchscript:
         export_to_torchscript(
             model_ner,
             tokenizer,
-            str(ner_dir / "model_ner_torchscript.pt"),
+            str(ner_dir / "model_ner_jit.pt"),
             max_length=config.get("max_length", 128)
         )
         export_to_torchscript(
             model_intent,
             tokenizer,
-            str(intent_dir / "model_intent_torchscript.pt"),
+            str(intent_dir / "model_intent_jit.pt"),
             max_length=config.get("max_length", 128)
         )
 
     print(f"\n[OK] Export complet NLU sauvegardé dans {output_dir}")
-    print(f"Formats: {', '.join(export_formats)}")
+    if export_torchscript:
+        print("Formats: PyTorch + TorchScript")
 
 
-# Exemple d'utilisation DJL Java (documentation)
+# Exemple d'utilisation DJL Java avec TorchScript (documentation)
 """
-# DJL Java - Chargement ONNX pour NLU
+# DJL Java - Chargement TorchScript pour NLU
 
 ```java
 import ai.djl.inference.Predictor;
 import ai.djl.repository.zoo.Criteria;
 import ai.djl.repository.zoo.ZooModel;
-import ai.djl.training.util.ProgressBar;
-import ai.djl.translate.TranslatorContext;
 import ai.djl.ndarray.NDList;
-import ai.djl.ndarray.NDArray;
-import ai.djl.ndarray.NDManager;
 import ai.djl.Model;
 import ai.djl.ModelException;
-import ai.djl.onnxruntime.engine.OrtEngine;
 
 public class NLUPredictor {
 
     public static void main(String[] args) throws ModelException, IOException {
-        // Charger modèle NER ONNX
-        Criteria<String, float[][]> criteriaNER = Criteria.builder()
-            .setTypes(String.class, float[][].class)
-            .optModelPath(Paths.get("nlu/models/model_ner/model_ner.onnx"))
-            .optEngine("OnnxRuntime")
-            .optProgress(new ProgressBar())
+        // Charger modèle NER TorchScript
+        Criteria<NDList, NDList> criteriaNER = Criteria.builder()
+            .setTypes(NDList.class, NDList.class)
+            .optModelPath(Paths.get("nlu/models/model_ner/model_ner_jit.pt"))
+            .optEngine("PyTorch")
             .build();
 
-        ZooModel<String, float[][]> modelNER = criteriaNER.loadModel();
+        ZooModel<NDList, NDList> modelNER = criteriaNER.loadModel();
 
-        // Charger modèle Intent ONNX
-        Criteria<String, float[]> criteriaIntent = Criteria.builder()
-            .setTypes(String.class, float[].class)
-            .optModelPath(Paths.get("nlu/models/model_intent/model_intent.onnx"))
-            .optEngine("OnnxRuntime")
-            .optProgress(new ProgressBar())
+        // Charger modèle Intent TorchScript
+        Criteria<NDList, NDList> criteriaIntent = Criteria.builder()
+            .setTypes(NDList.class, NDList.class)
+            .optModelPath(Paths.get("nlu/models/model_intent/model_intent_jit.pt"))
+            .optEngine("PyTorch")
             .build();
 
-        ZooModel<String, float[]> modelIntent = criteriaIntent.loadModel();
+        ZooModel<NDList, NDList> modelIntent = criteriaIntent.loadModel();
 
-        // Prédiction
-        try (Predictor<String, float[][]> predictorNER = modelNER.newPredictor();
-             Predictor<String, float[]> predictorIntent = modelIntent.newPredictor()) {
+        // Prédiction avec DJL
+        try (Predictor<NDList, NDList> predictorNER = modelNER.newPredictor();
+             Predictor<NDList, NDList> predictorIntent = modelIntent.newPredictor()) {
 
-            String text = "Je veux aller de Paris à Lyon";
+            // Préparer inputs (tokenization à faire côté Java)
+            NDManager manager = NDManager.newBaseManager();
+            NDList input = new NDList(inputIds, attentionMask);
 
             // NER
-            float[][] nerLogits = predictorNER.predict(text);
+            NDList nerOutput = predictorNER.predict(input);
 
             // Intent
-            float[] intentLogits = predictorIntent.predict(text);
+            NDList intentOutput = predictorIntent.predict(input);
 
-            System.out.println("Prédiction NER: " + Arrays.toString(nerLogits));
-            System.out.println("Prédiction Intent: " + Arrays.toString(intentLogits));
+            System.out.println("NER logits: " + nerOutput.get(0));
+            System.out.println("Intent logits: " + intentOutput.get(0));
         }
     }
 }
@@ -341,9 +219,14 @@ Dependencies Maven:
     <version>0.25.0</version>
 </dependency>
 <dependency>
-    <groupId>ai.djl.onnxruntime</groupId>
-    <artifactId>onnxruntime-engine</artifactId>
+    <groupId>ai.djl.pytorch</groupId>
+    <artifactId>pytorch-engine</artifactId>
     <version>0.25.0</version>
+</dependency>
+<dependency>
+    <groupId>ai.djl.pytorch</groupId>
+    <artifactId>pytorch-native-auto</artifactId>
+    <version>2.0.1</version>
 </dependency>
 ```
 """

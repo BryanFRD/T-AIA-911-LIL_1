@@ -17,9 +17,10 @@ from multiprocessing import freeze_support
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
-# Importer le module common pour exports (ONNX, TorchScript)
+# Importer le modèle NER avec CRF et export TorchScript
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from common.save_model import export_to_onnx, export_to_torchscript
+from nlu.models.ner_crf import CamembertForTokenClassificationWithCRF
+from common.save_model import export_to_torchscript
 
 def main():
     # === Détection GPU automatique ===
@@ -47,7 +48,7 @@ def main():
     else:
         config = {
             "tokenizer": {"type": DEFAULT_MODEL, "max_length": 128},
-            "training": {"epochs": 5, "batch_size": 16, "learning_rate": 5e-5},  # Augmenté de 8 à 16
+            "training": {"epochs": 5, "batch_size": 16, "learning_rate": 5e-5, "use_crf": True},  # CRF activé
             "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA"],
             "intent_labels": ["trajet", "other"]
         }
@@ -77,12 +78,30 @@ def main():
 
     id2label_ner = dict(enumerate(config["entity_labels"]))
     label2id_ner = {label: i for i, label in enumerate(config["entity_labels"])}
-    model_ner = AutoModelForTokenClassification.from_pretrained(
-        config["tokenizer"]["type"],
-        num_labels=len(config["entity_labels"]),
-        id2label=id2label_ner,
-        label2id=label2id_ner
-    )
+
+    # Utiliser CRF si activé dans la config
+    use_crf = config.get("training", {}).get("use_crf", False)
+
+    if use_crf:
+        print("\n🔥 CRF Layer activé - Garantit des séquences BIO valides")
+        from transformers import AutoConfig
+        model_config = AutoConfig.from_pretrained(config["tokenizer"]["type"])
+        model_config.num_labels = len(config["entity_labels"])
+        model_config.id2label = id2label_ner
+        model_config.label2id = label2id_ner
+
+        model_ner = CamembertForTokenClassificationWithCRF.from_pretrained(
+            config["tokenizer"]["type"],
+            config=model_config
+        )
+    else:
+        model_ner = AutoModelForTokenClassification.from_pretrained(
+            config["tokenizer"]["type"],
+            num_labels=len(config["entity_labels"]),
+            id2label=id2label_ner,
+            label2id=label2id_ner
+        )
+
     model_ner.to(device)
     # gradient_checkpointing désactivé pour plus de vitesse (CamemBERT-base tient en mémoire)
 
@@ -311,19 +330,12 @@ def main():
 
     print(f"\n[OK] Modèle Intent sauvegardé dans {OUTPUT_DIR_INTENT}")
 
-    # Export ONNX et TorchScript pour DJL Java
+    # Export TorchScript pour production
     print("\n" + "="*70)
-    print("EXPORT DES MODÈLES POUR PRODUCTION (ONNX + TorchScript)")
+    print("EXPORT DES MODÈLES POUR PRODUCTION (TorchScript)")
     print("="*70)
 
     # Export NER
-    export_to_onnx(
-        model_ner,
-        tokenizer,
-        f"{OUTPUT_DIR_NER}/model_ner.onnx",
-        task="ner",
-        max_length=config["tokenizer"]["max_length"]
-    )
     export_to_torchscript(
         model_ner,
         tokenizer,
@@ -332,13 +344,6 @@ def main():
     )
 
     # Export Intent
-    export_to_onnx(
-        model_intent,
-        tokenizer,
-        f"{OUTPUT_DIR_INTENT}/model_intent.onnx",
-        task="intent",
-        max_length=config["tokenizer"]["max_length"]
-    )
     export_to_torchscript(
         model_intent,
         tokenizer,

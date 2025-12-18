@@ -76,14 +76,15 @@ class NLUPredictor:
     def _extract_entities_from_ner(self, ner_result):
         entities = {"from": "", "to": "", "via": [], "person": ""}
 
-        current = {"FROM": [], "TO": [], "PERSON": []}
-        last_idx = {"FROM": -2, "TO": -2, "PERSON": -2}
+        current = {"FROM": [], "TO": [], "PERSON": [], "VIA": []}
+        last_idx = {"FROM": -2, "TO": -2, "PERSON": -2, "VIA": -2}
+        via_list = []
 
         for idx, r in enumerate(ner_result):
             entity = r.get("entity_group", r.get("entity")).replace("B-", "").replace("I-", "")
             word = r["word"].replace("▁", " ").strip()
 
-            if entity in current:
+            if entity in ["FROM", "TO", "PERSON"]:
                 if idx == last_idx[entity] + 1:
                     current[entity].append(word)
                 else:
@@ -91,16 +92,34 @@ class NLUPredictor:
                 last_idx[entity] = idx
 
             elif entity == "VIA":
-                if entities["via"] and idx == last_idx.get("VIA", -2) + 1:
-                    entities["via"][-1] += " " + word
+                # Détecter un nouveau B-VIA (début d'une nouvelle ville VIA)
+                tag = r.get("entity_group", r.get("entity"))
+                if tag.startswith("B-"):
+                    # Nouveau VIA - sauvegarder l'ancien si existe
+                    if current["VIA"]:
+                        via_list.append(" ".join(current["VIA"]).strip())
+                        current["VIA"] = []
+                    current["VIA"] = [word]
+                elif tag.startswith("I-") and idx == last_idx["VIA"] + 1:
+                    # Continuation du VIA actuel
+                    current["VIA"].append(word)
                 else:
-                    entities["via"].append(word)
+                    # Fallback : nouveau VIA si pas consécutif
+                    if current["VIA"]:
+                        via_list.append(" ".join(current["VIA"]).strip())
+                    current["VIA"] = [word]
+
                 last_idx["VIA"] = idx
 
+        # Finaliser les entités
         entities["from"] = " ".join(current["FROM"]).strip()
         entities["to"] = " ".join(current["TO"]).strip()
         entities["person"] = " ".join(current["PERSON"]).strip()
-        entities["via"] = [v.strip() for v in entities["via"]]
+
+        # Ajouter le dernier VIA s'il existe
+        if current["VIA"]:
+            via_list.append(" ".join(current["VIA"]).strip())
+        entities["via"] = via_list
 
         return entities
 
