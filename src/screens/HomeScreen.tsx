@@ -1,5 +1,5 @@
 import { View, Text, FlatList, ActivityIndicator } from 'react-native';
-import { useUsers } from '../hooks/useUsers';
+import { useUsers } from '@/hooks/useUsers';
 
 export default function HomeScreen() {
   const { data: users, isLoading, error } = useUsers();

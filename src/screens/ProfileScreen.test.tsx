@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react-native';
-import ProfileScreen from '../ProfileScreen';
+import ProfileScreen from '@/screens/ProfileScreen';
 
 describe('ProfileScreen', () => {
   it('should render profile title', () => {

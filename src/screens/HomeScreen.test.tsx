@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import HomeScreen from '../HomeScreen';
+import HomeScreen from '@/screens/HomeScreen';
 
 const createTestQueryClient = () =>
   new QueryClient({

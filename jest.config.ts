@@ -13,4 +13,7 @@ export default {
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testMatch: ['**/*.test.{ts,tsx}'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
 };

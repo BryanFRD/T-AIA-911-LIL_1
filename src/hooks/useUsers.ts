@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../utils/api';
-import { User } from '../types/types';
+import { apiClient } from '@/utils/api';
+import { User } from '@/types/types';
 
 export function useUsers() {
   return useQuery({
