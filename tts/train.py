@@ -11,6 +11,7 @@ import json
 import torch
 import torch.nn as nn
 from pathlib import Path
+import mlflow
 
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -33,56 +34,44 @@ def main():
     print("GÉNÉRATION MODÈLE TTS DUMMY (POUR TEST CI/CD)")
     print("="*70)
 
-    output_dir = "tts/models/model_tts"
-    os.makedirs(output_dir, exist_ok=True)
+    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "https://mlflow.bryan-ferrando.fr"))
+    mlflow.set_experiment(os.environ.get("MLFLOW_EXPERIMENT_NAME", "tts"))
 
-    # Créer un modèle factice
-    model = DummyTTSModel()
+    with mlflow.start_run(run_name="dummy-tts-ci"):
+        output_dir = "tts/models/model_tts"
+        os.makedirs(output_dir, exist_ok=True)
 
-    # Sauvegarder le modèle
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'architecture': 'dummy',
-        'description': 'Modèle TTS factice pour test pipeline'
-    }, f"{output_dir}/model.pt")
+        model = DummyTTSModel()
 
-    # Créer une config factice
-    config = {
-        "model_type": "dummy_tts",
-        "sample_rate": 22050,
-        "speaker_embedding_dim": 256,
-        "description": "Dummy TTS model for CI/CD testing"
-    }
+        # Log params
+        mlflow.log_param("model_type", "dummy_tts")
+        mlflow.log_param("sample_rate", 22050)
+        mlflow.log_param("is_dummy", True)
 
-    with open(f"{output_dir}/config.json", "w") as f:
-        json.dump(config, f, indent=2)
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'architecture': 'dummy',
+            'description': 'Modèle TTS factice pour test pipeline'
+        }, f"{output_dir}/model.pt")
 
-    # Créer un fichier de métadonnées
-    metadata = {
-        "framework": "pytorch",
-        "task": "text-to-speech",
-        "language": "fr",
-        "is_dummy": True
-    }
+        export_simple_model_to_torchscript(
+            model,
+            f"{output_dir}/model_tts_jit.pt",
+            input_shape=(1, 10)
+        )
 
-    with open(f"{output_dir}/metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2)
+        # Log model MLflow
+        mlflow.pytorch.log_model(
+            model,
+            artifact_path="model",
+            registered_model_name="tts"
+        )
 
-    # Export TorchScript
-    export_simple_model_to_torchscript(
-        model,
-        f"{output_dir}/model_tts_jit.pt",
-        input_shape=(1, 10)
-    )
+        # Log artifacts
+        mlflow.log_artifacts(output_dir)
 
     print(f"\n[OK] Modèle TTS dummy créé dans {output_dir}")
-    print("     - model.pt")
-    print("     - model_tts_jit.pt (TorchScript)")
-    print("     - config.json")
-    print("     - metadata.json")
-    print("\n" + "="*70)
-    print("GÉNÉRATION TERMINÉE")
-    print("="*70)
+
 
 
 if __name__ == "__main__":

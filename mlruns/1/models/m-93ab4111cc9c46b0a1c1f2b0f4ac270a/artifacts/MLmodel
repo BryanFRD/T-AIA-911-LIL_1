@@ -1,0 +1,23 @@
+artifact_path: file:///D:/Perso/workspace/models/mlruns/1/models/m-93ab4111cc9c46b0a1c1f2b0f4ac270a/artifacts
+flavors:
+  python_function:
+    config:
+      device: null
+    data: data
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pytorch
+    pickle_module_name: mlflow.pytorch.pickle_module
+    python_version: 3.11.9
+  pytorch:
+    code: null
+    model_data: data
+    pytorch_version: 2.9.1+cpu
+mlflow_version: 3.7.0
+model_id: m-93ab4111cc9c46b0a1c1f2b0f4ac270a
+model_size_bytes: 4849
+model_uuid: m-93ab4111cc9c46b0a1c1f2b0f4ac270a
+prompts: null
+run_id: 22cb333bdd0540aba773e92cd68f327a
+utc_time_created: '2025-12-18 16:32:09.272075'

@@ -146,16 +146,6 @@ def augment_contractions(text: str, entities: Dict, probability: float) -> List[
 
 ---
 
-### 🔄 2.2 CRF Layer (nlu/train.py)
-- [ ] Ajouter `pytorch-crf` dans requirements.txt
-- [ ] Créer classe `NERModelWithCRF(nn.Module)`
-- [ ] Remplacer `AutoModelForTokenClassification` par modèle CRF
-- [ ] Adapter Trainer pour CRF outputs
-
-**Impact**: +2-5% F1, séquences BIO valides
-
----
-
 ### 🔄 2.3 Multi-Task Learning (nlu/train.py)
 - [ ] Créer classe `MultiTaskNLU(nn.Module)` avec encodeur partagé
 - [ ] Tête NER (token-level) + tête Intent (sequence-level)
@@ -163,43 +153,6 @@ def augment_contractions(text: str, entities: Dict, probability: float) -> List[
 - [ ] Remplacer entraînements séparés par entraînement joint
 
 **Impact**: +3-7% sur les deux tâches
-
----
-
-### 🔄 2.4 Fusionner augmentations redondantes
-- [ ] Créer `nlu/augments/oral_transformations.py`
-- [ ] Fusionner abbreviations.py + contractions.py
-- [ ] Supprimer fichiers redondants
-- [ ] Mettre à jour augmenter.py
-
-**Impact**: Élimine doublons "jveux"
-
----
-
-### 🔄 2.5 Élargir dictionnaires
-- [ ] **synonyms.py**: 4 → 50+ entrées (aller, veux, trajet, prendre, depuis, vers, rapide, direct, comment, il faut, etc.)
-- [ ] **typos.py**: 20 → 50+ règles (aller→alé, veux→veu, comment→coment, trajet→trajé, etc.)
-
-**Impact**: Augmente coverage augmentations
-
----
-
-### 🔄 2.6 Augmenter exemples "other"
-- [ ] Modifier generate_from_templates.py ligne 250
-- [ ] Séparer augmentation trajet (4.0x) et other (2.0x)
-- [ ] Ratio cible: 3:1 au lieu de 12:1
-
-**Impact**: Réduit biais vers "trajet"
-
----
-
-### 🔄 2.7 Métriques F1/Precision/Recall
-- [ ] Ajouter `from sklearn.metrics import precision_recall_fscore_support, accuracy_score`
-- [ ] Créer fonction `compute_metrics_ner(pred)` et `compute_metrics_intent(pred)`
-- [ ] Ajouter `compute_metrics` aux deux Trainer
-- [ ] Changer `metric_for_best_model="f1"` au lieu de "eval_loss"
-
-**Impact**: Meilleur suivi qualité modèle
 
 ---
 
@@ -232,7 +185,7 @@ def augment_contractions(text: str, entities: Dict, probability: float) -> List[
 ---
 
 ### ⚙️ 3.4 Validation BIO après augmentation
-- [ ] Créer fonction `validate_entities_preserved()`
+- [x] Créer fonction `validate_entities_preserved()`
 - [ ] Vérifier entités présentes dans texte augmenté
 - [ ] Appliquer dans augmenter.py ligne 81
 
@@ -246,31 +199,6 @@ def augment_contractions(text: str, entities: Dict, probability: float) -> List[
 - [ ] Logger à la fin de augment_dataset
 
 **Impact**: Visibilité efficacité augmentations
-
----
-
-## 📌 PHASE 4: NOUVELLES FONCTIONNALITÉS (Long terme - 6-8h)
-
-### 🆕 4.1 Nouvelles augmentations
-
-#### 4.1.1 Accent Variants (nlu/augments/accent_variants.py)
-- [ ] Créer fichier avec mapping é→e, à→a, etc.
-- [ ] Retirer 30% accents aléatoirement
-- [ ] Enregistrer dans augmenter.py
-
----
-
-#### 4.1.2 Homophones (nlu/augments/homophones.py)
-- [ ] Mapping à↔a, où↔ou, ce↔se, et↔est, son↔sont
-- [ ] Remplacer aléatoirement (protéger entités)
-- [ ] Enregistrer dans augmenter.py
-
----
-
-#### 4.1.3 Entity Swap (nlu/augments/entity_swap.py)
-- [ ] Inverser FROM ↔ TO pour trajets retour
-- [ ] Mettre à jour entités swappées
-- [ ] Enregistrer dans augmenter.py
 
 ---
 

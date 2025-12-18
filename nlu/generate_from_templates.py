@@ -264,7 +264,7 @@ if __name__ == "__main__":
         )
         augmented_other = augmenter.augment_dataset(
             other_examples,
-            augmentation_factor=2.0  # Modéré pour other (augmenté pour réduire ratio)
+            augmentation_factor=4.5  # Ajusté pour ratio ~3:1 (était 2.0, puis 6.0)
         )
 
         # Combiner

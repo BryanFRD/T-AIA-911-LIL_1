@@ -22,7 +22,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from nlu.layers.ner_crf import CamembertForTokenClassificationWithCRF
 from common.save_model import export_to_torchscript
 
+# Import MLflow après transformers pour éviter les conflits
+import mlflow
+
 def main():
+    # === MLflow Configuration ===
+    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "https://mlflow.bryan-ferrando.fr"))
+    mlflow.set_experiment(os.environ.get("MLFLOW_EXPERIMENT_NAME", "nlu"))
+
+    # Nettoyer tout run actif (au cas où)
+    if mlflow.active_run():
+        mlflow.end_run()
+
     # === Détection GPU automatique ===
     print("="*70)
     print("CONFIGURATION SYSTÈME")
@@ -74,286 +85,334 @@ def main():
         print(f"ERREUR: {dataset_path} n'existe pas!")
         return
 
-    tokenizer = AutoTokenizer.from_pretrained(config["tokenizer"]["type"])
+    # Start MLflow run
+    with mlflow.start_run(run_name="nlu-training"):
+        # Log parameters
+        mlflow.log_param("model_type", config["tokenizer"]["type"])
+        mlflow.log_param("max_length", config["tokenizer"]["max_length"])
+        mlflow.log_param("epochs", config["training"]["epochs"])
+        mlflow.log_param("batch_size", config["training"]["batch_size"])
+        mlflow.log_param("learning_rate", config["training"]["learning_rate"])
+        mlflow.log_param("use_crf", config["training"].get("use_crf", False))
+        mlflow.log_param("num_entity_labels", len(config["entity_labels"]))
+        mlflow.log_param("num_intent_labels", len(config["intent_labels"]))
+        mlflow.log_param("train_size", len(dataset))
+        mlflow.log_param("val_size", len(val_dataset))
+        mlflow.log_param("device", device)
 
-    id2label_ner = dict(enumerate(config["entity_labels"]))
-    label2id_ner = {label: i for i, label in enumerate(config["entity_labels"])}
+        tokenizer = AutoTokenizer.from_pretrained(config["tokenizer"]["type"])
 
-    # Utiliser CRF si activé dans la config
-    use_crf = config.get("training", {}).get("use_crf", False)
+        id2label_ner = dict(enumerate(config["entity_labels"]))
+        label2id_ner = {label: i for i, label in enumerate(config["entity_labels"])}
 
-    if use_crf:
-        print("\n🔥 CRF Layer activé - Garantit des séquences BIO valides")
-        from transformers import AutoConfig
-        model_config = AutoConfig.from_pretrained(config["tokenizer"]["type"])
-        model_config.num_labels = len(config["entity_labels"])
-        model_config.id2label = id2label_ner
-        model_config.label2id = label2id_ner
+        # Utiliser CRF si activé dans la config
+        use_crf = config.get("training", {}).get("use_crf", False)
 
-        model_ner = CamembertForTokenClassificationWithCRF.from_pretrained(
-            config["tokenizer"]["type"],
-            config=model_config
-        )
-    else:
-        model_ner = AutoModelForTokenClassification.from_pretrained(
-            config["tokenizer"]["type"],
-            num_labels=len(config["entity_labels"]),
-            id2label=id2label_ner,
-            label2id=label2id_ner
-        )
+        if use_crf:
+            print("\n🔥 CRF Layer activé - Garantit des séquences BIO valides")
+            from transformers import AutoConfig
+            model_config = AutoConfig.from_pretrained(config["tokenizer"]["type"])
+            model_config.num_labels = len(config["entity_labels"])
+            model_config.id2label = id2label_ner
+            model_config.label2id = label2id_ner
 
-    model_ner.to(device)
-    # gradient_checkpointing désactivé pour plus de vitesse (CamemBERT-base tient en mémoire)
-
-    def tokenize_and_align_labels_ner(examples):
-        all_input = []
-        for text, labels_bio in zip(examples["text"], examples["labels_bio"]):
-            tokenized_inputs = tokenizer(
-                text,
-                truncation=True,
-                max_length=config["tokenizer"]["max_length"],
-                return_offsets_mapping=True,
-                is_split_into_words=False
+            model_ner = CamembertForTokenClassificationWithCRF.from_pretrained(
+                config["tokenizer"]["type"],
+                config=model_config
             )
-            offsets = tokenized_inputs["offset_mapping"]
-            words = text.split()
-            char_to_label = {}
-            char_pos = 0
-            for word_idx, word in enumerate(words):
-                word_start = text.find(word, char_pos)
-                if word_start == -1: 
-                    continue
-                word_end = word_start + len(word)
-                if word_idx < len(labels_bio):
-                    for i in range(word_start, word_end):
-                        char_to_label[i] = labels_bio[word_idx]
-                char_pos = word_end
+        else:
+            model_ner = AutoModelForTokenClassification.from_pretrained(
+                config["tokenizer"]["type"],
+                num_labels=len(config["entity_labels"]),
+                id2label=id2label_ner,
+                label2id=label2id_ner
+            )
 
-            labels = []
-            for start, end in offsets:
-                if start == end:
-                    labels.append(-100)
-                else:
-                    label_str = char_to_label.get(start, "O")
-                    labels.append(config["entity_labels"].index(label_str))
+        model_ner.to(device)
+        # gradient_checkpointing désactivé pour plus de vitesse (CamemBERT-base tient en mémoire)
 
-            tokenized_inputs.pop("offset_mapping")
-            tokenized_inputs["labels"] = labels
-            all_input.append(tokenized_inputs)
-        # Merge les dicts du batch
-        return {k: [dic[k] for dic in all_input] for k in all_input[0]}
+        def tokenize_and_align_labels_ner(examples):
+            all_input = []
+            for text, labels_bio in zip(examples["text"], examples["labels_bio"]):
+                tokenized_inputs = tokenizer(
+                    text,
+                    truncation=True,
+                    max_length=config["tokenizer"]["max_length"],
+                    return_offsets_mapping=True,
+                    is_split_into_words=False
+                )
+                offsets = tokenized_inputs["offset_mapping"]
+                words = text.split()
+                char_to_label = {}
+                char_pos = 0
+                for word_idx, word in enumerate(words):
+                    word_start = text.find(word, char_pos)
+                    if word_start == -1:
+                        continue
+                    word_end = word_start + len(word)
+                    if word_idx < len(labels_bio):
+                        for i in range(word_start, word_end):
+                            char_to_label[i] = labels_bio[word_idx]
+                    char_pos = word_end
+
+                labels = []
+                for start, end in offsets:
+                    if start == end:
+                        labels.append(-100)
+                    else:
+                        label_str = char_to_label.get(start, "O")
+                        labels.append(config["entity_labels"].index(label_str))
+
+                tokenized_inputs.pop("offset_mapping")
+                tokenized_inputs["labels"] = labels
+                all_input.append(tokenized_inputs)
+            # Merge les dicts du batch
+            return {k: [dic[k] for dic in all_input] for k in all_input[0]}
 
 
-    tokenized_dataset_ner = dataset.map(
-        tokenize_and_align_labels_ner,
-        batched=True,
-        batch_size=64,  # Augmenté de 32 à 64
-        num_proc=4  # Multi-threading pour tokenisation
-    )
-    tokenized_val_dataset_ner = val_dataset.map(
-        tokenize_and_align_labels_ner,
-        batched=True,
-        batch_size=64,
-        num_proc=4
-    )
-    data_collator_ner = DataCollatorForTokenClassification(tokenizer, pad_to_multiple_of=8)
-
-    # Fonction de calcul des métriques pour NER
-    def compute_metrics_ner(pred):
-        predictions, labels = pred
-        predictions = np.argmax(predictions, axis=2)
-
-        # Flatten et filtrer les labels -100 (padding)
-        true_labels = []
-        pred_labels = []
-
-        for pred_seq, label_seq in zip(predictions, labels):
-            for pred_label, true_label in zip(pred_seq, label_seq):
-                if true_label != -100:  # Ignorer padding
-                    true_labels.append(true_label)
-                    pred_labels.append(pred_label)
-
-        # Calculer les métriques
-        precision, recall, f1, _ = precision_recall_fscore_support(
-            true_labels, pred_labels, average='weighted', zero_division=0
+        tokenized_dataset_ner = dataset.map(
+            tokenize_and_align_labels_ner,
+            batched=True,
+            batch_size=64,  # Augmenté de 32 à 64
+            num_proc=4  # Multi-threading pour tokenisation
         )
-        acc = accuracy_score(true_labels, pred_labels)
+        tokenized_val_dataset_ner = val_dataset.map(
+            tokenize_and_align_labels_ner,
+            batched=True,
+            batch_size=64,
+            num_proc=4
+        )
+        data_collator_ner = DataCollatorForTokenClassification(tokenizer, pad_to_multiple_of=8)
 
-        return {
-            'accuracy': acc,
-            'f1': f1,
-            'precision': precision,
-            'recall': recall
-        }
+        # Fonction de calcul des métriques pour NER
+        def compute_metrics_ner(pred):
+            predictions, labels = pred
+            predictions = np.argmax(predictions, axis=2)
 
-    training_args_ner = TrainingArguments(
-        output_dir=OUTPUT_DIR_NER,
-        num_train_epochs=config["training"]["epochs"],
-        per_device_train_batch_size=config["training"]["batch_size"],
-        per_device_eval_batch_size=config["training"]["batch_size"],
-        learning_rate=config["training"]["learning_rate"],
-        weight_decay=0.01,  # Régularisation L2 pour réduire overfitting
-        warmup_ratio=0.1,  # 10% warmup pour meilleure convergence
-        lr_scheduler_type="cosine",  # Cosine decay du learning rate
-        logging_dir="./logs/ner",
-        logging_steps=50,  # Réduit le logging pour accélérer
-        evaluation_strategy="epoch",  # Évaluation à chaque epoch
-        save_strategy="epoch",  # Sauvegarder le meilleur modèle
-        load_best_model_at_end=True,  # Charger le meilleur modèle à la fin
-        metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
-        greater_is_better=True,  # Plus grand F1 = mieux
-        overwrite_output_dir=True,
-        fp16=(device=="cuda"),
-        gradient_accumulation_steps=1,  # Réduit de 2 à 1 (batch_size doublé)
-        dataloader_num_workers=2,  # Accélère chargement données
-        dataloader_pin_memory=True  # Optimisation GPU
-    )
+            # Flatten et filtrer les labels -100 (padding)
+            true_labels = []
+            pred_labels = []
 
-    trainer_ner = Trainer(
-        model=model_ner,
-        args=training_args_ner,
-        train_dataset=tokenized_dataset_ner,
-        eval_dataset=tokenized_val_dataset_ner,  # Dataset de validation
-        tokenizer=tokenizer,
-        data_collator=data_collator_ner,
-        compute_metrics=compute_metrics_ner  # Ajout des métriques F1/Precision/Recall
-    )
+            for pred_seq, label_seq in zip(predictions, labels):
+                for pred_label, true_label in zip(pred_seq, label_seq):
+                    if true_label != -100:  # Ignorer padding
+                        true_labels.append(true_label)
+                        pred_labels.append(pred_label)
 
-    print("\n" + "="*70)
-    print("ENTRAÎNEMENT DU MODÈLE NER")
-    print("="*70)
-    trainer_ner.train()
-    model_ner.save_pretrained(OUTPUT_DIR_NER)
-    tokenizer.save_pretrained(OUTPUT_DIR_NER)
+            # Calculer les métriques
+            precision, recall, f1, _ = precision_recall_fscore_support(
+                true_labels, pred_labels, average='weighted', zero_division=0
+            )
+            acc = accuracy_score(true_labels, pred_labels)
 
-    with open(f"{OUTPUT_DIR_NER}/labels_config.json", "w") as f:
-        json.dump({"entity_labels": config["entity_labels"]}, f, indent=2)
+            return {
+                'accuracy': acc,
+                'f1': f1,
+                'precision': precision,
+                'recall': recall
+            }
 
-    print(f"\n[OK] Modèle NER sauvegardé dans {OUTPUT_DIR_NER}")
+        training_args_ner = TrainingArguments(
+            output_dir=OUTPUT_DIR_NER,
+            num_train_epochs=config["training"]["epochs"],
+            per_device_train_batch_size=config["training"]["batch_size"],
+            per_device_eval_batch_size=config["training"]["batch_size"],
+            learning_rate=config["training"]["learning_rate"],
+            weight_decay=0.01,  # Régularisation L2 pour réduire overfitting
+            warmup_ratio=0.1,  # 10% warmup pour meilleure convergence
+            lr_scheduler_type="cosine",  # Cosine decay du learning rate
+            logging_dir="./logs/ner",
+            logging_steps=50,  # Réduit le logging pour accélérer
+            evaluation_strategy="epoch",  # Évaluation à chaque epoch
+            save_strategy="epoch",  # Sauvegarder le meilleur modèle
+            load_best_model_at_end=True,  # Charger le meilleur modèle à la fin
+            metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
+            greater_is_better=True,  # Plus grand F1 = mieux
+            overwrite_output_dir=True,
+            fp16=(device=="cuda"),
+            gradient_accumulation_steps=1,  # Réduit de 2 à 1 (batch_size doublé)
+            dataloader_num_workers=2,  # Accélère chargement données
+            dataloader_pin_memory=True,  # Optimisation GPU
+            report_to="none"  # Désactiver l'auto-logging MLflow du Trainer
+        )
 
-    print("\n" + "="*70)
-    print("ENTRAÎNEMENT DU MODÈLE INTENT")
-    print("="*70)
+        trainer_ner = Trainer(
+            model=model_ner,
+            args=training_args_ner,
+            train_dataset=tokenized_dataset_ner,
+            eval_dataset=tokenized_val_dataset_ner,  # Dataset de validation
+            tokenizer=tokenizer,
+            data_collator=data_collator_ner,
+            compute_metrics=compute_metrics_ner  # Ajout des métriques F1/Precision/Recall
+        )
 
-    # Créer les mappings intent
-    id2label_intent = dict(enumerate(config["intent_labels"]))
-    label2id_intent = {label: i for i, label in enumerate(config["intent_labels"])}
+        print("\n" + "="*70)
+        print("ENTRAÎNEMENT DU MODÈLE NER")
+        print("="*70)
+        trainer_ner.train()
+        model_ner.save_pretrained(OUTPUT_DIR_NER)
+        tokenizer.save_pretrained(OUTPUT_DIR_NER)
 
-    model_intent = AutoModelForSequenceClassification.from_pretrained(
-        config["tokenizer"]["type"],
-        num_labels=len(config["intent_labels"]),
-        id2label=id2label_intent,
-        label2id=label2id_intent
-    )
-    model_intent.to(device)
-    # gradient_checkpointing désactivé pour plus de vitesse
+        with open(f"{OUTPUT_DIR_NER}/labels_config.json", "w") as f:
+            json.dump({"entity_labels": config["entity_labels"]}, f, indent=2)
 
-    def tokenize_intent(examples):
-        tokenized = tokenizer(
-            examples["text"],
-            truncation=True,
+        print(f"\n[OK] Modèle NER sauvegardé dans {OUTPUT_DIR_NER}")
+
+        # Log NER metrics from final evaluation
+        ner_eval_results = trainer_ner.evaluate()
+        for key, value in ner_eval_results.items():
+            mlflow.log_metric(f"ner_{key}", value)
+
+        print("\n" + "="*70)
+        print("ENTRAÎNEMENT DU MODÈLE INTENT")
+        print("="*70)
+
+        # Créer les mappings intent
+        id2label_intent = dict(enumerate(config["intent_labels"]))
+        label2id_intent = {label: i for i, label in enumerate(config["intent_labels"])}
+
+        model_intent = AutoModelForSequenceClassification.from_pretrained(
+            config["tokenizer"]["type"],
+            num_labels=len(config["intent_labels"]),
+            id2label=id2label_intent,
+            label2id=label2id_intent
+        )
+        model_intent.to(device)
+        # gradient_checkpointing désactivé pour plus de vitesse
+
+        def tokenize_intent(examples):
+            tokenized = tokenizer(
+                examples["text"],
+                truncation=True,
+                max_length=config["tokenizer"]["max_length"]
+                # Pas de padding ici, fait dynamiquement par le DataCollator (plus efficace)
+            )
+            tokenized["labels"] = [label2id_intent[intent] for intent in examples["intent"]]
+            return tokenized
+
+        tokenized_dataset_intent = dataset.map(
+            tokenize_intent,
+            batched=True,
+            batch_size=64,  # Augmenté de 32 à 64
+            num_proc=4  # Multi-threading
+        )
+        tokenized_val_dataset_intent = val_dataset.map(
+            tokenize_intent,
+            batched=True,
+            batch_size=64,
+            num_proc=4
+        )
+
+        # Fonction de calcul des métriques pour Intent
+        def compute_metrics_intent(pred):
+            predictions, labels = pred
+            predictions = np.argmax(predictions, axis=1)
+
+            # Calculer les métriques
+            precision, recall, f1, _ = precision_recall_fscore_support(
+                labels, predictions, average='weighted', zero_division=0
+            )
+            acc = accuracy_score(labels, predictions)
+
+            return {
+                'accuracy': acc,
+                'f1': f1,
+                'precision': precision,
+                'recall': recall
+            }
+
+        training_args_intent = TrainingArguments(
+            output_dir=OUTPUT_DIR_INTENT,
+            num_train_epochs=config["training"]["epochs"],
+            per_device_train_batch_size=config["training"]["batch_size"],
+            per_device_eval_batch_size=config["training"]["batch_size"],
+            learning_rate=config["training"]["learning_rate"],
+            weight_decay=0.01,  # Régularisation L2
+            warmup_ratio=0.1,  # 10% warmup
+            lr_scheduler_type="cosine",  # Cosine decay
+            logging_dir="./logs/intent",
+            logging_steps=50,  # Réduit le logging
+            evaluation_strategy="epoch",  # Évaluation à chaque epoch
+            save_strategy="epoch",  # Sauvegarder le meilleur modèle
+            load_best_model_at_end=True,  # Charger le meilleur modèle
+            metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
+            greater_is_better=True,  # Plus grand F1 = mieux
+            overwrite_output_dir=True,
+            fp16=(device=="cuda"),
+            gradient_accumulation_steps=1,  # Réduit de 2 à 1
+            dataloader_num_workers=2,  # Accélère chargement
+            dataloader_pin_memory=True,  # Optimisation GPU
+            report_to="none"  # Désactiver l'auto-logging MLflow du Trainer
+        )
+
+        trainer_intent = Trainer(
+            model=model_intent,
+            args=training_args_intent,
+            train_dataset=tokenized_dataset_intent,
+            eval_dataset=tokenized_val_dataset_intent,  # Dataset de validation
+            tokenizer=tokenizer,
+            compute_metrics=compute_metrics_intent  # Ajout des métriques F1/Precision/Recall
+        )
+
+        trainer_intent.train()
+        model_intent.save_pretrained(OUTPUT_DIR_INTENT)
+        tokenizer.save_pretrained(OUTPUT_DIR_INTENT)
+
+        with open(f"{OUTPUT_DIR_INTENT}/labels_config.json", "w") as f:
+            json.dump({"intent_labels": config["intent_labels"]}, f, indent=2)
+
+        print(f"\n[OK] Modèle Intent sauvegardé dans {OUTPUT_DIR_INTENT}")
+
+        # Log Intent metrics from final evaluation
+        intent_eval_results = trainer_intent.evaluate()
+        for key, value in intent_eval_results.items():
+            mlflow.log_metric(f"intent_{key}", value)
+
+        # Export TorchScript pour production
+        print("\n" + "="*70)
+        print("EXPORT DES MODÈLES POUR PRODUCTION (TorchScript)")
+        print("="*70)
+
+        # Export NER
+        export_to_torchscript(
+            model_ner,
+            tokenizer,
+            f"{OUTPUT_DIR_NER}/model_ner_jit.pt",
             max_length=config["tokenizer"]["max_length"]
-            # Pas de padding ici, fait dynamiquement par le DataCollator (plus efficace)
         )
-        tokenized["labels"] = [label2id_intent[intent] for intent in examples["intent"]]
-        return tokenized
 
-    tokenized_dataset_intent = dataset.map(
-        tokenize_intent,
-        batched=True,
-        batch_size=64,  # Augmenté de 32 à 64
-        num_proc=4  # Multi-threading
-    )
-    tokenized_val_dataset_intent = val_dataset.map(
-        tokenize_intent,
-        batched=True,
-        batch_size=64,
-        num_proc=4
-    )
-
-    # Fonction de calcul des métriques pour Intent
-    def compute_metrics_intent(pred):
-        predictions, labels = pred
-        predictions = np.argmax(predictions, axis=1)
-
-        # Calculer les métriques
-        precision, recall, f1, _ = precision_recall_fscore_support(
-            labels, predictions, average='weighted', zero_division=0
+        # Export Intent
+        export_to_torchscript(
+            model_intent,
+            tokenizer,
+            f"{OUTPUT_DIR_INTENT}/model_intent_jit.pt",
+            max_length=config["tokenizer"]["max_length"]
         )
-        acc = accuracy_score(labels, predictions)
 
-        return {
-            'accuracy': acc,
-            'f1': f1,
-            'precision': precision,
-            'recall': recall
-        }
+        # Log models to MLflow
+        print("\n" + "="*70)
+        print("ENREGISTREMENT DES MODÈLES DANS MLFLOW")
+        print("="*70)
 
-    training_args_intent = TrainingArguments(
-        output_dir=OUTPUT_DIR_INTENT,
-        num_train_epochs=config["training"]["epochs"],
-        per_device_train_batch_size=config["training"]["batch_size"],
-        per_device_eval_batch_size=config["training"]["batch_size"],
-        learning_rate=config["training"]["learning_rate"],
-        weight_decay=0.01,  # Régularisation L2
-        warmup_ratio=0.1,  # 10% warmup
-        lr_scheduler_type="cosine",  # Cosine decay
-        logging_dir="./logs/intent",
-        logging_steps=50,  # Réduit le logging
-        evaluation_strategy="epoch",  # Évaluation à chaque epoch
-        save_strategy="epoch",  # Sauvegarder le meilleur modèle
-        load_best_model_at_end=True,  # Charger le meilleur modèle
-        metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
-        greater_is_better=True,  # Plus grand F1 = mieux
-        overwrite_output_dir=True,
-        fp16=(device=="cuda"),
-        gradient_accumulation_steps=1,  # Réduit de 2 à 1
-        dataloader_num_workers=2,  # Accélère chargement
-        dataloader_pin_memory=True  # Optimisation GPU
-    )
+        mlflow.pytorch.log_model(
+            model_ner,
+            artifact_path="model_ner",
+            registered_model_name="nlu-ner"
+        )
 
-    trainer_intent = Trainer(
-        model=model_intent,
-        args=training_args_intent,
-        train_dataset=tokenized_dataset_intent,
-        eval_dataset=tokenized_val_dataset_intent,  # Dataset de validation
-        tokenizer=tokenizer,
-        compute_metrics=compute_metrics_intent  # Ajout des métriques F1/Precision/Recall
-    )
+        mlflow.pytorch.log_model(
+            model_intent,
+            artifact_path="model_intent",
+            registered_model_name="nlu-intent"
+        )
 
-    trainer_intent.train()
-    model_intent.save_pretrained(OUTPUT_DIR_INTENT)
-    tokenizer.save_pretrained(OUTPUT_DIR_INTENT)
+        # Log artifacts (model files, configs, tokenizer)
+        mlflow.log_artifacts(OUTPUT_DIR_NER, artifact_path="ner_artifacts")
+        mlflow.log_artifacts(OUTPUT_DIR_INTENT, artifact_path="intent_artifacts")
 
-    with open(f"{OUTPUT_DIR_INTENT}/labels_config.json", "w") as f:
-        json.dump({"intent_labels": config["intent_labels"]}, f, indent=2)
-
-    print(f"\n[OK] Modèle Intent sauvegardé dans {OUTPUT_DIR_INTENT}")
-
-    # Export TorchScript pour production
-    print("\n" + "="*70)
-    print("EXPORT DES MODÈLES POUR PRODUCTION (TorchScript)")
-    print("="*70)
-
-    # Export NER
-    export_to_torchscript(
-        model_ner,
-        tokenizer,
-        f"{OUTPUT_DIR_NER}/model_ner_jit.pt",
-        max_length=config["tokenizer"]["max_length"]
-    )
-
-    # Export Intent
-    export_to_torchscript(
-        model_intent,
-        tokenizer,
-        f"{OUTPUT_DIR_INTENT}/model_intent_jit.pt",
-        max_length=config["tokenizer"]["max_length"]
-    )
-
-    print("\n" + "="*70)
-    print("ENTRAÎNEMENT TERMINÉ")
-    print("="*70)
+        print("\n" + "="*70)
+        print("ENTRAÎNEMENT TERMINÉ")
+        print("="*70)
 
 if __name__ == "__main__":
     freeze_support()

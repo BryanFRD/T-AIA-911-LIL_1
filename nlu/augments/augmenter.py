@@ -17,6 +17,9 @@ from .sms_language import augment_sms_language
 from .narrative_context import augment_narrative_context
 from .parasite_words import augment_parasite_words
 from .person_prefix import augment_person_prefix
+from .accent_variants import augment_accent_variants
+from .homophones import augment_homophones
+from .entity_swap import augment_entity_swap
 
 
 class NLUAugmenter:
@@ -36,6 +39,9 @@ class NLUAugmenter:
     10. Contexte narratif (alors, donc, voilà, etc.)
     11. Mots parasites (genre, enfin, tu sais, etc.)
     12. Interpellations de personnes (Hey Maude, Dis Simon, etc.)
+    13. Variantes d'accents (retire 30% des accents: à->a, é->e, etc.)
+    14. Homophones (erreurs grammaticales: à/a, où/ou, ce/se, etc.)
+    15. Entity swap (inverse FROM <-> TO pour trajets retour)
     """
 
     def __init__(self):
@@ -53,6 +59,9 @@ class NLUAugmenter:
             (augment_narrative_context, 0.4),
             (augment_parasite_words, 0.3),
             (augment_person_prefix, 0.3),
+            (augment_accent_variants, 0.3),  # Retire 30% des accents aléatoirement
+            (augment_homophones, 0.2),  # Erreurs homophones (à/a, où/ou, etc.)
+            (augment_entity_swap, 0.15),  # Inverse FROM <-> TO pour trajets retour
         ]
 
     def augment_example(self, text: str, entities: Dict,
@@ -111,20 +120,19 @@ class NLUAugmenter:
             # Ajouter l'exemple original
             augmented.append(example)
 
-            # Générer des variantes seulement pour les exemples "trajet"
-            if example["intent"] == "trajet":
-                variants = self.augment_example(
-                    example["text"],
-                    example["entities"],
-                    num_variants=variants_per_example
-                )
+            # Générer des variantes (pour tous les intents)
+            variants = self.augment_example(
+                example["text"],
+                example["entities"],
+                num_variants=variants_per_example
+            )
 
-                for variant_text, variant_entities in variants[1:]:  # Skip original
-                    augmented.append({
-                        "text": variant_text,
-                        "intent": example["intent"],
-                        "entities": variant_entities
-                    })
+            for variant_text, variant_entities in variants[1:]:  # Skip original
+                augmented.append({
+                    "text": variant_text,
+                    "intent": example["intent"],
+                    "entities": variant_entities
+                })
 
         print(f"\nAugmentation:")
         print(f"  - Dataset original: {len(dataset)} exemples")
