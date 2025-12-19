@@ -222,17 +222,18 @@ def main():
             warmup_ratio=0.1,  # 10% warmup pour meilleure convergence
             lr_scheduler_type="cosine",  # Cosine decay du learning rate
             logging_dir="./logs/ner",
-            logging_steps=50,  # Réduit le logging pour accélérer
+            logging_steps=100,  # Réduit de 50 à 100 pour accélérer
             evaluation_strategy="epoch",  # Évaluation à chaque epoch
-            save_strategy="epoch",  # Sauvegarder le meilleur modèle
-            load_best_model_at_end=True,  # Charger le meilleur modèle à la fin
-            metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
+            save_strategy="no",  # Pas de sauvegarde pendant l'entraînement
+            load_best_model_at_end=False,  # Pas de chargement (pas de checkpoints)
+            metric_for_best_model="f1",  # Métrique pour best model
             greater_is_better=True,  # Plus grand F1 = mieux
             overwrite_output_dir=True,
             fp16=(device=="cuda"),
             gradient_accumulation_steps=1,  # Réduit de 2 à 1 (batch_size doublé)
-            dataloader_num_workers=2,  # Accélère chargement données
+            dataloader_num_workers=4,  # Augmenté de 2 à 4 pour parallélisme
             dataloader_pin_memory=True,  # Optimisation GPU
+            optim="adamw_torch_fused" if device=="cuda" else "adamw_torch",  # Optimiseur plus rapide
             report_to="none"  # Désactiver l'auto-logging MLflow du Trainer
         )
 
@@ -331,17 +332,18 @@ def main():
             warmup_ratio=0.1,  # 10% warmup
             lr_scheduler_type="cosine",  # Cosine decay
             logging_dir="./logs/intent",
-            logging_steps=50,  # Réduit le logging
+            logging_steps=100,  # Réduit de 50 à 100 pour accélérer
             evaluation_strategy="epoch",  # Évaluation à chaque epoch
-            save_strategy="epoch",  # Sauvegarder le meilleur modèle
-            load_best_model_at_end=True,  # Charger le meilleur modèle
-            metric_for_best_model="f1",  # Métrique pour best model (changé de eval_loss à f1)
+            save_strategy="no",  # Pas de sauvegarde pendant l'entraînement
+            load_best_model_at_end=False,  # Pas de chargement (pas de checkpoints)
+            metric_for_best_model="f1",  # Métrique pour best model
             greater_is_better=True,  # Plus grand F1 = mieux
             overwrite_output_dir=True,
             fp16=(device=="cuda"),
             gradient_accumulation_steps=1,  # Réduit de 2 à 1
-            dataloader_num_workers=2,  # Accélère chargement
+            dataloader_num_workers=4,  # Augmenté de 2 à 4 pour parallélisme
             dataloader_pin_memory=True,  # Optimisation GPU
+            optim="adamw_torch_fused" if device=="cuda" else "adamw_torch",  # Optimiseur plus rapide
             report_to="none"  # Désactiver l'auto-logging MLflow du Trainer
         )
 
@@ -373,35 +375,57 @@ def main():
         print("EXPORT DES MODÈLES POUR PRODUCTION (TorchScript)")
         print("="*70)
 
-        # Export NER
-        export_to_torchscript(
-            model_ner,
-            tokenizer,
-            f"{OUTPUT_DIR_NER}/model_ner_jit.pt",
-            max_length=config["tokenizer"]["max_length"]
-        )
+        # Export NER - Skip pour modèles avec CRF (incompatible avec TorchScript)
+        try:
+            if not use_crf:
+                export_to_torchscript(
+                    model_ner,
+                    tokenizer,
+                    f"{OUTPUT_DIR_NER}/model_ner_jit.pt",
+                    max_length=config["tokenizer"]["max_length"]
+                )
+                print("[OK] Export TorchScript NER réussi")
+            else:
+                print("[SKIP] Export TorchScript NER ignoré (modèle avec CRF non compatible)")
+        except Exception as e:
+            print(f"[WARNING] Export TorchScript NER échoué: {e}")
 
         # Export Intent
-        export_to_torchscript(
-            model_intent,
-            tokenizer,
-            f"{OUTPUT_DIR_INTENT}/model_intent_jit.pt",
-            max_length=config["tokenizer"]["max_length"]
-        )
+        try:
+            export_to_torchscript(
+                model_intent,
+                tokenizer,
+                f"{OUTPUT_DIR_INTENT}/model_intent_jit.pt",
+                max_length=config["tokenizer"]["max_length"]
+            )
+            print("[OK] Export TorchScript Intent réussi")
+        except Exception as e:
+            print(f"[WARNING] Export TorchScript Intent échoué: {e}")
 
         # Log models to MLflow
         print("\n" + "="*70)
         print("ENREGISTREMENT DES MODÈLES DANS MLFLOW")
         print("="*70)
 
+        # Unwrap models si nécessaire (pour fp16/accelerator)
+        try:
+            from accelerate import Accelerator
+            accelerator = Accelerator()
+            model_ner_unwrapped = accelerator.unwrap_model(model_ner)
+            model_intent_unwrapped = accelerator.unwrap_model(model_intent)
+        except:
+            # Si pas de wrapping, utiliser les modèles directement
+            model_ner_unwrapped = model_ner
+            model_intent_unwrapped = model_intent
+
         mlflow.pytorch.log_model(
-            model_ner,
+            model_ner_unwrapped,
             artifact_path="model_ner",
             registered_model_name="nlu-ner"
         )
 
         mlflow.pytorch.log_model(
-            model_intent,
+            model_intent_unwrapped,
             artifact_path="model_intent",
             registered_model_name="nlu-intent"
         )
