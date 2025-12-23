@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.epitech.travelorder</groupId>
+        <artifactId>travelorder-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>nlu</artifactId>
+    <packaging>jar</packaging>
+    <name>Travel Order - NLU</name>
+    <description>Natural Language Understanding with Deep Java Library (DJL)</description>
+
+    <dependencies>
+        <!-- Travel Order internal module -->
+        <dependency>
+            <groupId>com.epitech.travelorder</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- DJL pour le NLU -->
+        <dependency>
+            <groupId>ai.djl</groupId>
+            <artifactId>api</artifactId>
+            <version>0.36.0</version>
+        </dependency>
+    </dependencies>
+
+</project>
