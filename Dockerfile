@@ -22,7 +22,7 @@ COPY orchestrator/ orchestrator/
 # Build all modules without tests
 RUN mvn -B clean install -DskipTests -P prod-gpu
 
-FROM eclipse-temurin:25-jre-alpine
+FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
 
