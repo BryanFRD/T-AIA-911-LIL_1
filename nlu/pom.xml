@@ -16,7 +16,7 @@
 
     <properties>
         <djl.version>0.36.0</djl.version>
-        <pytorch.version>2.3.1</pytorch.version>
+        <pytorch.version>2.5.1</pytorch.version>
     </properties>
 
     <dependencyManagement>
@@ -46,8 +46,7 @@
         <dependency>
             <groupId>ai.djl.pytorch</groupId>
             <artifactId>pytorch-engine</artifactId>
-            <version>${djl.version}</version>
-            <scope>runtime</scope>
+            <version>${djl.version}</version> <scope>runtime</scope>
         </dependency>
     </dependencies>
 
@@ -73,7 +72,7 @@
             <dependencies>
                 <dependency>
                     <groupId>ai.djl.pytorch</groupId>
-                    <artifactId>pytorch-native-cu121</artifactId>
+                    <artifactId>pytorch-native-cu124</artifactId>
                     <version>${pytorch.version}</version>
                     <scope>runtime</scope>
                 </dependency>
