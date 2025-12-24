@@ -48,9 +48,11 @@ deploy-to-k8s:
     - home-server
   image: bitnami/kubectl:latest
   script:
-    - echo "🚀 Déploiement local sur Arthur-Server..."
+    - echo "🚀 Déploiement PROD..."
     - sed "s|__IMAGE_TAG__|$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply -f -
+    - kubectl apply -f k8s/service.yaml
+    - kubectl apply -f k8s/ingress.yaml
     - kubectl rollout restart deployment/travel-resolver
-    - echo "✅ Déploiement terminé !"
+    - echo "✅ Déploiement terminé."
   only:
     - main
