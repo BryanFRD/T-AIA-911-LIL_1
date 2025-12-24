@@ -6,6 +6,8 @@ metadata:
     app: travel-resolver
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: travel-resolver
