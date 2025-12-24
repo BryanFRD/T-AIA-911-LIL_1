@@ -1,7 +1,7 @@
 package com.epitech.travelorder.orchestrator.config;
 
 import com.epitech.travelorder.audio.AudioService;
-import com.epitech.travelorder.nlu.NluService;
+import com.epitech.travelorder.nlu.Gpu;
 import com.epitech.travelorder.pathfinder.PathfinderService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +18,8 @@ public class ServicesConfig {
     }
 
     @Bean
-    public NluService nluService() {
-        return new NluService();
+    public Gpu gpu() {
+        return new Gpu();
     }
 
     @Bean

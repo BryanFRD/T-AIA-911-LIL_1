@@ -10,7 +10,7 @@ COPY pathfinder/pom.xml pathfinder/
 COPY audio/pom.xml audio/
 COPY orchestrator/pom.xml orchestrator/
 
-RUN mvn -B dependency:go-offline
+RUN mvn -B dependency:go-offline -P prod-gpu
 
 # Copy all source code
 COPY common/ common/
@@ -20,7 +20,7 @@ COPY audio/ audio/
 COPY orchestrator/ orchestrator/
 
 # Build all modules without tests
-RUN mvn -B clean install -DskipTests
+RUN mvn -B clean install -DskipTests -P prod-gpu
 
 FROM eclipse-temurin:25-jre-alpine
 

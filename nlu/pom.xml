@@ -13,22 +13,77 @@
     <artifactId>nlu</artifactId>
     <packaging>jar</packaging>
     <name>Travel Order - NLU</name>
-    <description>Natural Language Understanding with Deep Java Library (DJL)</description>
+
+    <properties>
+        <djl.version>0.36.0</djl.version>
+        <pytorch.version>2.7.1</pytorch.version>
+        <pytorch.conda.version>2.3.1</pytorch.conda.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ai.djl</groupId>
+                <artifactId>bom</artifactId>
+                <version>${djl.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
-        <!-- Travel Order internal module -->
         <dependency>
             <groupId>com.epitech.travelorder</groupId>
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- DJL pour le NLU -->
         <dependency>
             <groupId>ai.djl</groupId>
             <artifactId>api</artifactId>
-            <version>0.36.0</version>
+            <version>${djl.version}</version> </dependency>
+
+        <dependency>
+            <groupId>ai.djl.pytorch</groupId>
+            <artifactId>pytorch-engine</artifactId>
+            <version>${djl.version}</version> <scope>runtime</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>local-mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>ai.djl.pytorch</groupId>
+                    <artifactId>pytorch-native-cpu</artifactId>
+                    <version>${pytorch.version}</version> <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>prod-gpu</id>
+            <activation>
+                <os>
+                    <family>!mac</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>ai.djl.pytorch</groupId>
+                    <artifactId>pytorch-native-cu121</artifactId>
+                    <version>${pytorch.conda.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>
