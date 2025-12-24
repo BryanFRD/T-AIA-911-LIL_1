@@ -38,6 +38,12 @@ ENV DJL_CACHE_DIR=/app/.djl_cache
 
 COPY --from=builder /app/orchestrator/target/orchestrator-*.jar app.jar
 
+ENV PYTORCH_VERSION=2.3.1
+ENV PYTORCH_FLAVOR=cu121
+
+# Config NVIDIA
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/nvidia/lib
+
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
