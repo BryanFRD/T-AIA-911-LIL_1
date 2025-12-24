@@ -15,8 +15,9 @@
     <name>Travel Order - NLU</name>
 
     <properties>
-        <djl.version>0.35.0</djl.version>
-        <pytorch.version>2.2.2</pytorch.version>
+        <djl.version>0.36.0</djl.version>
+        <pytorch.version>2.7.1</pytorch.version>
+        <pytorch.conda.version>2.3.1</pytorch.conda.version>
     </properties>
 
     <dependencyManagement>
@@ -73,7 +74,7 @@
                 <dependency>
                     <groupId>ai.djl.pytorch</groupId>
                     <artifactId>pytorch-native-cu121</artifactId>
-                    <version>${pytorch.version}</version>
+                    <version>${pytorch.conda.version}</version>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
