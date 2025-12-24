@@ -21,11 +21,6 @@ COPY orchestrator/ orchestrator/
 
 RUN mvn -B clean package -DskipTests -P gpu
 
-RUN mkdir -p /djl && \
-    curl -L https://publish.djl.ai/pytorch/2.3.1/jnilib/0.36.0/linux-x86_64/cu121/libdjl_torch.so \
-    -o /djl/libdjl_torch.so
-
-
 FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
 WORKDIR /app
