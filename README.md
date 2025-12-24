@@ -24,7 +24,7 @@ travelorder-parent/
 
 ## Prerequisites
 
-- Java 25 (Eclipse Temurin)
+- Java 21 (Oracle)
 - Maven 3.9.9+
 - SDKMAN (optional)
 

@@ -52,29 +52,24 @@
     </dependencies>
 
     <profiles>
+
         <profile>
-            <id>local-mac</id>
+            <id>cpu</id>
             <activation>
-                <os>
-                    <family>mac</family>
-                </os>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
                 <dependency>
                     <groupId>ai.djl.pytorch</groupId>
                     <artifactId>pytorch-native-cpu</artifactId>
-                    <version>${pytorch.version}</version> <scope>runtime</scope>
+                    <version>${pytorch.version}</version>
+                    <scope>runtime</scope>
                 </dependency>
             </dependencies>
         </profile>
 
         <profile>
-            <id>prod-gpu</id>
-            <activation>
-                <os>
-                    <family>!mac</family>
-                </os>
-            </activation>
+            <id>gpu</id>
             <dependencies>
                 <dependency>
                     <groupId>ai.djl.pytorch</groupId>

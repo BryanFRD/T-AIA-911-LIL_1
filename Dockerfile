@@ -1,4 +1,4 @@
-FROM maven:3.9.12-eclipse-temurin-25 AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY pathfinder/pom.xml pathfinder/
 COPY audio/pom.xml audio/
 COPY orchestrator/pom.xml orchestrator/
 
-RUN mvn -B dependency:go-offline -P prod-gpu
+RUN mvn -B dependency:go-offline -P gpu
 
 # Copy all source code
 COPY common/ common/
@@ -20,9 +20,9 @@ COPY audio/ audio/
 COPY orchestrator/ orchestrator/
 
 # Build all modules without tests
-RUN mvn -B clean install -DskipTests -P prod-gpu
+RUN mvn -B clean install -DskipTests -P gpu
 
-FROM eclipse-temurin:25-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
