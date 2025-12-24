@@ -1,8 +1,5 @@
 package com.epitech.travelorder.audio;
 
-import org.springframework.stereotype.Service;
-
-@Service
 public class AudioService {
 
     public void speechToText() {

@@ -1,0 +1,56 @@
+image: maven:3.9.12-eclipse-temurin-25
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+
+cache:
+  paths:
+    - .m2/repository
+
+check-code-style:
+  stage: lint
+  script:
+    - mvn checkstyle:check
+  allow_failure: true
+
+run-tests:
+  stage: test
+  script:
+    - mvn test
+  artifacts:
+    reports:
+      junit:
+        - "*/target/surefire-reports/*.xml"
+
+docker-build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -t $LATEST_TAG .
+    - docker push $IMAGE_TAG
+    - docker push $LATEST_TAG
+
+deploy-to-k8s:
+  stage: deploy
+  tags:
+    - home-server
+  image: bitnami/kubectl:latest
+  script:
+    - echo "🚀 Déploiement local sur Arthur-Server..."
+    - sed "s|__IMAGE_TAG__|$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply -f -
+    - kubectl rollout restart deployment/travel-resolver
+    - echo "✅ Déploiement terminé !"
+  only:
+    - main

@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-resolver
+  labels:
+    app: travel-resolver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel-resolver
+  template:
+    metadata:
+      labels:
+        app: travel-resolver
+    spec:
+      imagePullSecrets:
+        - name: gitlab-auth
+      containers:
+        - name: travel-resolver
+          image: __IMAGE_TAG__ # (Laisse ton placeholder ici)
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
