@@ -58,7 +58,7 @@ init:sonarqube:
 train:nlu:
   stage: train
   tags:
-    - gpu
+    - gpu-arthur
   extends: .python
   variables:
     CONFIG_OVERRIDE: "nlu/config.ci.json"
@@ -78,7 +78,7 @@ train:nlu:
 train:stt:
   stage: train
   tags:
-    - gpu
+    - gpu-arthur
   extends: .python
   script:
     - python stt/train.py
@@ -94,7 +94,7 @@ train:stt:
 train:tts:
   stage: train
   tags:
-    - gpu
+    - gpu-arthur
   extends: .python
   script:
     - python tts/train.py
