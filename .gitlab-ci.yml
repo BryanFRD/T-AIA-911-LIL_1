@@ -3,6 +3,7 @@ image: maven:3.9.6-eclipse-temurin-21
 stages:
   - lint
   - test
+  - sonarqube
   - build
   - deploy
 
@@ -29,6 +30,21 @@ run-tests:
     reports:
       junit:
         - "*/target/surefire-reports/*.xml"
+    paths:
+      - "*/target/site/jacoco/jacoco.xml"
+      - "*/target/surefire-reports/*.xml"
+    expire_in: 1 hour
+
+sonarqube-analysis:
+  stage: sonarqube
+  dependencies:
+    - run-tests
+  script:
+    - mvn sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN
+  only:
+    - main
+    - merge_requests
+  allow_failure: true
 
 docker-build:
   stage: build

@@ -36,6 +36,10 @@
         <junit-platform.version>1.14.0</junit-platform.version>
         <junit-jupiter.version>5.14.0</junit-jupiter.version>
 
+        <!-- sonarqube properties -->
+        <sonar.version>4.0.0.4121</sonar.version>
+        <jacoco.version>0.8.12</jacoco.version>
+
     </properties>
 
     <pluginRepositories>
@@ -165,6 +169,33 @@
                         <phase>validate</phase>
                         <goals>
                             <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>
