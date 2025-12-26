@@ -1,0 +1,10 @@
+{
+  "databaseChangeLog": [
+    {
+      "include": {
+        "file": "26122025-init-db.json",
+        "relativeToChangelogFile": true
+      }
+    }
+  ]
+}

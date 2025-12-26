@@ -9,8 +9,8 @@ stages:
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-  LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+  ORCHESTRATOR_IMG: $CI_REGISTRY_IMAGE/orchestrator
+  GTFS_IMG: $CI_REGISTRY_IMAGE/gtfs
 
 cache:
   paths:
@@ -48,7 +48,7 @@ sonarqube-analysis:
     - merge_requests
   allow_failure: true
 
-docker-build:
+orchestrator-build:
   stage: build
   image: docker:latest
   services:
@@ -56,21 +56,43 @@ docker-build:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -t $LATEST_TAG .
-    - docker push $IMAGE_TAG
-    - docker push $LATEST_TAG
+    - docker build -t $ORCHESTRATOR_IMG:$CI_COMMIT_SHORT_SHA -t $ORCHESTRATOR_IMG:latest orchestrator/.
+    - docker push $ORCHESTRATOR_IMG:$CI_COMMIT_SHORT_SHA
+    - docker push $ORCHESTRATOR_IMG:latest
+
+gtfs-build:
+    stage: build
+    image: docker:latest
+    services:
+        - docker:dind
+    before_script:
+        - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    script:
+        - docker build -t $GTFS_IMG:$CI_COMMIT_SHORT_SHA -t $GTFS_IMG:latest gtfs/.
+        - docker push $GTFS_IMG:$CI_COMMIT_SHORT_SHA
+        - docker push $GTFS_IMG:latest
 
 deploy-to-k8s:
   stage: deploy
-  tags:
-    - home-server
   image: bitnami/kubectl:latest
   script:
     - echo "🚀 Déploiement PROD..."
-    - sed "s|__IMAGE_TAG__|$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply -f -
+
+    - echo "Déploiement de la base de données PostgreSQL..."
+    - kubectl apply -f k8s/postgres.yaml
+    - kubectl wait --for=condition=ready pod -l app=postgres --timeout=120s || echo "⚠️ Timeout PostgreSQL (peut être déjà running)"
+
+    - echo "Déploiement de l'orchestrateur..."
+    - sed "s|__ORCHESTRATOR_IMAGE__|$ORCHESTRATOR_IMG:$CI_COMMIT_SHORT_SHA|g" k8s/deployment.yaml | kubectl apply -f -
+    - kubectl rollout status deployment/orchestrator --timeout=180s
+
+    - echo "Configuration du réseau..."
     - kubectl apply -f k8s/service.yaml
     - kubectl apply -f k8s/ingress.yaml
-    - kubectl rollout restart deployment/travel-resolver
-    - echo "✅ Déploiement terminé."
+
+    - echo "Déploiement des tâches batch GTFS..."
+    - sed "s|__GTFS_IMAGE__|$GTFS_IMG:$CI_COMMIT_SHORT_SHA|g" k8s/cronjob.yaml | kubectl apply -f -
+
+    - echo "✅ Déploiement terminé avec succès !"
   only:
     - main

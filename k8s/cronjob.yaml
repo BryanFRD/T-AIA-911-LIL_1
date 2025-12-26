@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gtfs-batch-importer
+  labels:
+    app: gtfs-batch
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Replace
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gtfs-batch
+        spec:
+          imagePullSecrets:
+            - name: gitlab-auth
+          containers:
+            - name: gtfs-batch
+              image: __GTFS_IMAGE__
+              imagePullPolicy: Always
+              args: ["run.date=$(date +%Y-%m-%d)"]
+              command: ["/bin/sh", "-c", "java -jar /app.jar \"$@\"", "--"]
+              env:
+                - name: SPRING_DATASOURCE_URL
+                  value: "jdbc:postgresql://postgres-service:5432/travelorder"
+
+                - name: SPRING_DATASOURCE_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-credentials
+                      key: username
+
+                - name: SPRING_DATASOURCE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-credentials
+                      key: password
+
+                - name: SPRING_PROFILES_ACTIVE
+                  value: "prod"
+
+              resources:
+                limits:
+                  memory: "1Gi"
+                  cpu: "1000m"
+                requests:
+                  memory: "512Mi"
+                  cpu: "250m"
+          restartPolicy: OnFailure

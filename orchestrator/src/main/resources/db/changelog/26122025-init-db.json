@@ -1,0 +1,480 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "create-stops-table",
+        "author": "Arthur",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "stops",
+              "columns": [
+                {
+                  "column": {
+                    "name": "stop_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_name",
+                    "type": "varchar(255)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_lat",
+                    "type": "float"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_lon",
+                    "type": "float"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zone_id",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "location_type",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "parent_station",
+                    "type": "varchar(255)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "indexName": "idx_stop_name",
+              "tableName": "stops",
+              "columns": [
+                {
+                  "column": {
+                    "name": "stop_name"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "create-routes-table",
+        "author": "Arthur",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "routes",
+              "columns": [
+                {
+                  "column": {
+                    "name": "route_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "route_short_name",
+                    "type": "varchar(50)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "route_long_name",
+                    "type": "varchar(255)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "route_type",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "route_color",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "route_text_color",
+                    "type": "varchar(10)"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "create-calendar-dates-table",
+        "author": "Arthur",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "calendar_dates",
+              "columns": [
+                {
+                  "column": {
+                    "name": "service_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "date",
+                    "type": "varchar(8)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "exception_type",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addPrimaryKey": {
+              "columnNames": "service_id, date",
+              "constraintName": "pk_calendar_dates",
+              "tableName": "calendar_dates"
+            }
+          },
+          {
+            "createIndex": {
+              "indexName": "idx_cal_date",
+              "tableName": "calendar_dates",
+              "columns": [
+                {
+                  "column": {
+                    "name": "date"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "create-trips-table",
+        "author": "Arthur",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "trips",
+              "columns": [
+                {
+                  "column": {
+                    "name": "trip_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "route_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "service_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "trip_headsign",
+                    "type": "varchar(255)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "direction_id",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "block_id",
+                    "type": "varchar(255)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseTableName": "trips",
+              "baseColumnNames": "route_id",
+              "referencedTableName": "routes",
+              "referencedColumnNames": "route_id",
+              "constraintName": "fk_trips_routes"
+            }
+          },
+          {
+            "createIndex": {
+              "indexName": "idx_trip_service",
+              "tableName": "trips",
+              "columns": [
+                {
+                  "column": {
+                    "name": "service_id"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "create-stop-times-table",
+        "author": "Arthur",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "stop_times",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "serial",
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "trip_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "arrival_time",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "departure_time",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_sequence",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "pickup_type",
+                    "type": "int",
+                    "defaultValueNumeric": 0
+                  }
+                },
+                {
+                  "column": {
+                    "name": "drop_off_type",
+                    "type": "int",
+                    "defaultValueNumeric": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseTableName": "stop_times",
+              "baseColumnNames": "trip_id",
+              "referencedTableName": "trips",
+              "referencedColumnNames": "trip_id",
+              "constraintName": "fk_st_trips"
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseTableName": "stop_times",
+              "baseColumnNames": "stop_id",
+              "referencedTableName": "stops",
+              "referencedColumnNames": "stop_id",
+              "constraintName": "fk_st_stops"
+            }
+          },
+          {
+            "createIndex": {
+              "indexName": "idx_st_search_dep",
+              "tableName": "stop_times",
+              "columns": [
+                {
+                  "column": {
+                    "name": "stop_id"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "departure_time"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "indexName": "idx_st_trip_seq",
+              "tableName": "stop_times",
+              "columns": [
+                {
+                  "column": {
+                    "name": "trip_id"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_sequence"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "create-transfers-table",
+        "author": "Arthur",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "transfers",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "serial",
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "from_stop_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "to_stop_id",
+                    "type": "varchar(255)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "transfer_type",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "min_transfer_time",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseTableName": "transfers",
+              "baseColumnNames": "from_stop_id",
+              "referencedTableName": "stops",
+              "referencedColumnNames": "stop_id",
+              "constraintName": "fk_tr_from_stop"
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseTableName": "transfers",
+              "baseColumnNames": "to_stop_id",
+              "referencedTableName": "stops",
+              "referencedColumnNames": "stop_id",
+              "constraintName": "fk_tr_to_stop"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: gtfs-batch-worker
+  main:
+    web-application-type: none
+
+  batch:
+    job:
+      enabled: true
+      name: importGtfsJob
+    jdbc:
+      initialize-schema: always
+
+  liquibase:
+    enabled: false
+
+
+gtfs:
+  source-url: "https://eu.ftp.opendatasoft.com/sncf/plandata/Export_OpenData_SNCF_GTFS_NewTripId.zip"
+  local-directory: "/tmp/gtfs/"

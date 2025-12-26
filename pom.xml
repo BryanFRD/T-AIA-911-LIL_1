@@ -21,6 +21,7 @@
         <module>nlu</module>
         <module>pathfinder</module>
         <module>audio</module>
+        <module>gtfs</module>
         <module>orchestrator</module>
     </modules>
 
@@ -41,23 +42,9 @@
         <jacoco.version>0.8.12</jacoco.version>
 
     </properties>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>central</id>
-            <name>Maven Central</name>
-            <url>https://repo.maven.apache.org/maven2</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
-
     <dependencyManagement>
         <dependencies>
+            <!-- Internal modules -->
             <dependency>
                 <groupId>com.epitech.travelorder</groupId>
                 <artifactId>pathfinder</artifactId>
@@ -83,6 +70,24 @@
                 <artifactId>orchestrator</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.epitech.travelorder</groupId>
+                <artifactId>gtfs</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Database drivers -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.7.8</version>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>2.4.240</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -114,6 +119,8 @@
             <artifactId>commons-lang3</artifactId>
             <version>${apache-commons-lang3.version}</version>
         </dependency>
+
+
 
         <dependency>
             <groupId>org.apache.commons</groupId>
