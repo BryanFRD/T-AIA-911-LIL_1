@@ -21,7 +21,7 @@ stages:
 # Base Python job
 # ===============================
 .python:
-  image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+  image: nvidia/cuda:12.4.0-base-ubuntu22.04
   before_script:
     - nvidia-smi
     - python --version
