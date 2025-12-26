@@ -335,10 +335,28 @@ def main():
         # Save NER model to MLflow immediately after training
         print("\n[INFO] Saving NER model to MLflow...")
         try:
-            log_pytorch_model(model_ner, artifact_path="ner_model", registered_model_name="nlu-ner")
-            print("[OK] NER model registered in MLflow Model Registry")
+            # Save model using save_pretrained for better compatibility with custom layers
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                ner_model_path = os.path.join(tmp_dir, "ner_model")
+                model_ner.save_pretrained(ner_model_path)
+                tokenizer.save_pretrained(ner_model_path)
+
+                # Log the model directory as artifact
+                mlflow.log_artifacts(ner_model_path, artifact_path="ner_model")
+                print("[OK] NER model saved to MLflow artifacts")
+
+                # Try to register in Model Registry
+                try:
+                    model_uri = f"runs:/{mlflow.active_run().info.run_id}/ner_model"
+                    mlflow.register_model(model_uri, "nlu-ner")
+                    print("[OK] NER model registered in MLflow Model Registry")
+                except Exception as reg_err:
+                    print(f"[WARN] Could not register NER model in registry: {reg_err}")
         except Exception as e:
-            print(f"[WARN] Error registering NER model: {e}")
+            print(f"[ERROR] Failed to save NER model: {e}")
+            import traceback
+            traceback.print_exc()
+            raise  # Re-raise to make the failure visible
 
         print("\n[INFO] NER training completed and saved to MLflow")
 
@@ -490,10 +508,28 @@ def main():
         # Save Intent model to MLflow immediately after training
         print("\n[INFO] Saving Intent model to MLflow...")
         try:
-            log_pytorch_model(model_intent, artifact_path="intent_model", registered_model_name="nlu-intent")
-            print("[OK] Intent model registered in MLflow Model Registry")
+            # Save model using save_pretrained for better compatibility
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                intent_model_path = os.path.join(tmp_dir, "intent_model")
+                model_intent.save_pretrained(intent_model_path)
+                tokenizer.save_pretrained(intent_model_path)
+
+                # Log the model directory as artifact
+                mlflow.log_artifacts(intent_model_path, artifact_path="intent_model")
+                print("[OK] Intent model saved to MLflow artifacts")
+
+                # Try to register in Model Registry
+                try:
+                    model_uri = f"runs:/{mlflow.active_run().info.run_id}/intent_model"
+                    mlflow.register_model(model_uri, "nlu-intent")
+                    print("[OK] Intent model registered in MLflow Model Registry")
+                except Exception as reg_err:
+                    print(f"[WARN] Could not register Intent model in registry: {reg_err}")
         except Exception as e:
-            print(f"[WARN] Error registering Intent model: {e}")
+            print(f"[ERROR] Failed to save Intent model: {e}")
+            import traceback
+            traceback.print_exc()
+            raise  # Re-raise to make the failure visible
 
         print("\n[INFO] Intent training completed and saved to MLflow")
 
