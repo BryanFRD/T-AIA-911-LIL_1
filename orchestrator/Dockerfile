@@ -2,21 +2,19 @@ FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-
-COPY ../pom.xml .
-COPY ../common/pom.xml common/
-COPY ../nlu/pom.xml nlu/
-COPY ../pathfinder/pom.xml pathfinder/
-COPY ../audio/pom.xml audio/
-COPY pom.xml orchestrator/
+COPY pom.xml .
+COPY common/pom.xml common/
+COPY nlu/pom.xml nlu/
+COPY pathfinder/pom.xml pathfinder/
+COPY audio/pom.xml audio/
+COPY orchestrator/pom.xml orchestrator/
 
 RUN mvn -B dependency:go-offline -P gpu
 
-
-COPY ../common common/
-COPY ../nlu nlu/
-COPY ../pathfinder pathfinder/
-COPY ../audio audio/
+COPY common/ common/
+COPY nlu/ nlu/
+COPY pathfinder/ pathfinder/
+COPY audio/ audio/
 COPY orchestrator/ orchestrator/
 
 RUN mvn -B clean package -DskipTests -P gpu
