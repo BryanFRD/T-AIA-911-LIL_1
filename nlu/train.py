@@ -23,7 +23,7 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from nlu.layers.ner_crf import CamembertForTokenClassificationWithCRF
 from common.mlflow_utils import setup_mlflow, start_run, log_training_config, log_pytorch_model, end_run
-from common.training_utils import detect_device, print_system_info, load_config, print_dataset_info
+from common.training_utils import detect_device, print_system_info, load_config, print_dataset_info, ensure_dir
 
 # Import MLflow after transformers to avoid conflicts
 import mlflow
