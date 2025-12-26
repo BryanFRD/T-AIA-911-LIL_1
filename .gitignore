@@ -1,5 +1,6 @@
 # Trained models
 */models
+checkpoints
 
 # Generated datas
 train_generated.json

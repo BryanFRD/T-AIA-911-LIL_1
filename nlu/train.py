@@ -329,10 +329,8 @@ def main():
         print("="*70)
         trainer_ner.train()
 
-        # Log NER metrics from final evaluation
-        ner_eval_results = trainer_ner.evaluate()
-        for key, value in ner_eval_results.items():
-            mlflow.log_metric(f"ner_{key}", value)
+        # Evaluate NER model (metrics are automatically logged via report_to="mlflow")
+        trainer_ner.evaluate()
 
         # Save NER model to MLflow immediately after training
         print("\n[INFO] Saving NER model to MLflow...")
@@ -486,10 +484,8 @@ def main():
 
         trainer_intent.train()
 
-        # Log Intent metrics from final evaluation
-        intent_eval_results = trainer_intent.evaluate()
-        for key, value in intent_eval_results.items():
-            mlflow.log_metric(f"intent_{key}", value)
+        # Evaluate Intent model (metrics are automatically logged via report_to="mlflow")
+        trainer_intent.evaluate()
 
         # Save Intent model to MLflow immediately after training
         print("\n[INFO] Saving Intent model to MLflow...")
