@@ -51,8 +51,6 @@ sonarqube-analysis:
 orchestrator-build:
   stage: build
   image: docker:latest
-  tags:
-    - gpu
   services:
     - docker:dind
   before_script:
@@ -65,8 +63,6 @@ orchestrator-build:
 gtfs-build:
     stage: build
     image: docker:latest
-    tags:
-      - gpu
     services:
         - docker:dind
     before_script:
@@ -79,8 +75,6 @@ gtfs-build:
 deploy-to-k8s:
   stage: deploy
   image: bitnami/kubectl:latest
-  tags:
-    - gpu
   script:
     - echo "🚀 Déploiement PROD..."
 
