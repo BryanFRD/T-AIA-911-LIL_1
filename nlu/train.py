@@ -262,12 +262,25 @@ def main():
         cache_path_train = f"{CACHE_DIR}/tokenized_ner_train"
         cache_path_val = f"{CACHE_DIR}/tokenized_ner_val"
 
+        # Check if cache exists and try to load it
+        cache_valid = False
         if os.path.exists(cache_path_train) and os.path.exists(cache_path_val):
-            print("[CACHE] Loading cached tokenized NER datasets...")
-            tokenized_dataset_ner = load_from_disk(cache_path_train)
-            tokenized_val_dataset_ner = load_from_disk(cache_path_val)
-            print("[CACHE] Loaded from cache")
-        else:
+            try:
+                print("[CACHE] Loading cached tokenized NER datasets...")
+                tokenized_dataset_ner = load_from_disk(cache_path_train)
+                tokenized_val_dataset_ner = load_from_disk(cache_path_val)
+                print("[CACHE] Loaded from cache")
+                cache_valid = True
+            except Exception as e:
+                print(f"[WARN] Cache corrupted, will regenerate: {e}")
+                # Delete corrupted cache
+                import shutil
+                if os.path.exists(cache_path_train):
+                    shutil.rmtree(cache_path_train)
+                if os.path.exists(cache_path_val):
+                    shutil.rmtree(cache_path_val)
+
+        if not cache_valid:
             print("[INFO] Tokenizing NER datasets (will be cached for future runs)...")
             tokenized_dataset_ner = dataset.map(
                 tokenize_and_align_labels_ner,
@@ -456,12 +469,25 @@ def main():
         cache_path_train_intent = f"{CACHE_DIR}/tokenized_intent_train"
         cache_path_val_intent = f"{CACHE_DIR}/tokenized_intent_val"
 
+        # Check if Intent cache exists and try to load it
+        cache_valid_intent = False
         if os.path.exists(cache_path_train_intent) and os.path.exists(cache_path_val_intent):
-            print("[CACHE] Loading cached tokenized Intent datasets...")
-            tokenized_dataset_intent = load_from_disk(cache_path_train_intent)
-            tokenized_val_dataset_intent = load_from_disk(cache_path_val_intent)
-            print("[CACHE] Loaded from cache")
-        else:
+            try:
+                print("[CACHE] Loading cached tokenized Intent datasets...")
+                tokenized_dataset_intent = load_from_disk(cache_path_train_intent)
+                tokenized_val_dataset_intent = load_from_disk(cache_path_val_intent)
+                print("[CACHE] Loaded from cache")
+                cache_valid_intent = True
+            except Exception as e:
+                print(f"[WARN] Intent cache corrupted, will regenerate: {e}")
+                # Delete corrupted cache
+                import shutil
+                if os.path.exists(cache_path_train_intent):
+                    shutil.rmtree(cache_path_train_intent)
+                if os.path.exists(cache_path_val_intent):
+                    shutil.rmtree(cache_path_val_intent)
+
+        if not cache_valid_intent:
             print("[INFO] Tokenizing Intent datasets (will be cached for future runs)...")
             tokenized_dataset_intent = dataset.map(
                 tokenize_intent,

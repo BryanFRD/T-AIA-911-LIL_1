@@ -151,15 +151,23 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
                 print("[WARN] Using fallback cross-entropy loss instead of CRF loss for this batch")
 
                 # Calculer une cross-entropy classique sur les tokens valides
+                # NOTE: On NE doit PAS ignorer le label 0 (c'est "O", un label valide)
+                # On utilise le masque pour filtrer les positions invalides
                 ce_loss = nn.functional.cross_entropy(
                     emissions.view(-1, self.num_labels),
                     labels_masked.view(-1),
-                    ignore_index=0,  # Ignorer le label 0 (qui remplace -100)
                     reduction='none'
                 )
-                # Appliquer le masque et faire la moyenne
+                # Appliquer le masque pour ne compter que les tokens valides
                 ce_loss = ce_loss.view(emissions.size(0), emissions.size(1))
-                valid_loss = (ce_loss * crf_mask.float()).sum() / crf_mask.float().sum()
+                masked_loss = ce_loss * crf_mask.float()
+                # Calculer la moyenne sur les tokens valides uniquement
+                num_valid_tokens = crf_mask.float().sum()
+                if num_valid_tokens > 0:
+                    valid_loss = masked_loss.sum() / num_valid_tokens
+                else:
+                    # Fallback si aucun token valide (ne devrait jamais arriver)
+                    valid_loss = torch.tensor(0.0, device=emissions.device, dtype=emissions.dtype)
                 loss = valid_loss
 
         else:
