@@ -51,6 +51,8 @@ sonarqube-analysis:
 orchestrator-build:
   stage: build
   image: docker:latest
+  tags:
+    - home-server
   services:
     - docker:dind
   before_script:
@@ -63,6 +65,8 @@ orchestrator-build:
 gtfs-build:
     stage: build
     image: docker:latest
+    tags:
+      - home-server
     services:
         - docker:dind
     before_script:
@@ -75,6 +79,8 @@ gtfs-build:
 deploy-to-k8s:
   stage: deploy
   image: bitnami/kubectl:latest
+  tags:
+    - home-server
   script:
     - echo "🚀 Déploiement PROD..."
 
