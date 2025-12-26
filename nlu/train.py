@@ -303,7 +303,7 @@ def main():
             metric_for_best_model="f1",
             greater_is_better=True,
             overwrite_output_dir=True,
-            fp16=(device=="cuda" and not opt_cfg.get("use_bf16", False)),  # FP16 if CUDA and not BF16
+            fp16=(device=="cuda" and opt_cfg.get("use_fp16", False)),  # FP16 if CUDA and explicitly enabled
             bf16=(device=="cuda" and opt_cfg.get("use_bf16", False)),
             gradient_accumulation_steps=train_cfg.get("gradient_accumulation_steps", 1),
             dataloader_num_workers=opt_cfg.get("dataloader_num_workers", 4),
@@ -460,7 +460,7 @@ def main():
             metric_for_best_model="f1",
             greater_is_better=True,
             overwrite_output_dir=True,
-            fp16=(device=="cuda" and not opt_cfg.get("use_bf16", False)),  # FP16 if CUDA and not BF16
+            fp16=(device=="cuda" and opt_cfg.get("use_fp16", False)),  # FP16 if CUDA and explicitly enabled
             bf16=(device=="cuda" and opt_cfg.get("use_bf16", False)),
             gradient_accumulation_steps=train_cfg.get("gradient_accumulation_steps", 1),
             dataloader_num_workers=opt_cfg.get("dataloader_num_workers", 4),
