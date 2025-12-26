@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import tempfile
+import atexit
 from pathlib import Path
 from transformers import (
     AutoTokenizer,
@@ -28,7 +29,22 @@ from common.training_utils import detect_device, print_system_info, load_config,
 # Import MLflow after transformers to avoid conflicts
 import mlflow
 
+
+def cleanup_mlflow():
+    """Cleanup function to ensure MLflow run is terminated properly"""
+    if mlflow.active_run():
+        print("\n[CLEANUP] Terminating active MLflow run...")
+        try:
+            mlflow.set_tag("training_status", "interrupted")
+            mlflow.end_run(status="KILLED")
+            print("[OK] MLflow run terminated")
+        except Exception as e:
+            print(f"[WARN] Error during MLflow cleanup: {e}")
+
+
 def main():
+    # Register cleanup handler for unexpected exits
+    atexit.register(cleanup_mlflow)
     # === MLflow Configuration ===
     experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "nlu")
     setup_mlflow(experiment_name, enable_system_metrics=True)
@@ -337,7 +353,16 @@ def main():
         print("\n" + "="*70)
         print("ENTRANEMENT DU MODLE NER")
         print("="*70)
+        print(f"[DEBUG] Starting NER training with {len(tokenized_dataset_ner)} examples...")
+        print(f"[DEBUG] Batch size: {train_cfg['batch_size']}, Gradient accumulation: {train_cfg.get('gradient_accumulation_steps', 1)}")
+        print(f"[DEBUG] Effective batch size: {train_cfg['batch_size'] * train_cfg.get('gradient_accumulation_steps', 1)}")
+        print(f"[DEBUG] Device: {device}, BF16: {opt_cfg.get('use_bf16', False)}, FP16: {opt_cfg.get('use_fp16', False)}")
+        print(f"[DEBUG] Dataloader workers: {opt_cfg.get('dataloader_num_workers', 4)}")
+        print(f"[DEBUG] First batch will be compiled/optimized - this may take 30-60 seconds...")
+        sys.stdout.flush()  # Force flush to see logs immediately in CI
+
         trainer_ner.train()
+        print("[DEBUG] NER training completed successfully")
 
         # Evaluate NER model (metrics are automatically logged via report_to="mlflow")
         trainer_ner.evaluate()
