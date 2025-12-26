@@ -3,8 +3,33 @@ Common utilities for training NLU, STT and TTS models
 """
 import os
 import json
+import socket
+import platform
 import torch
 from typing import Dict, Tuple, Any
+
+
+def get_machine_name(env_var: str = "MACHINE_NAME") -> str:
+    """
+    Get the machine name from environment variable or system hostname.
+
+    Args:
+        env_var: Environment variable name to check first (default: "MACHINE_NAME")
+
+    Returns:
+        Machine name (from env var or hostname)
+    """
+    # Try environment variable first
+    machine_name = os.environ.get(env_var)
+    if machine_name:
+        return machine_name
+
+    # Fallback to socket hostname (works on Windows, Linux, macOS)
+    try:
+        return socket.gethostname()
+    except Exception:
+        # Ultimate fallback
+        return f"{platform.system()}-{platform.node()}"
 
 
 def detect_device() -> str:

@@ -23,7 +23,7 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from nlu.layers.ner_crf import CamembertForTokenClassificationWithCRF
 from common.mlflow_utils import setup_mlflow, start_run, log_training_config, log_pytorch_model, end_run
-from common.training_utils import detect_device, print_system_info, load_config, print_dataset_info, ensure_dir
+from common.training_utils import detect_device, print_system_info, load_config, print_dataset_info, ensure_dir, get_machine_name
 
 # Import MLflow after transformers to avoid conflicts
 import mlflow
@@ -80,8 +80,18 @@ def main():
         print(f"ERREUR: {dataset_path} n'existe pas!")
         return
 
-    # Start MLflow run
-    with start_run("nlu-training"):
+    # Start MLflow run with custom source name
+    # Detect if running in GitLab CI or locally
+    if os.environ.get("CI") == "true":
+        # GitLab CI: use pipeline ID
+        pipeline_id = os.environ.get("CI_PIPELINE_ID", "unknown")
+        source_name = f"CI #{pipeline_id}"
+    else:
+        # Local: use machine hostname
+        machine_name = get_machine_name()
+        source_name = f"Local ({machine_name})"
+
+    with start_run("nlu-training", source_name=source_name):
         # Log parameters
         log_training_config(config, device)
         mlflow.log_param("use_crf", config["training"].get("use_crf", False))

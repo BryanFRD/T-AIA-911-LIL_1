@@ -50,17 +50,22 @@ def setup_mlflow(experiment_name: str, enable_system_metrics: bool = True) -> No
         mlflow.enable_system_metrics_logging()
 
 
-def start_run(run_name: str) -> mlflow.ActiveRun:
+def start_run(run_name: str, source_name: Optional[str] = None) -> mlflow.ActiveRun:
     """
     Start an MLflow run.
 
     Args:
         run_name: Run name
+        source_name: Optional custom source name (e.g., "GitLab CI", "Local Training")
 
     Returns:
         MLflow run context
     """
-    return mlflow.start_run(run_name=run_name)
+    tags = {}
+    if source_name:
+        tags["mlflow.source.name"] = source_name
+
+    return mlflow.start_run(run_name=run_name, tags=tags if tags else None)
 
 
 def log_training_config(config: dict, device: str) -> None:
