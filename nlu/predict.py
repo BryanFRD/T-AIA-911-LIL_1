@@ -13,7 +13,7 @@ if not predict_file.exists():
     raise FileNotFoundError(f"Fichier de test non trouvé: {predict_file}")
 
 with open(predict_file, "r", encoding="utf-8") as f:
-    test_cases = json.load(f)  # Chaque élément doit avoir "text", "intent", "from", "to", "via", "person"
+    test_cases = json.load(f)
 
 
 class NLUPredictor:

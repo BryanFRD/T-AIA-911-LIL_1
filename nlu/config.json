@@ -26,6 +26,6 @@
     "use_fused_optimizer": true,
     "pytorch_compile": false
   },
-  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA", "B-PERSON", "I-PERSON"],
+  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA", "B-VOICE", "I-VOICE", "B-TIME", "I-TIME", "B-DATE", "I-DATE", "B-TRANSPORT", "I-TRANSPORT"],
   "intent_labels": ["trajet", "other"]
 }

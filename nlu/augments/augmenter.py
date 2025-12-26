@@ -20,6 +20,9 @@ from .person_prefix import augment_person_prefix
 from .accent_variants import augment_accent_variants
 from .homophones import augment_homophones
 from .entity_swap import augment_entity_swap
+from .time_date_formats import augment_time_date_formats
+from .politeness_variations import augment_politeness_variations
+from .implicit_questions import augment_implicit_questions
 
 
 class NLUAugmenter:
@@ -42,6 +45,9 @@ class NLUAugmenter:
     13. Variantes d'accents (retire 30% des accents: à->a, é->e, etc.)
     14. Homophones (erreurs grammaticales: à/a, où/ou, ce/se, etc.)
     15. Entity swap (inverse FROM <-> TO pour trajets retour)
+    16. Formats temps/date (14h30 -> quatorze heures trente, demain -> le lendemain)
+    17. Variations de politesse (je veux -> je voudrais, + s'il vous plaît)
+    18. Questions implicites (Paris Lyon -> Paris Lyon ?, affirmation -> question)
     """
 
     def __init__(self):
@@ -62,6 +68,9 @@ class NLUAugmenter:
             (augment_accent_variants, 0.3),  # Retire 30% des accents aléatoirement
             (augment_homophones, 0.2),  # Erreurs homophones (à/a, où/ou, etc.)
             (augment_entity_swap, 0.15),  # Inverse FROM <-> TO pour trajets retour
+            (augment_time_date_formats, 0.5),  # Variations de formats temps/date
+            (augment_politeness_variations, 0.4),  # Variations de politesse
+            (augment_implicit_questions, 0.2),  # Questions implicites
         ]
 
     def augment_example(self, text: str, entities: Dict,

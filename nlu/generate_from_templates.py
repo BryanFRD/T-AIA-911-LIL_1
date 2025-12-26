@@ -36,12 +36,12 @@ def get_placeholders(pattern: str) -> List[str]:
     """Extrait tous les placeholders d'un pattern"""
     return re.findall(r'\{([^}]+)\}', pattern)
 
-def generate_from_template(pattern: str, cities: List[str], people: List[str]) -> Dict:
+def generate_from_template(pattern: str, cities: List[str], voices: List[str], times: List[str] = None, dates: List[str] = None, transports: List[str] = None) -> Dict:
     """
     Génère un exemple à partir d'un template
 
     Returns:
-        Dict avec 'text' et 'entities' (from, to, via, person)
+        Dict avec 'text' et 'entities' (from, to, via, voice, time, date, transport)
     """
     placeholders = get_placeholders(pattern)
 
@@ -49,7 +49,10 @@ def generate_from_template(pattern: str, cities: List[str], people: List[str]) -
     from_city = None
     to_city = None
     via_cities = []
-    person = None
+    voice = None
+    time = None
+    date = None
+    transport = "train"  # Valeur par défaut
 
     format_dict = {}
     used_cities = set()
@@ -70,9 +73,21 @@ def generate_from_template(pattern: str, cities: List[str], people: List[str]) -
             format_dict[placeholder] = via_city
             via_cities.append(via_city)
             used_cities.add(via_city)
-        elif placeholder == "person":
-            person = random.choice(people)
-            format_dict["person"] = person
+        elif placeholder == "voice":
+            voice = random.choice(voices)
+            format_dict["voice"] = voice
+        elif placeholder == "time":
+            if times:
+                time = random.choice(times)
+                format_dict["time"] = time
+        elif placeholder == "date":
+            if dates:
+                date = random.choice(dates)
+                format_dict["date"] = date
+        elif placeholder == "transport":
+            if transports:
+                transport = random.choice(transports)
+                format_dict["transport"] = transport
         elif placeholder == "city":
             # Pour les exemples négatifs
             city = random.choice(cities)
@@ -86,7 +101,10 @@ def generate_from_template(pattern: str, cities: List[str], people: List[str]) -
             "from": from_city or "",
             "to": to_city or "",
             "via": via_cities,
-            "person": person or ""
+            "voice": voice or "",
+            "time": time or "",
+            "date": date or "",
+            "transport": transport
         }
     }
 
@@ -127,16 +145,19 @@ def text_to_bio(text: str, entities: Dict) -> tuple:
     tag_entity(entities["to"], "TO")
     for via in entities["via"]:
         tag_entity(via, "VIA")
-    tag_entity(entities["person"], "PERSON")
+    tag_entity(entities.get("voice", ""), "VOICE")
+    tag_entity(entities.get("time", ""), "TIME")
+    tag_entity(entities.get("date", ""), "DATE")
+    tag_entity(entities.get("transport", ""), "TRANSPORT")
 
     return tokens, bio_labels
 
-def _generate_example_with_intent(pattern: str, intent: str, cities: List[str], people: List[str]) -> Dict:
+def _generate_example_with_intent(pattern: str, intent: str, cities: List[str], voices: List[str], times: List[str] = None, dates: List[str] = None, transports: List[str] = None) -> Dict:
     """
     Helper function for parallel generation.
     Generates a single example from template with intent.
     """
-    example = generate_from_template(pattern, cities, people)
+    example = generate_from_template(pattern, cities, voices, times, dates, transports)
     example["intent"] = intent
     return example
 
@@ -150,7 +171,10 @@ def generate_dataset(templates_data: Dict, cities: List[str],
         Liste de dicts avec 'text', 'intent', 'entities'
     """
     dataset = []
-    people = templates_data.get("people", [])
+    voices = templates_data.get("voices", [])
+    times = templates_data.get("times", [])
+    dates = templates_data.get("dates", [])
+    transports = templates_data.get("transports", [])
 
     print("="*70)
     print("GENERATION DE DATASET A PARTIR DE TEMPLATES")
@@ -163,8 +187,17 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     print(f"\nChargement de la liste des villes...")
     print(f"  {len(cities)} villes chargees")
 
-    print(f"\nChargement de la liste des prenoms...")
-    print(f"  {len(people)} prenoms charges")
+    print(f"\nChargement de la liste des voix...")
+    print(f"  {len(voices)} voix chargees")
+
+    print(f"\nChargement de la liste des heures...")
+    print(f"  {len(times)} heures chargees")
+
+    print(f"\nChargement de la liste des dates...")
+    print(f"  {len(dates)} dates chargees")
+
+    print(f"\nChargement de la liste des transports...")
+    print(f"  {len(transports)} transports charges")
 
     print("\n" + "="*70)
 
@@ -175,7 +208,7 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     positive_tasks = []
     for template in templates_data["templates"]:
         for _ in range(num_samples_per_template):
-            positive_tasks.append((template["pattern"], template["intent"], cities, people))
+            positive_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports))
 
     # Use multiprocessing Pool for parallel generation
     num_workers = min(6, cpu_count())
@@ -193,7 +226,7 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     negative_tasks = []
     for template in templates_data["negative_examples"]:
         for _ in range(per_template):
-            negative_tasks.append((template["pattern"], template["intent"], cities, people))
+            negative_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports))
 
     negative_count_start = len(dataset)
     with Pool(processes=num_workers) as pool:
@@ -232,7 +265,9 @@ def save_dataset(dataset: List[Dict], output_file: str):
     # Statistiques
     intent_counts = {}
     via_count = 0
-    person_count = 0
+    voice_count = 0
+    transport_count = 0
+    transport_explicit_count = 0
 
     for example in dataset:
         intent = example["intent"]
@@ -240,14 +275,20 @@ def save_dataset(dataset: List[Dict], output_file: str):
 
         if example["entities"]["via"]:
             via_count += 1
-        if example["entities"]["person"]:
-            person_count += 1
+        if example["entities"]["voice"]:
+            voice_count += 1
+        if example["entities"]["transport"]:
+            transport_count += 1
+            # Check if transport is explicitly mentioned in text (not just default "train")
+            if example["entities"]["transport"] in example["text"].lower():
+                transport_explicit_count += 1
 
     print("\nStatistiques:")
     for intent, count in intent_counts.items():
         print(f"  - Intent '{intent}': {count}")
     print(f"  - Avec VIA: {via_count}")
-    print(f"  - Avec PERSON: {person_count}")
+    print(f"  - Avec VOICE: {voice_count}")
+    print(f"  - Avec TRANSPORT: {transport_count} (dont {transport_explicit_count} explicites)")
 
 if __name__ == "__main__":
     # Charger les données
