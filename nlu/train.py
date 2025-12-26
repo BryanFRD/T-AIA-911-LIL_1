@@ -292,7 +292,12 @@ def main():
         # Fonction de calcul des mtriques pour NER (vectorized for performance)
         def compute_metrics_ner(pred):
             predictions, labels = pred
-            predictions = np.argmax(predictions, axis=2)
+
+            # CRF retourne directement les prédictions (1D), pas les logits (2D)
+            # Vérifier la dimension pour savoir si c'est du CRF ou non
+            if len(predictions.shape) == 3:  # (batch, seq_len, num_labels) - logits
+                predictions = np.argmax(predictions, axis=2)
+            # Sinon predictions est déjà (batch, seq_len) - prédictions du CRF
 
             # Vectorized flatten and filter (much faster than Python loop)
             mask = labels != -100
@@ -329,6 +334,7 @@ def main():
             metric_for_best_model="f1",
             greater_is_better=True,
             overwrite_output_dir=True,
+            max_grad_norm=1.0,  # CRITICAL: Gradient clipping pour éviter explosion avec CRF
             fp16=(device=="cuda" and opt_cfg.get("use_fp16", False)),  # FP16 if CUDA and explicitly enabled
             bf16=(device=="cuda" and opt_cfg.get("use_bf16", False)),
             gradient_accumulation_steps=train_cfg.get("gradient_accumulation_steps", 1),

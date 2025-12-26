@@ -31,10 +31,11 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        # Encodeur CamemBERT
-        # Note: CamemBERT ne supporte pas Flash Attention 2 ni SDPA
-        # On utilise l'attention standard qui sera optimisée par PyTorch compile
-        self.roberta = AutoModel.from_config(config)
+        # Encodeur CamemBERT - CHARGER LES POIDS PRÉENTRAÎNÉS
+        # Note: On ne peut pas utiliser from_config car ça initialise aléatoirement
+        # Il faut charger depuis le nom du modèle (ex: "camembert-base")
+        model_name = config._name_or_path if hasattr(config, '_name_or_path') else "camembert-base"
+        self.roberta = AutoModel.from_pretrained(model_name, config=config)
 
         # Dropout pour régularisation
         classifier_dropout = (
@@ -109,14 +110,57 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
             # Ajuster le mask pour exclure les positions avec -100
             crf_mask = crf_mask & (labels != -100)
 
-            # IMPORTANT: Le CRF exige que le premier timestep soit toujours True
-            # Forcer le premier token à True même si c'était un token spécial
+            # CRITICAL: torchcrf exige que mask[:, 0] soit toujours True
+            # Même si le premier token est [CLS] avec label -100, on doit le forcer à True
+            # Le label a déjà été remplacé par 0 (ligne 107), donc c'est safe
             crf_mask[:, 0] = True
+
+            # Debug: vérifier les valeurs avant CRF
+            if torch.isnan(emissions).any() or torch.isinf(emissions).any():
+                print("[ERROR] Emissions contain NaN or Inf!")
+                print(f"  Emissions range: [{emissions.min():.4f}, {emissions.max():.4f}]")
+                print(f"  NaN count: {torch.isnan(emissions).sum().item()}")
+                print(f"  Inf count: {torch.isinf(emissions).sum().item()}")
 
             # Calculer la negative log-likelihood du CRF
             # Le CRF maximise P(labels | emissions, mask)
-            log_likelihood = self.crf(emissions, labels_masked, mask=crf_mask, reduction='mean')
-            loss = -log_likelihood  # On minimise la negative log-likelihood
+            # reduction='token_mean' divise par le nombre de tokens valides
+            try:
+                log_likelihood = self.crf(emissions, labels_masked, mask=crf_mask, reduction='token_mean')
+                loss = -log_likelihood  # On minimise la negative log-likelihood
+            except Exception as e:
+                print(f"[ERROR] CRF forward failed: {e}")
+                print(f"  Emissions shape: {emissions.shape}")
+                print(f"  Labels shape: {labels_masked.shape}")
+                print(f"  Mask shape: {crf_mask.shape}")
+                print(f"  Mask sum per sequence: {crf_mask.sum(dim=1)}")
+                raise
+
+            # Vérifier les NaN/Inf (peut arriver avec underflow numérique ou mauvaise initialisation CRF)
+            if torch.isnan(loss) or torch.isinf(loss):
+                print("[ERROR] CRF loss is NaN or Inf!")
+                print(f"  log_likelihood: {log_likelihood.item()}")
+                print(f"  Emissions stats: min={emissions.min().item():.4f}, max={emissions.max().item():.4f}, mean={emissions.mean().item():.4f}")
+                print(f"  Labels unique: {torch.unique(labels_masked).tolist()}")
+                print(f"  Mask ratio: {crf_mask.float().mean().item():.4f}")
+                print(f"  CRF transitions matrix range: [{self.crf.transitions.min().item():.4f}, {self.crf.transitions.max().item():.4f}]")
+
+                # Si log_likelihood = -inf, le CRF a une probabilité 0 pour cette séquence
+                # Cela peut arriver avec une mauvaise initialisation des transitions
+                # On utilise une loss de repli basée uniquement sur les émissions (cross-entropy)
+                print("[WARN] Using fallback cross-entropy loss instead of CRF loss for this batch")
+
+                # Calculer une cross-entropy classique sur les tokens valides
+                ce_loss = nn.functional.cross_entropy(
+                    emissions.view(-1, self.num_labels),
+                    labels_masked.view(-1),
+                    ignore_index=0,  # Ignorer le label 0 (qui remplace -100)
+                    reduction='none'
+                )
+                # Appliquer le masque et faire la moyenne
+                ce_loss = ce_loss.view(emissions.size(0), emissions.size(1))
+                valid_loss = (ce_loss * crf_mask.float()).sum() / crf_mask.float().sum()
+                loss = valid_loss
 
         else:
             # === MODE INFERENCE ===
