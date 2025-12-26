@@ -5,11 +5,11 @@
     "use_bf16": false,
     "use_tf32": false,
     "cudnn_benchmark": true,
-    "dataloader_num_workers": 6,
-    "dataloader_prefetch_factor": 4,
+    "dataloader_num_workers": 4,
+    "dataloader_prefetch_factor": 2,
     "dataloader_pin_memory": true,
     "use_fused_optimizer": true,
-    "pytorch_compile": true
+    "pytorch_compile": false
   },
 
   "training": {
