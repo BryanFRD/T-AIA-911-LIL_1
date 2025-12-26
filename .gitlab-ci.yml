@@ -7,6 +7,8 @@ variables:
   XDG_CACHE_HOME: "/cache"
   MODEL_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
   MODEL_VERSION: "${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+  # Use CI-optimized configuration for training
+  CONFIG_OVERRIDE: ""  # Override in specific jobs with config.ci.json
 
 # ===============================
 # Stages
@@ -14,8 +16,6 @@ variables:
 stages:
   - init
   - train
-  - package
-  - release
 
 # ===============================
 # Base Python job
@@ -28,10 +28,7 @@ stages:
     - export PIP_CACHE_DIR="/cache/pip"
     - export XDG_CACHE_HOME="/cache"
     - pip install --upgrade pip
-    # Installer torch et torchvision depuis l'index PyTorch
-    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed torch==2.0.1+cu117 torchvision==0.15.2+cu117 --index-url https://download.pytorch.org/whl/cu117
-    # Installer le reste depuis PyPI normal
-    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed mlflow>=3.7.0 numpy==1.26.4 transformers==4.30.2 datasets==4.4.1 accelerate==1.12.0 huggingface-hub==0.36.0 pyarrow==22.0.0 scikit-learn>=1.3.0 pytorch-crf>=0.7.2
+    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed -r requirements.txt
     - python -c "import torch; print('CUDA:', torch.cuda.is_available(), 'GPUs:', torch.cuda.device_count(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)"
 
 # ===============================
@@ -63,26 +60,13 @@ train:nlu:
   tags:
     - gpu
   extends: .python
+  variables:
+    CONFIG_OVERRIDE: "nlu/config.ci.json"
   script:
     - python nlu/generate_from_templates.py
     - python nlu/train.py
     - python nlu/predict.py
-  artifacts:
-    paths:
-      # Modèles finaux uniquement (pas les checkpoints)
-      - nlu/models/model_ner/*.bin
-      - nlu/models/model_ner/*.json
-      - nlu/models/model_ner/*.txt
-      - nlu/models/model_ner/*.onnx
-      - nlu/models/model_ner/*.pt
-      - nlu/models/model_intent/*.bin
-      - nlu/models/model_intent/*.json
-      - nlu/models/model_intent/*.txt
-      - nlu/models/model_intent/*.onnx
-      - nlu/models/model_intent/*.pt
-      # Optionnel: données générées pour debugging
-      # - nlu/data/train_generated.json
-    expire_in: 7 days
+  # Models are saved to MLflow - no local artifacts needed
   rules:
     - changes:
         - nlu/**/*
@@ -98,15 +82,7 @@ train:stt:
   extends: .python
   script:
     - python stt/train.py
-  artifacts:
-    paths:
-      # Modèles finaux (avec sous-dossiers)
-      - stt/models/**/*.bin
-      - stt/models/**/*.json
-      - stt/models/**/*.txt
-      - stt/models/**/*.onnx
-      - stt/models/**/*.pt
-    expire_in: 7 days
+  # Models are saved to MLflow - no local artifacts needed
   rules:
     - changes:
         - stt/**/*
@@ -122,15 +98,7 @@ train:tts:
   extends: .python
   script:
     - python tts/train.py
-  artifacts:
-    paths:
-      # Modèles finaux (avec sous-dossiers)
-      - tts/models/**/*.bin
-      - tts/models/**/*.json
-      - tts/models/**/*.txt
-      - tts/models/**/*.onnx
-      - tts/models/**/*.pt
-    expire_in: 7 days
+  # Models are saved to MLflow - no local artifacts needed
   rules:
     - changes:
         - tts/**/*

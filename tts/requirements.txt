@@ -1,0 +1,2 @@
+# Packages spécifiques TTS
+# Pour l'instant, toutes les dépendances sont dans common/requirements.txt

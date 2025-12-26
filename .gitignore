@@ -4,6 +4,10 @@
 # Generated datas
 train_generated.json
 
+# Local configuration (not versioned)
+config.local.json
+*.local.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

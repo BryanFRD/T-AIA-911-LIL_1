@@ -7,7 +7,6 @@ pour permettre de tester le packaging et le déploiement
 
 import os
 import sys
-import json
 import torch
 import torch.nn as nn
 from pathlib import Path
@@ -16,7 +15,8 @@ import mlflow
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from common.save_model import export_simple_model_to_torchscript
+from common.mlflow_utils import setup_mlflow, start_run
+from common.training_utils import save_config
 
 
 class DummySTTModel(nn.Module):
@@ -34,10 +34,11 @@ def main():
     print("GÉNÉRATION MODÈLE STT DUMMY (POUR TEST CI/CD)")
     print("="*70)
 
-    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "https://mlflow.bryan-ferrando.fr"))
-    mlflow.set_experiment(os.environ.get("MLFLOW_EXPERIMENT_NAME", "stt"))
+    # Setup MLflow
+    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "stt")
+    setup_mlflow(experiment_name, enable_system_metrics=False)
 
-    with mlflow.start_run(run_name="dummy-stt-ci"):
+    with start_run("dummy-stt-ci"):
         output_dir = "stt/models/model_stt"
         os.makedirs(output_dir, exist_ok=True)
 
@@ -64,9 +65,7 @@ def main():
             "vocab_size": 100,
             "description": "Dummy STT model for CI/CD testing"
         }
-
-        with open(f"{output_dir}/config.json", "w") as f:
-            json.dump(config, f, indent=2)
+        save_config(config, f"{output_dir}/config.json")
 
         # Créer un fichier de métadonnées
         metadata = {
@@ -75,18 +74,9 @@ def main():
             "language": "fr",
             "is_dummy": True
         }
+        save_config(metadata, f"{output_dir}/metadata.json")
 
-        with open(f"{output_dir}/metadata.json", "w") as f:
-            json.dump(metadata, f, indent=2)
-
-        # Export TorchScript
-        export_simple_model_to_torchscript(
-            model,
-            f"{output_dir}/model_stt_jit.pt",
-            input_shape=(1, 10)
-        )
-
-        # Log model MLflow
+        # Log model to MLflow (PyTorch native - no TorchScript needed)
         mlflow.pytorch.log_model(
             model,
             artifact_path="model",
@@ -96,11 +86,9 @@ def main():
         # Log artifacts
         mlflow.log_artifacts(output_dir)
 
-        print(f"\n[OK] Modèle STT dummy créé dans {output_dir}")
-        print("     - model.pt")
-        print("     - model_stt_jit.pt (TorchScript)")
-        print("     - config.json")
-        print("     - metadata.json")
+        print("\n[OK] STT model saved to MLflow")
+        print("     - Registered in MLflow Model Registry as 'stt'")
+        print("     - Local artifacts: model.pt, config.json, metadata.json")
         print("\n" + "="*70)
         print("GÉNÉRATION TERMINÉE")
         print("="*70)

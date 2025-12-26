@@ -1,0 +1,21 @@
+{
+  "_comment": "Configuration optimized for CI/CD (Linux with Triton support)",
+
+  "optimization": {
+    "use_bf16": true,
+    "use_tf32": true,
+    "cudnn_benchmark": true,
+    "dataloader_num_workers": 8,
+    "dataloader_prefetch_factor": 4,
+    "dataloader_pin_memory": true,
+    "use_fused_optimizer": true,
+    "pytorch_compile": true
+  },
+
+  "training": {
+    "batch_size": 64,
+    "logging_steps": 200,
+    "eval_strategy": "no",
+    "warmup_ratio": 0.05
+  }
+}

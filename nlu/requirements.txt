@@ -1,5 +1,4 @@
-torch==2.9.1
-numpy==1.26.4
+# Packages spécifiques NLU (torch, numpy, nvidia-ml-py sont dans common/requirements.txt)
 transformers==4.57.3
 datasets==4.4.1
 accelerate==1.12.0

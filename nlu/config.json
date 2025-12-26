@@ -5,9 +5,26 @@
   },
   "training": {
     "epochs": 8,
-    "batch_size": 32,
+    "batch_size": 64,
     "learning_rate": 5e-5,
-    "use_crf": true
+    "use_crf": true,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "lr_scheduler_type": "cosine",
+    "gradient_accumulation_steps": 2,
+    "logging_steps": 200,
+    "eval_strategy": "epoch",
+    "save_strategy": "no"
+  },
+  "optimization": {
+    "use_bf16": true,
+    "use_tf32": true,
+    "cudnn_benchmark": true,
+    "dataloader_num_workers": 4,
+    "dataloader_prefetch_factor": 4,
+    "dataloader_pin_memory": true,
+    "use_fused_optimizer": true,
+    "pytorch_compile": false
   },
   "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA", "B-PERSON", "I-PERSON"],
   "intent_labels": ["trajet", "other"]

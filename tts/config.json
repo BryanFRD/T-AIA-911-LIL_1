@@ -1,0 +1,5 @@
+{
+  "model_type": "dummy_tts",
+  "sample_rate": 22050,
+  "description": "TTS model configuration"
+}

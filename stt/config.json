@@ -1,0 +1,6 @@
+{
+  "model_type": "dummy_stt",
+  "sample_rate": 16000,
+  "vocab_size": 100,
+  "description": "STT model configuration"
+}

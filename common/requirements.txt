@@ -1,1 +1,5 @@
+# Packages communs pour tous les modèles (NLU, STT, TTS)
 mlflow>=3.7.0
+torch==2.5.1
+numpy==1.26.4
+nvidia-ml-py>=12.0.0

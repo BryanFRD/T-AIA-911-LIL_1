@@ -7,7 +7,6 @@ pour permettre de tester le packaging et le déploiement
 
 import os
 import sys
-import json
 import torch
 import torch.nn as nn
 from pathlib import Path
@@ -16,7 +15,7 @@ import mlflow
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from common.save_model import export_simple_model_to_torchscript
+from common.mlflow_utils import setup_mlflow, start_run
 
 
 class DummyTTSModel(nn.Module):
@@ -34,10 +33,11 @@ def main():
     print("GÉNÉRATION MODÈLE TTS DUMMY (POUR TEST CI/CD)")
     print("="*70)
 
-    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "https://mlflow.bryan-ferrando.fr"))
-    mlflow.set_experiment(os.environ.get("MLFLOW_EXPERIMENT_NAME", "tts"))
+    # Setup MLflow
+    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "tts")
+    setup_mlflow(experiment_name, enable_system_metrics=False)
 
-    with mlflow.start_run(run_name="dummy-tts-ci"):
+    with start_run("dummy-tts-ci"):
         output_dir = "tts/models/model_tts"
         os.makedirs(output_dir, exist_ok=True)
 
@@ -54,13 +54,7 @@ def main():
             'description': 'Modèle TTS factice pour test pipeline'
         }, f"{output_dir}/model.pt")
 
-        export_simple_model_to_torchscript(
-            model,
-            f"{output_dir}/model_tts_jit.pt",
-            input_shape=(1, 10)
-        )
-
-        # Log model MLflow
+        # Log model to MLflow (PyTorch native - no TorchScript needed)
         mlflow.pytorch.log_model(
             model,
             artifact_path="model",
@@ -70,7 +64,13 @@ def main():
         # Log artifacts
         mlflow.log_artifacts(output_dir)
 
-    print(f"\n[OK] Modèle TTS dummy créé dans {output_dir}")
+        print("\n[OK] TTS model saved to MLflow")
+        print("     - Registered in MLflow Model Registry as 'tts'")
+        print("     - Local artifacts: model.pt")
+
+    print("\n" + "="*70)
+    print("GÉNÉRATION TERMINÉE")
+    print("="*70)
 
 
 
