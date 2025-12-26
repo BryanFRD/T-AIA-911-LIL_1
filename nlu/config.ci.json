@@ -1,11 +1,11 @@
 {
-  "_comment": "Configuration optimized for CI/CD (Linux with Triton support)",
+  "_comment": "Configuration optimized for CI/CD (RTX 2060 - Turing architecture, CUDA 12.4)",
 
   "optimization": {
-    "use_bf16": true,
-    "use_tf32": true,
+    "use_bf16": false,
+    "use_tf32": false,
     "cudnn_benchmark": true,
-    "dataloader_num_workers": 8,
+    "dataloader_num_workers": 6,
     "dataloader_prefetch_factor": 4,
     "dataloader_pin_memory": true,
     "use_fused_optimizer": true,
@@ -13,8 +13,8 @@
   },
 
   "training": {
-    "batch_size": 64,
-    "logging_steps": 200,
+    "batch_size": 48,
+    "logging_steps": 100,
     "eval_strategy": "no",
     "warmup_ratio": 0.05
   }

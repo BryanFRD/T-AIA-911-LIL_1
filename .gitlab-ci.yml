@@ -21,7 +21,7 @@ stages:
 # Base Python job
 # ===============================
 .python:
-  image: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+  image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
   before_script:
     - python --version
     - mkdir -p /cache/pip /cache/huggingface
