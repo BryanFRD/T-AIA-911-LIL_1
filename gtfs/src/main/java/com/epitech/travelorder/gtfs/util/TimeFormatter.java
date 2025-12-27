@@ -1,12 +1,15 @@
 package com.epitech.travelorder.gtfs.util;
 
-public class TimeFormatter {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+import static lombok.AccessLevel.PRIVATE;
+
+@NoArgsConstructor(access = PRIVATE)
+public final class TimeFormatter {
 
     private static final String TIME_SEPARATOR = ":";
     private static final int HOURS_IN_DAY = 24;
-
-    private TimeFormatter() {
-    }
 
     public static String formatStopTime(String time) {
         if (time == null || time.isBlank()) {

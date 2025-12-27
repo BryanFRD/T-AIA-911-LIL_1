@@ -39,17 +39,13 @@ public class TripStepConfiguration {
 
     @Bean
     public FlatFileItemReader<Trip> tripReader() {
-        BeanWrapperFieldSetMapper<Trip> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
-        fieldSetMapper.setTargetType(Trip.class);
-        fieldSetMapper.setDistanceLimit(0);
-
         return new FlatFileItemReaderBuilder<Trip>()
                 .name("tripReader")
                 .resource(new FileSystemResource(localDirectory + "trips.txt"))
                 .delimited()
                 .includedFields(0, 1, 2, 3, 4, 5)
                 .names("routeId", "serviceId", "tripId", "tripHeadsign", "directionId", "blockId")
-                .fieldSetMapper(fieldSetMapper)
+                .targetType(Trip.class)
                 .linesToSkip(1)
                 .build();
     }
