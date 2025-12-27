@@ -1,0 +1,26 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "fix-id-types-to-bigint",
+        "author": "Arthur",
+        "changes": [
+          {
+            "modifyDataType": {
+              "tableName": "stop_times",
+              "columnName": "id",
+              "newDataType": "BIGINT"
+            }
+          },
+          {
+            "modifyDataType": {
+              "tableName": "transfers",
+              "columnName": "id",
+              "newDataType": "BIGINT"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
