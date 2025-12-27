@@ -23,7 +23,7 @@ spec:
               image: __GTFS_IMAGE__
               imagePullPolicy: Always
               args: ["run.date=$(date +%Y-%m-%d)"]
-              command: ["/bin/sh", "-c", "java -jar /app.jar \"$@\"", "--"]
+              command: ["/bin/sh", "-c", "java -jar /app/app.jar \"$@\"", "--"]
               env:
                 - name: SPRING_DATASOURCE_URL
                   value: "jdbc:postgresql://postgres-service:5432/travelorder"
