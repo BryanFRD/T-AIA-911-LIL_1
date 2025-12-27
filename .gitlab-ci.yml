@@ -90,7 +90,7 @@ deploy-to-k8s:
 
     - echo "Déploiement de l'orchestrateur..."
     - sed "s|__ORCHESTRATOR_IMAGE__|$ORCHESTRATOR_IMG:$CI_COMMIT_SHORT_SHA|g" k8s/deployment.yaml | kubectl apply -f -
-    - kubectl rollout status deployment/orchestrator --timeout=180s
+    - kubectl rollout status deployment/travel-resolver --timeout=180s
 
     - echo "Configuration du réseau..."
     - kubectl apply -f k8s/service.yaml
