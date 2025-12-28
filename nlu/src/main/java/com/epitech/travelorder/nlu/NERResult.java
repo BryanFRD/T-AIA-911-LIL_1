@@ -20,14 +20,14 @@ public class NERResult {
     @AllArgsConstructor
     public static class Entity {
         private String text;
-        private String label;
+        private NERLabel label;
         private float confidence;
         private int start;
         private int end;
 
         @Override
         public String toString() {
-            return String.format("%s (%s, %.2f%%)", text, label, confidence * 100);
+            return String.format("%s (%s, %.2f%%)", text, label.getLabel(), confidence * 100);
         }
     }
 

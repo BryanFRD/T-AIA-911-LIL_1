@@ -11,16 +11,8 @@ import com.epitech.travelorder.common.ml.BaseTranslator;
  */
 public class IntentTranslator extends BaseTranslator<String, IntentResult> {
 
-    // Intent labels - adjust according to your model
-    private static final String[] INTENT_LABELS = {
-        "book_train",
-        "cancel_booking",
-        "check_schedule",
-        "get_price",
-        "greeting",
-        "goodbye",
-        "help"
-    };
+    // Intent labels from enum
+    private static final IntentLabel[] INTENT_LABELS = IntentLabel.values();
 
     @Override
     public NDList processInput(ai.djl.translate.TranslatorContext ctx, String input) throws Exception {
@@ -53,9 +45,9 @@ public class IntentTranslator extends BaseTranslator<String, IntentResult> {
         float confidence = probabilities.getFloat(predictedClass);
 
         // Map to intent label
-        String intent = predictedClass < INTENT_LABELS.length
+        IntentLabel intent = predictedClass < INTENT_LABELS.length
             ? INTENT_LABELS[predictedClass]
-            : "unknown";
+            : IntentLabel.OTHER;
 
         return new IntentResult(intent, confidence);
     }

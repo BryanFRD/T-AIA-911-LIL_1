@@ -14,18 +14,8 @@ import java.util.List;
  */
 public class NERTranslator extends BaseTranslator<String, NERResult> {
 
-    // NER labels - adjust according to your model (BIO format)
-    private static final String[] NER_LABELS = {
-        "O",           // Outside
-        "B-LOC",       // Begin Location
-        "I-LOC",       // Inside Location
-        "B-DATE",      // Begin Date
-        "I-DATE",      // Inside Date
-        "B-TIME",      // Begin Time
-        "I-TIME",      // Inside Time
-        "B-PERSON",    // Begin Person
-        "I-PERSON"     // Inside Person
-    };
+    // NER labels from enum (BIO format)
+    private static final NERLabel[] NER_LABELS = NERLabel.values();
 
     @Override
     public NDList processInput(ai.djl.translate.TranslatorContext ctx, String input) throws Exception {
@@ -60,7 +50,7 @@ public class NERTranslator extends BaseTranslator<String, NERResult> {
         // TODO: Implement actual BIO tag decoding and entity extraction
         NERResult.Entity dummyEntity = new NERResult.Entity(
             "Paris",           // text
-            "LOC",             // label
+            NERLabel.B_TO,     // label
             0.95f,             // confidence
             10,                // start position
             15                 // end position
