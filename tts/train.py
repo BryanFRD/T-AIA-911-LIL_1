@@ -100,29 +100,46 @@ def main():
             mlflow.log_metric("duration_loss", 0.08)
             mlflow.log_metric("total_loss", 0.23)
 
-            # Save model to MLflow (PyTorch + ONNX)
-            print("\n[INFO] Saving TTS model to MLflow...")
+            # Save model to MLflow (ONNX only)
+            print("\n[INFO] Saving TTS model to MLflow (ONNX)...")
 
-            # Create dummy input for ONNX export (adjust shape for real TTS model)
+            # Create dummy input for ONNX export
             dummy_input = (torch.randn(1, 10),)
 
-            log_model_artifacts(
-                mlflow=mlflow,
-                model=model,
-                model_path=None,  # No HuggingFace format for dummy model
-                artifact_base_name="tts",
-                registered_model_name="tts",
-                export_onnx=True,
-                onnx_dummy_input=dummy_input,
-                onnx_input_names=["text_features"],
-                onnx_output_names=["mel_spectrogram"],
-                onnx_dynamic_axes={
-                    "text_features": {0: "batch_size"},
-                    "mel_spectrogram": {0: "batch_size"}
-                },
-                opset_version=17
-            )
-            print("[OK] TTS model artifacts saved to MLflow")
+            # Export and log ONNX model
+            import tempfile
+            import os
+            from common.onnx_utils import export_pytorch_to_onnx
+
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                onnx_path = os.path.join(tmp_dir, "tts.onnx")
+
+                success = export_pytorch_to_onnx(
+                    model=model,
+                    dummy_input=dummy_input,
+                    output_path=onnx_path,
+                    input_names=["text_features"],
+                    output_names=["mel_spectrogram"],
+                    dynamic_axes={
+                        "text_features": {0: "batch_size"},
+                        "mel_spectrogram": {0: "batch_size"}
+                    },
+                    opset_version=17
+                )
+
+                if success:
+                    import onnx
+                    onnx_model = onnx.load(onnx_path)
+                    mlflow.onnx.log_model(
+                        onnx_model=onnx_model,
+                        artifact_path="tts_onnx",
+                        registered_model_name="tts-onnx"
+                    )
+                    print("[OK] TTS model (ONNX) logged to MLflow")
+
+                    # Also save raw ONNX file
+                    mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
+                    print("[OK] TTS ONNX file saved to MLflow")
 
             # Log tags
             mlflow.set_tag("model_type", "tts")

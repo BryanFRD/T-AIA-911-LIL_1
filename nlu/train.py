@@ -485,18 +485,9 @@ def main():
             export_formats = config.get("export", {}).get("formats", ["pytorch"])
             onnx_opset = config.get("export", {}).get("onnx_opset", 17)
 
-            # Save model using save_pretrained for better compatibility with custom layers
+            # Export to ONNX only (no PyTorch/HuggingFace)
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # Save model in HuggingFace format
-                ner_model_path = os.path.join(tmp_dir, "ner_model")
-                model_ner.save_pretrained(ner_model_path)
-                tokenizer.save_pretrained(ner_model_path)
-
-                # Log HuggingFace format (primary format for NLU models)
-                mlflow.log_artifacts(ner_model_path, artifact_path="ner_model_hf")
-                print("[OK] NER model (HuggingFace format) saved to MLflow")
-
-                # ONNX export (if enabled in config)
+                # ONNX export
                 if "onnx" in export_formats:
                     onnx_path = os.path.join(tmp_dir, "ner_model.onnx")
                     success = export_model_to_onnx(
@@ -740,18 +731,9 @@ def main():
             export_formats = config.get("export", {}).get("formats", ["pytorch"])
             onnx_opset = config.get("export", {}).get("onnx_opset", 17)
 
-            # Save model using save_pretrained for better compatibility
+            # Export to ONNX only (no PyTorch/HuggingFace)
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # PyTorch export (always done as primary format)
-                intent_model_path = os.path.join(tmp_dir, "intent_model")
-                model_intent.save_pretrained(intent_model_path)
-                tokenizer.save_pretrained(intent_model_path)
-
-                # Log HuggingFace format (primary format for NLU models)
-                mlflow.log_artifacts(intent_model_path, artifact_path="intent_model_hf")
-                print("[OK] Intent model (HuggingFace format) saved to MLflow")
-
-                # ONNX export (if enabled in config)
+                # ONNX export
                 if "onnx" in export_formats:
                     onnx_path = os.path.join(tmp_dir, "intent_model.onnx")
                     success = export_model_to_onnx(

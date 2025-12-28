@@ -99,29 +99,46 @@ def main():
             mlflow.log_metric("wer", 0.25)  # Word Error Rate
             mlflow.log_metric("loss", 0.5)
 
-            # Save model to MLflow (PyTorch + ONNX)
-            print("\n[INFO] Saving STT model to MLflow...")
+            # Save model to MLflow (ONNX only)
+            print("\n[INFO] Saving STT model to MLflow (ONNX)...")
 
-            # Create dummy input for ONNX export (adjust shape for real STT model)
+            # Create dummy input for ONNX export
             dummy_input = (torch.randn(1, 10),)
 
-            log_model_artifacts(
-                mlflow=mlflow,
-                model=model,
-                model_path=None,  # No HuggingFace format for dummy model
-                artifact_base_name="stt",
-                registered_model_name="stt",
-                export_onnx=True,
-                onnx_dummy_input=dummy_input,
-                onnx_input_names=["audio_features"],
-                onnx_output_names=["logits"],
-                onnx_dynamic_axes={
-                    "audio_features": {0: "batch_size"},
-                    "logits": {0: "batch_size"}
-                },
-                opset_version=17
-            )
-            print("[OK] STT model artifacts saved to MLflow")
+            # Export and log ONNX model
+            import tempfile
+            import os
+            from common.onnx_utils import export_pytorch_to_onnx
+
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                onnx_path = os.path.join(tmp_dir, "stt.onnx")
+
+                success = export_pytorch_to_onnx(
+                    model=model,
+                    dummy_input=dummy_input,
+                    output_path=onnx_path,
+                    input_names=["audio_features"],
+                    output_names=["logits"],
+                    dynamic_axes={
+                        "audio_features": {0: "batch_size"},
+                        "logits": {0: "batch_size"}
+                    },
+                    opset_version=17
+                )
+
+                if success:
+                    import onnx
+                    onnx_model = onnx.load(onnx_path)
+                    mlflow.onnx.log_model(
+                        onnx_model=onnx_model,
+                        artifact_path="stt_onnx",
+                        registered_model_name="stt-onnx"
+                    )
+                    print("[OK] STT model (ONNX) logged to MLflow")
+
+                    # Also save raw ONNX file
+                    mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
+                    print("[OK] STT ONNX file saved to MLflow")
 
             # Log tags
             mlflow.set_tag("model_type", "stt")
