@@ -1,27 +1,30 @@
 """
 Script de promotion des modèles MLflow
 
-Assigne l'alias "champion" aux dernières versions enregistrées dans MLflow.
-Utilisé en CI après chaque entraînement pour marquer les modèles récents.
+Assigne l'alias 'champion' aux modèles (dernière version ou version spécifique).
+Utilisé automatiquement par la CI après chaque training.
 
 Usage:
+    # Automatique en CI - dernière version
     python common/promote_models.py --models nlu-ner nlu-intent
-    python common/promote_models.py --models stt
-    python common/promote_models.py --models tts
+
+    # Manuel - version spécifique (rollback)
+    python common/promote_models.py --models nlu-ner --version 7
 """
 
 import argparse
 from mlflow import MlflowClient
 
 
-def promote_to_champion(model_names: list[str]) -> None:
+def promote_models(model_names: list[str], version: int = None) -> None:
     """
-    Assigne l'alias 'champion' aux dernières versions des modèles spécifiés
+    Assigne l'alias 'champion' à des versions de modèles dans MLflow
 
     Args:
-        model_names: Liste des noms de modèles à promouvoir (ex: ["nlu-ner", "nlu-intent"])
+        model_names: Liste des noms de modèles à promouvoir
+        version: Numéro de version spécifique (None = dernière version)
     """
-    client = MlflowClient("https://mlflow.bryan-ferrando.fr")
+    client = MlflowClient()
 
     for model_name in model_names:
         try:
@@ -32,11 +35,20 @@ def promote_to_champion(model_names: list[str]) -> None:
                 print(f"[WARN] Aucune version trouvée pour le modèle '{model_name}'")
                 continue
 
-            # Trier par version (la plus récente en premier)
-            latest_version = sorted(versions, key=lambda x: int(x.version), reverse=True)[0]
-            version_number = latest_version.version
+            # Choisir la version à promouvoir
+            if version is not None:
+                # Version spécifique demandée
+                target_version = next((v for v in versions if int(v.version) == version), None)
+                if not target_version:
+                    print(f"[ERROR] Version {version} non trouvée pour '{model_name}'")
+                    continue
+                version_number = str(version)
+            else:
+                # Dernière version
+                latest_version = sorted(versions, key=lambda x: int(x.version), reverse=True)[0]
+                version_number = latest_version.version
 
-            # Assigner l'alias "champion"
+            # Assigner l'alias 'champion'
             client.set_registered_model_alias(
                 name=model_name,
                 alias="champion",
@@ -45,29 +57,60 @@ def promote_to_champion(model_names: list[str]) -> None:
 
             print(f"[OK] {model_name} v{version_number} -> alias 'champion'")
 
+            # Afficher les alias actuels pour ce modèle
+            current_version = client.get_model_version(model_name, version_number)
+            if hasattr(current_version, 'aliases') and current_version.aliases:
+                print(f"     Aliases actifs: {', '.join(current_version.aliases)}")
+
         except Exception as e:
             print(f"[ERROR] Échec de la promotion pour '{model_name}': {e}")
             raise
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Promouvoir les modèles MLflow avec l'alias 'champion'")
+    parser = argparse.ArgumentParser(
+        description="Promouvoir les modèles MLflow avec l'alias 'champion'",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exemples:
+  # Promotion automatique en production (CI) - dernière version
+  python common/promote_models.py --models nlu-ner nlu-intent
+
+  # Rollback - promouvoir version précédente
+  python common/promote_models.py --models nlu-ner --version 7
+
+Workflow:
+  1. Training CI → auto-promote dernière version à 'champion'
+  2. Production → charge 'models:/nlu-ner@champion'
+  3. Rollback → promote version précédente à 'champion'
+        """
+    )
     parser.add_argument(
         "--models",
         nargs="+",
         required=True,
-        help="Noms des modèles à promouvoir (ex: NLU-NER NLU-Intent)"
+        help="Noms des modèles à promouvoir (ex: nlu-ner nlu-intent)"
+    )
+    parser.add_argument(
+        "--version",
+        type=int,
+        default=None,
+        help="Version spécifique à promouvoir (default: dernière version)"
     )
 
     args = parser.parse_args()
 
     print("\n" + "="*70)
-    print("PROMOTION DES MODÈLES")
+    print("PROMOTION DES MODÈLES À 'CHAMPION'")
     print("="*70)
     print(f"Modèles: {', '.join(args.models)}")
+    if args.version:
+        print(f"Version: {args.version}")
+    else:
+        print("Version: dernière")
     print()
 
-    promote_to_champion(args.models)
+    promote_models(args.models, args.version)
 
     print("\n" + "="*70)
     print("PROMOTION TERMINÉE")
