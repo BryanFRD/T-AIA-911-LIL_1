@@ -114,9 +114,9 @@ train:tts:
 # ===============================
 promote:nlu:
   stage: promote
-  tags:
-    - gpu-arthur
-  extends: .python
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
   script:
     - python common/promote_models.py --models NLU-NER NLU-Intent
   needs:
@@ -132,9 +132,9 @@ promote:nlu:
 
 promote:stt:
   stage: promote
-  tags:
-    - gpu-arthur
-  extends: .python
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
   script:
     - python common/promote_models.py --models STT
   needs:
@@ -150,9 +150,9 @@ promote:stt:
 
 promote:tts:
   stage: promote
-  tags:
-    - gpu-arthur
-  extends: .python
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
   script:
     - python common/promote_models.py --models TTS
   needs:
