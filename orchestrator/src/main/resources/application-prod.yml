@@ -13,3 +13,8 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
+
+mlflow:
+  tracking-uri: https://mlflow.bryan-ferrando.fr
+  model-alias: champion
+  model-cache-dir: /tmp/djl-models

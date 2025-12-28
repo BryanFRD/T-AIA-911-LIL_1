@@ -55,7 +55,7 @@ public class ModelLoader {
      * @throws ModelNotFoundException if model cannot be found in MLflow
      * @throws IOException if model download or loading fails
      */
-    public <I, O> ZooModel<I, O> loadModel(ModelType modelType, Translator<I, O> translator)
+    public <I, O> ZooModel<I, O> loadModel(ModelType modelType, Translator<I, O> translator, Class<I> inputClass, Class<O> outputClass)
             throws ModelNotFoundException, IOException, MalformedModelException {
 
         @SuppressWarnings("unchecked")
@@ -75,7 +75,7 @@ public class ModelLoader {
 
         // Create DJL Criteria
         Criteria<I, O> criteria = Criteria.builder()
-            .setTypes(Object.class, Object.class)
+            .setTypes(inputClass, outputClass)
             .optModelPath(modelPath)
             .optEngine(engine)
             .optTranslator(translator)
@@ -94,7 +94,7 @@ public class ModelLoader {
      */
     private Path downloadModelFromMLflow(ModelType modelType) throws IOException {
         String modelName = modelType.getMlflowName();
-        String alias = config.getModelStage();
+        String alias = config.getModelAlias();
 
         log.debug("Fetching model {} from MLflow (alias: {})", modelName, alias);
 
@@ -149,10 +149,11 @@ public class ModelLoader {
     /**
      * Create a predictor for a loaded model
      */
-    public <I, O> Predictor<I, O> createPredictor(ModelType modelType, Translator<I, O> translator)
+    public <I, O> Predictor<I, O> createPredictor(ModelType modelType, Translator<I, O> translator, Class<I> inputClass, Class<O> outputClass)
             throws ModelNotFoundException, IOException, MalformedModelException {
-        ZooModel<I, O> model = loadModel(modelType, translator);
-        return model.newPredictor();
+        try (ZooModel<I, O> model = loadModel(modelType, translator, inputClass, outputClass)) {
+            return model.newPredictor();
+        }
     }
 
     /**
@@ -170,7 +171,7 @@ public class ModelLoader {
     public void logAvailableEngines() {
         log.info("Available DJL engines:");
         Engine.getAllEngines().forEach(engine ->
-            log.info("  - {} (version: {})", engine.getEngineName(), engine.getVersion())
+            log.info("  - {} (version: xxx)", engine)
         );
     }
 }

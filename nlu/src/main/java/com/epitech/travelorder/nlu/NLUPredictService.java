@@ -53,7 +53,9 @@ public class NLUPredictService implements INLUService {
 
         intentPredictor = modelLoader.createPredictor(
             ModelType.NLU_INTENT,
-            new IntentTranslator()
+            new IntentTranslator(),
+            String.class,
+            IntentResult.class
         );
 
         log.info("Intent model loaded successfully");
@@ -67,7 +69,9 @@ public class NLUPredictService implements INLUService {
 
         nerPredictor = modelLoader.createPredictor(
             ModelType.NLU_NER,
-            new NERTranslator()
+            new NERTranslator(),
+            String.class,
+            NERResult.class
         );
 
         log.info("NER model loaded successfully");

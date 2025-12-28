@@ -9,7 +9,7 @@ import lombok.Data;
 public class MLflowConfig {
 
     /**
-     * MLflow tracking server URI (e.g., https://mlflow.bryan-ferrando.fr)
+     * MLflow tracking server URI <a href="https://mlflow.bryan-ferrando.fr">MLFlow</a>
      */
     private String trackingUri = "https://mlflow.bryan-ferrando.fr";
 
@@ -31,7 +31,7 @@ public class MLflowConfig {
     /**
      * Model alias to load (latest, production, staging, champion, etc.)
      */
-    private String modelStage = "latest";
+    private String modelAlias = "latest";
 
     public String getRegistryUri() {
         return registryUri != null ? registryUri : trackingUri;

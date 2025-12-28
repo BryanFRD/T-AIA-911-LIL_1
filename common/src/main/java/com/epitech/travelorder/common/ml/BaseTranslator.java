@@ -3,7 +3,7 @@ package com.epitech.travelorder.common.ml;
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
-import ai.djl.translate.Batchifier;
+import ai.djl.ndarray.types.Shape;
 import ai.djl.translate.Translator;
 import ai.djl.translate.TranslatorContext;
 
@@ -14,11 +14,6 @@ import ai.djl.translate.TranslatorContext;
  * @param <O> Output type
  */
 public abstract class BaseTranslator<I, O> implements Translator<I, O> {
-
-    @Override
-    public Batchifier getBatchifier() {
-        return Batchifier.STACK;
-    }
 
     /**
      * Convert input to NDList (tensor) for model inference
@@ -35,14 +30,14 @@ public abstract class BaseTranslator<I, O> implements Translator<I, O> {
     /**
      * Helper method to create a tensor from a float array
      */
-    protected NDArray createTensor(NDManager manager, float[] data, long... shape) {
+    protected NDArray createTensor(NDManager manager, float[] data, Shape shape) {
         return manager.create(data, shape);
     }
 
     /**
      * Helper method to create a tensor from a long array
      */
-    protected NDArray createTensor(NDManager manager, long[] data, long... shape) {
+    protected NDArray createTensor(NDManager manager, long[] data, Shape shape) {
         return manager.create(data, shape);
     }
 
