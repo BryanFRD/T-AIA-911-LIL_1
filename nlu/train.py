@@ -487,20 +487,12 @@ def main():
 
             # Save model using save_pretrained for better compatibility with custom layers
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # PyTorch export (always done as primary format)
+                # Save model in HuggingFace format
                 ner_model_path = os.path.join(tmp_dir, "ner_model")
                 model_ner.save_pretrained(ner_model_path)
                 tokenizer.save_pretrained(ner_model_path)
 
-                # Log as PyTorch model (creates logged_model artifact)
-                mlflow.pytorch.log_model(
-                    pytorch_model=model_ner,
-                    artifact_path="ner_model_pytorch",
-                    registered_model_name="nlu-ner"
-                )
-                print("[OK] NER model (PyTorch) logged to MLflow")
-
-                # Also log HuggingFace format for easy loading
+                # Log HuggingFace format (primary format for NLU models)
                 mlflow.log_artifacts(ner_model_path, artifact_path="ner_model_hf")
                 print("[OK] NER model (HuggingFace format) saved to MLflow")
 
@@ -520,7 +512,8 @@ def main():
                         onnx_model = onnx.load(onnx_path)
                         mlflow.onnx.log_model(
                             onnx_model=onnx_model,
-                            artifact_path="ner_model_onnx"
+                            artifact_path="ner_model_onnx",
+                            registered_model_name="nlu-ner-onnx"
                         )
                         print("[OK] NER model (ONNX) logged to MLflow")
 
@@ -754,15 +747,7 @@ def main():
                 model_intent.save_pretrained(intent_model_path)
                 tokenizer.save_pretrained(intent_model_path)
 
-                # Log as PyTorch model (creates logged_model artifact)
-                mlflow.pytorch.log_model(
-                    pytorch_model=model_intent,
-                    artifact_path="intent_model_pytorch",
-                    registered_model_name="nlu-intent"
-                )
-                print("[OK] Intent model (PyTorch) logged to MLflow")
-
-                # Also log HuggingFace format for easy loading
+                # Log HuggingFace format (primary format for NLU models)
                 mlflow.log_artifacts(intent_model_path, artifact_path="intent_model_hf")
                 print("[OK] Intent model (HuggingFace format) saved to MLflow")
 
@@ -782,7 +767,8 @@ def main():
                         onnx_model = onnx.load(onnx_path)
                         mlflow.onnx.log_model(
                             onnx_model=onnx_model,
-                            artifact_path="intent_model_onnx"
+                            artifact_path="intent_model_onnx",
+                            registered_model_name="nlu-intent-onnx"
                         )
                         print("[OK] Intent model (ONNX) logged to MLflow")
 
