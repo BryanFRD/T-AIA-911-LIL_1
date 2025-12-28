@@ -511,6 +511,13 @@ def main():
                         # Also save raw ONNX file
                         mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
                         print("[OK] NER ONNX file saved to MLflow")
+
+                # Save tokenizer
+                tokenizer_path = os.path.join(tmp_dir, "tokenizer")
+                tokenizer.save_pretrained(tokenizer_path)
+                mlflow.log_artifacts(tokenizer_path, artifact_path="ner_tokenizer")
+                print("[OK] NER tokenizer saved to MLflow")
+
         except Exception as e:
             print(f"[ERROR] Failed to save NER model: {e}")
             import traceback
@@ -757,6 +764,13 @@ def main():
                         # Also save raw ONNX file
                         mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
                         print("[OK] Intent ONNX file saved to MLflow")
+
+                # Save tokenizer
+                tokenizer_path = os.path.join(tmp_dir, "tokenizer")
+                tokenizer.save_pretrained(tokenizer_path)
+                mlflow.log_artifacts(tokenizer_path, artifact_path="intent_tokenizer")
+                print("[OK] Intent tokenizer saved to MLflow")
+
         except Exception as e:
             print(f"[ERROR] Failed to save Intent model: {e}")
             import traceback

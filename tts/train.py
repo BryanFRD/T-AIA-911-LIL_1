@@ -8,6 +8,7 @@ Supports mini-train mode for quick testing.
 import os
 import sys
 import atexit
+import argparse
 from pathlib import Path
 import torch
 
@@ -32,26 +33,21 @@ def cleanup_mlflow():
             print(f"[WARN] Error during MLflow cleanup: {e}")
 
 
-def main():
-    # Register cleanup handler
-    atexit.register(cleanup_mlflow)
+def train_variant(variant: str, device: str, mini_train: bool):
+    """Train a specific variant (lite or full)"""
+    # Load configuration for this variant
+    if os.environ.get("CONFIG_OVERRIDE"):
+        # CI mode: use CONFIG_OVERRIDE
+        CONFIG_FILE = "tts/config.json"
+    else:
+        # Local mode: use variant-specific config
+        CONFIG_FILE = f"tts/config.{variant}.json"
 
-    # === MLflow Configuration ===
-    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "tts")
-    setup_mlflow(experiment_name, enable_system_metrics=True)
-
-    # === Device detection ===
-    print_system_info()
-    device = detect_device()
-
-    # === Load configuration ===
-    CONFIG_FILE = "tts/config.json"
     config = load_config(CONFIG_FILE)
 
-    # Mini-train mode (quick test)
-    mini_train = os.environ.get("MINI_TRAIN", "false").lower() == "true"
+    # Mini-train mode override
     if mini_train:
-        print("\n[MINI-TRAIN] Mode rapide activé - dataset réduit")
+        print(f"\n[MINI-TRAIN] Mode rapide activé pour {variant} - dataset réduit")
         config["training"]["max_steps"] = 10
         config["training"]["eval_steps"] = 5
         config["training"]["save_steps"] = 10
@@ -65,15 +61,17 @@ def main():
         source_name = f"Local ({machine_name})"
 
     try:
-        with start_run("tts-training", source_name=source_name):
+        with start_run(f"tts-training-{variant}", source_name=source_name):
             # Log configuration
             log_training_config(config, device)
             mlflow.log_param("mini_train", mini_train)
+            mlflow.log_param("model_variant", variant)
             mlflow.log_param("model_type", config.get("model", {}).get("type", "vits"))
 
             print("\n" + "="*70)
-            print("TTS TRAINING - Text-to-Speech")
+            print(f"TTS TRAINING - Text-to-Speech ({variant.upper()})")
             print("="*70)
+            print(f"[INFO] Variant: {variant}")
             print(f"[INFO] Device: {device}")
             print(f"[INFO] Model: {config.get('model', {}).get('type', 'vits')}")
             print(f"[INFO] Mini-train: {mini_train}")
@@ -129,12 +127,15 @@ def main():
                 if success:
                     import onnx
                     onnx_model = onnx.load(onnx_path)
+
+                    registered_model_name = f"tts-onnx-{variant}"
+
                     mlflow.onnx.log_model(
                         onnx_model=onnx_model,
                         artifact_path="tts_onnx",
-                        registered_model_name="tts-onnx"
+                        registered_model_name=registered_model_name
                     )
-                    print("[OK] TTS model (ONNX) logged to MLflow")
+                    print(f"[OK] TTS model (ONNX) logged to MLflow as {registered_model_name}")
 
                     # Also save raw ONNX file
                     mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
@@ -142,24 +143,62 @@ def main():
 
             # Log tags
             mlflow.set_tag("model_type", "tts")
+            mlflow.set_tag("model_variant", variant)
             mlflow.set_tag("framework", "pytorch")
             mlflow.set_tag("training_status", "completed")
 
             print("\n" + "="*70)
-            print("TTS TRAINING COMPLETED")
+            print(f"TTS TRAINING COMPLETED ({variant.upper()})")
             print("="*70)
 
     except KeyboardInterrupt:
-        print("\n[INTERRUPT] Training interrupted by user")
+        print(f"\n[INTERRUPT] Training interrupted by user ({variant})")
         if mlflow.active_run():
             mlflow.set_tag("training_status", "interrupted_by_user")
         raise
     except Exception as e:
-        print(f"\n[ERROR] Training failed: {e}")
+        print(f"\n[ERROR] Training failed ({variant}): {e}")
         if mlflow.active_run():
             mlflow.set_tag("training_status", "failed")
             mlflow.set_tag("error_message", str(e))
         raise
+
+
+def main():
+    # Register cleanup handler
+    atexit.register(cleanup_mlflow)
+
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="TTS Training - Text-to-Speech")
+    parser.add_argument("--variant", type=str, choices=["lite", "full"],
+                       help="Model variant to train (lite or full). If not specified, trains both.")
+    args = parser.parse_args()
+
+    # === MLflow Configuration ===
+    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "tts")
+    setup_mlflow(experiment_name, enable_system_metrics=True)
+
+    # === Device detection ===
+    print_system_info()
+    device = detect_device()
+
+    # Mini-train mode (quick test)
+    mini_train = os.environ.get("MINI_TRAIN", "false").lower() == "true"
+
+    # Determine which variants to train
+    # Priority: CLI arg > MODEL_VARIANT env var > both
+    if args.variant:
+        variants = [args.variant]
+    elif os.environ.get("MODEL_VARIANT"):
+        variants = [os.environ.get("MODEL_VARIANT")]
+    else:
+        variants = ["lite", "full"]
+
+    print(f"\n[INFO] Training variants: {', '.join(variants)}\n")
+
+    # Train each variant
+    for variant in variants:
+        train_variant(variant, device, mini_train)
 
 
 if __name__ == "__main__":

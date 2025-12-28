@@ -1,0 +1,28 @@
+{
+  "_comment": "TTS Lite - Optimized for mobile deployment (lightweight VITS)",
+  "model": {
+    "type": "vits-lite",
+    "language": "fr",
+    "sample_rate": 16000,
+    "hidden_channels": 96,
+    "filter_channels": 384
+  },
+  "training": {
+    "max_steps": 800,
+    "eval_steps": 100,
+    "save_steps": 400,
+    "learning_rate": 2e-4,
+    "warmup_steps": 80,
+    "batch_size": 24,
+    "gradient_accumulation_steps": 1
+  },
+  "optimization": {
+    "use_bf16": false,
+    "gradient_checkpointing": false
+  },
+  "export": {
+    "formats": ["onnx"],
+    "onnx_opset": 17,
+    "quantization": "int8"
+  }
+}

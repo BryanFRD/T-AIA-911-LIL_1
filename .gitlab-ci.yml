@@ -77,14 +77,16 @@ train:nlu:
       when: on_success
     - when: manual 
 
-train:stt:
+train:stt:lite:
   stage: train
   tags:
     - gpu-arthur
   extends: .python
+  variables:
+    CONFIG_OVERRIDE: "stt/config.lite.json"
+    MODEL_VARIANT: "lite"
   script:
     - python stt/train.py
-  # Models are saved to MLflow - no local artifacts needed
   rules:
     - changes:
         - stt/**/*
@@ -93,14 +95,52 @@ train:stt:
       when: on_success
     - when: manual
 
-train:tts:
+train:stt:full:
   stage: train
   tags:
     - gpu-arthur
   extends: .python
+  variables:
+    CONFIG_OVERRIDE: "stt/config.full.json"
+    MODEL_VARIANT: "full"
+  script:
+    - python stt/train.py
+  rules:
+    - changes:
+        - stt/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+train:tts:lite:
+  stage: train
+  tags:
+    - gpu-arthur
+  extends: .python
+  variables:
+    CONFIG_OVERRIDE: "tts/config.lite.json"
+    MODEL_VARIANT: "lite"
   script:
     - python tts/train.py
-  # Models are saved to MLflow - no local artifacts needed
+  rules:
+    - changes:
+        - tts/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+train:tts:full:
+  stage: train
+  tags:
+    - gpu-arthur
+  extends: .python
+  variables:
+    CONFIG_OVERRIDE: "tts/config.full.json"
+    MODEL_VARIANT: "full"
+  script:
+    - python tts/train.py
   rules:
     - changes:
         - tts/**/*
@@ -130,15 +170,15 @@ promote:nlu:
       when: on_success
     - when: manual
 
-promote:stt:
+promote:stt:lite:
   stage: promote
   image: python:3.11-slim
   before_script:
     - pip install --quiet mlflow
   script:
-    - python common/promote_models.py --models stt-onnx
+    - python common/promote_models.py --models stt-onnx-lite
   needs:
-    - job: train:stt
+    - job: train:stt:lite
       optional: false
   rules:
     - changes:
@@ -148,15 +188,51 @@ promote:stt:
       when: on_success
     - when: manual
 
-promote:tts:
+promote:stt:full:
   stage: promote
   image: python:3.11-slim
   before_script:
     - pip install --quiet mlflow
   script:
-    - python common/promote_models.py --models tts-onnx
+    - python common/promote_models.py --models stt-onnx-full
   needs:
-    - job: train:tts
+    - job: train:stt:full
+      optional: false
+  rules:
+    - changes:
+        - stt/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:tts:lite:
+  stage: promote
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
+  script:
+    - python common/promote_models.py --models tts-onnx-lite
+  needs:
+    - job: train:tts:lite
+      optional: false
+  rules:
+    - changes:
+        - tts/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:tts:full:
+  stage: promote
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
+  script:
+    - python common/promote_models.py --models tts-onnx-full
+  needs:
+    - job: train:tts:full
       optional: false
   rules:
     - changes:

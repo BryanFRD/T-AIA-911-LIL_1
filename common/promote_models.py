@@ -6,10 +6,13 @@ Utilisé automatiquement par la CI après chaque training.
 
 Usage:
     # Automatique en CI - dernière version
-    python common/promote_models.py --models nlu-ner nlu-intent
+    python common/promote_models.py --models nlu-ner-onnx nlu-intent-onnx
 
     # Manuel - version spécifique (rollback)
-    python common/promote_models.py --models nlu-ner --version 7
+    python common/promote_models.py --models nlu-ner-onnx --version 7
+
+    # Promouvoir STT/TTS lite et full en local
+    python common/promote_models.py --base-models stt-onnx tts-onnx --variants lite full
 """
 
 import argparse
@@ -73,23 +76,36 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
-  # Promotion automatique en production (CI) - dernière version
-  python common/promote_models.py --models nlu-ner nlu-intent
+  # Promotion automatique en CI - modèles spécifiques
+  python common/promote_models.py --models nlu-ner-onnx nlu-intent-onnx
+
+  # Promotion en local - toutes les variantes STT/TTS
+  python common/promote_models.py --base-models stt-onnx tts-onnx --variants lite full
 
   # Rollback - promouvoir version précédente
-  python common/promote_models.py --models nlu-ner --version 7
+  python common/promote_models.py --models nlu-ner-onnx --version 7
 
 Workflow:
   1. Training CI → auto-promote dernière version à 'champion'
-  2. Production → charge 'models:/nlu-ner@champion'
+  2. Production → charge 'models:/nlu-ner-onnx@champion'
   3. Rollback → promote version précédente à 'champion'
         """
     )
     parser.add_argument(
         "--models",
         nargs="+",
-        required=True,
-        help="Noms des modèles à promouvoir (ex: nlu-ner nlu-intent)"
+        help="Noms complets des modèles à promouvoir (ex: nlu-ner-onnx nlu-intent-onnx)"
+    )
+    parser.add_argument(
+        "--base-models",
+        nargs="+",
+        help="Noms de base des modèles (ex: stt-onnx tts-onnx). À combiner avec --variants"
+    )
+    parser.add_argument(
+        "--variants",
+        nargs="+",
+        choices=["lite", "full"],
+        help="Variantes à promouvoir (lite, full). Utilisé avec --base-models"
     )
     parser.add_argument(
         "--version",
@@ -100,17 +116,33 @@ Workflow:
 
     args = parser.parse_args()
 
+    # Construire la liste des modèles
+    model_names = []
+
+    if args.models:
+        model_names.extend(args.models)
+
+    if args.base_models and args.variants:
+        for base_model in args.base_models:
+            for variant in args.variants:
+                model_names.append(f"{base_model}-{variant}")
+    elif args.base_models or args.variants:
+        parser.error("--base-models et --variants doivent être utilisés ensemble")
+
+    if not model_names:
+        parser.error("Vous devez spécifier --models OU (--base-models + --variants)")
+
     print("\n" + "="*70)
     print("PROMOTION DES MODÈLES À 'CHAMPION'")
     print("="*70)
-    print(f"Modèles: {', '.join(args.models)}")
+    print(f"Modèles: {', '.join(model_names)}")
     if args.version:
         print(f"Version: {args.version}")
     else:
         print("Version: dernière")
     print()
 
-    promote_models(args.models, args.version)
+    promote_models(model_names, args.version)
 
     print("\n" + "="*70)
     print("PROMOTION TERMINÉE")
