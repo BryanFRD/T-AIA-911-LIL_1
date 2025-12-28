@@ -45,9 +45,9 @@ def cleanup_mlflow():
 def main():
     # Register cleanup handler for unexpected exits
     atexit.register(cleanup_mlflow)
-    # === MLflow Configuration ===
-    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "nlu")
-    setup_mlflow(experiment_name, enable_system_metrics=True)
+
+    # Note: We'll setup MLflow separately for NER and Intent
+    # to use different experiments (nlu-ner and nlu-intent)
 
     # === Device detection ===
     print_system_info()
@@ -107,7 +107,15 @@ def main():
         machine_name = get_machine_name()
         source_name = f"Local ({machine_name})"
 
-    with start_run("nlu-training", source_name=source_name):
+    # ========================================================================
+    # NER TRAINING - Separate MLflow experiment
+    # ========================================================================
+    print("\n" + "="*70)
+    print("SETUP NER EXPERIMENT")
+    print("="*70)
+    setup_mlflow("nlu-ner", enable_system_metrics=True)
+
+    with start_run("ner-training", source_name=source_name):
         # Log parameters
         log_training_config(config, device)
         mlflow.log_param("use_crf", config["training"].get("use_crf", False))
@@ -414,6 +422,44 @@ def main():
 
         print("\n[INFO] NER training completed and saved to MLflow")
 
+        # Save NER labels config
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', suffix='_ner_labels.json', delete=False) as f_ner:
+                json.dump({"entity_labels": config["entity_labels"]}, f_ner, indent=2)
+                ner_config_path = f_ner.name
+
+            # Log config file to MLflow
+            mlflow.log_artifact(ner_config_path, artifact_path="ner_config")
+            print("[OK] NER config logged to MLflow")
+
+            # Clean up temporary file
+            os.unlink(ner_config_path)
+        except Exception as e:
+            print(f"[WARN] Error logging NER config: {e}")
+
+        # Log NER-specific tags
+        mlflow.set_tag("model_type", "nlu-ner")
+        mlflow.set_tag("framework", "transformers")
+        mlflow.set_tag("base_model", config["tokenizer"]["type"])
+        mlflow.set_tag("use_crf", str(config["training"].get("use_crf", False)))
+        mlflow.set_tag("training_status", "completed")
+
+        print("[OK] NER artifacts enregistrs dans MLflow")
+
+    # End NER run - start new Intent run
+    print("\n" + "="*70)
+    print("SETUP INTENT EXPERIMENT")
+    print("="*70)
+    setup_mlflow("nlu-intent", enable_system_metrics=True)
+
+    with start_run("intent-training", source_name=source_name):
+        # Log Intent-specific params
+        log_training_config(config, device)
+        mlflow.log_param("num_intent_labels", len(config["intent_labels"]))
+        mlflow.log_param("train_size", len(dataset))
+        mlflow.log_param("val_size", len(val_dataset))
+        mlflow.log_param("device", device)
+
         print("\n" + "="*70)
         print("ENTRANEMENT DU MODLE INTENT")
         print("="*70)
@@ -600,39 +646,32 @@ def main():
 
         print("\n[INFO] Intent training completed and saved to MLflow")
 
-        # Save minimal config files for model metadata (using temporary files)
+        # Save Intent labels config
         try:
-            with tempfile.NamedTemporaryFile(mode='w', suffix='_ner_labels.json', delete=False) as f_ner:
-                json.dump({"entity_labels": config["entity_labels"]}, f_ner, indent=2)
-                ner_config_path = f_ner.name
-
             with tempfile.NamedTemporaryFile(mode='w', suffix='_intent_labels.json', delete=False) as f_intent:
                 json.dump({"intent_labels": config["intent_labels"]}, f_intent, indent=2)
                 intent_config_path = f_intent.name
 
-            # Log config files to MLflow (models already registered above)
-            mlflow.log_artifact(ner_config_path, artifact_path="ner_config")
+            # Log config file to MLflow
             mlflow.log_artifact(intent_config_path, artifact_path="intent_config")
-            print("[OK] Config files logged to MLflow")
+            print("[OK] Intent config logged to MLflow")
 
-            # Clean up temporary files
-            os.unlink(ner_config_path)
+            # Clean up temporary file
             os.unlink(intent_config_path)
         except Exception as e:
-            print(f"[WARN] Error logging config files: {e}")
+            print(f"[WARN] Error logging Intent config: {e}")
 
         # Logger les mtriques de production (pour le Model Registry)
-        mlflow.set_tag("model_type", "nlu")
+        mlflow.set_tag("model_type", "nlu-intent")
         mlflow.set_tag("framework", "transformers")
         mlflow.set_tag("base_model", config["tokenizer"]["type"])
-        mlflow.set_tag("use_crf", str(use_crf))
         mlflow.set_tag("training_status", "completed")
 
-        print("[OK] Tous les artifacts enregistrs dans MLflow")
+        print("[OK] Intent artifacts enregistrs dans MLflow")
 
-        print("\n" + "="*70)
-        print("ENTRANEMENT TERMIN")
-        print("="*70)
+    print("\n" + "="*70)
+    print("ENTRANEMENT TERMIN - NER + INTENT")
+    print("="*70)
 
 if __name__ == "__main__":
     freeze_support()
