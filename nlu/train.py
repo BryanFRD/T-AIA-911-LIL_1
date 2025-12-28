@@ -492,9 +492,17 @@ def main():
                 model_ner.save_pretrained(ner_model_path)
                 tokenizer.save_pretrained(ner_model_path)
 
-                # Log the PyTorch model directory as artifact
-                mlflow.log_artifacts(ner_model_path, artifact_path="ner_model")
-                print("[OK] NER model (PyTorch) saved to MLflow artifacts")
+                # Log as PyTorch model (creates logged_model artifact)
+                mlflow.pytorch.log_model(
+                    pytorch_model=model_ner,
+                    artifact_path="ner_model_pytorch",
+                    registered_model_name="nlu-ner"
+                )
+                print("[OK] NER model (PyTorch) logged to MLflow")
+
+                # Also log HuggingFace format for easy loading
+                mlflow.log_artifacts(ner_model_path, artifact_path="ner_model_hf")
+                print("[OK] NER model (HuggingFace format) saved to MLflow")
 
                 # ONNX export (if enabled in config)
                 if "onnx" in export_formats:
@@ -507,16 +515,16 @@ def main():
                         opset_version=onnx_opset
                     )
                     if success:
-                        mlflow.log_artifact(onnx_path, artifact_path="ner_model_onnx")
-                        print("[OK] NER model (ONNX) saved to MLflow artifacts")
+                        # Log as ONNX model
+                        mlflow.onnx.log_model(
+                            onnx_model=onnx_path,
+                            artifact_path="ner_model_onnx"
+                        )
+                        print("[OK] NER model (ONNX) logged to MLflow")
 
-                # Try to register in Model Registry
-                try:
-                    model_uri = f"runs:/{mlflow.active_run().info.run_id}/ner_model"
-                    mlflow.register_model(model_uri, "nlu-ner")
-                    print("[OK] NER model registered in MLflow Model Registry")
-                except Exception as reg_err:
-                    print(f"[WARN] Could not register NER model in registry: {reg_err}")
+                        # Also save raw ONNX file
+                        mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
+                        print("[OK] NER ONNX file saved to MLflow")
         except Exception as e:
             print(f"[ERROR] Failed to save NER model: {e}")
             import traceback
@@ -744,9 +752,17 @@ def main():
                 model_intent.save_pretrained(intent_model_path)
                 tokenizer.save_pretrained(intent_model_path)
 
-                # Log the PyTorch model directory as artifact
-                mlflow.log_artifacts(intent_model_path, artifact_path="intent_model")
-                print("[OK] Intent model (PyTorch) saved to MLflow artifacts")
+                # Log as PyTorch model (creates logged_model artifact)
+                mlflow.pytorch.log_model(
+                    pytorch_model=model_intent,
+                    artifact_path="intent_model_pytorch",
+                    registered_model_name="nlu-intent"
+                )
+                print("[OK] Intent model (PyTorch) logged to MLflow")
+
+                # Also log HuggingFace format for easy loading
+                mlflow.log_artifacts(intent_model_path, artifact_path="intent_model_hf")
+                print("[OK] Intent model (HuggingFace format) saved to MLflow")
 
                 # ONNX export (if enabled in config)
                 if "onnx" in export_formats:
@@ -759,16 +775,16 @@ def main():
                         opset_version=onnx_opset
                     )
                     if success:
-                        mlflow.log_artifact(onnx_path, artifact_path="intent_model_onnx")
-                        print("[OK] Intent model (ONNX) saved to MLflow artifacts")
+                        # Log as ONNX model
+                        mlflow.onnx.log_model(
+                            onnx_model=onnx_path,
+                            artifact_path="intent_model_onnx"
+                        )
+                        print("[OK] Intent model (ONNX) logged to MLflow")
 
-                # Try to register in Model Registry
-                try:
-                    model_uri = f"runs:/{mlflow.active_run().info.run_id}/intent_model"
-                    mlflow.register_model(model_uri, "nlu-intent")
-                    print("[OK] Intent model registered in MLflow Model Registry")
-                except Exception as reg_err:
-                    print(f"[WARN] Could not register Intent model in registry: {reg_err}")
+                        # Also save raw ONNX file
+                        mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
+                        print("[OK] Intent ONNX file saved to MLflow")
         except Exception as e:
             print(f"[ERROR] Failed to save Intent model: {e}")
             import traceback

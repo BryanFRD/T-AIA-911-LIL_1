@@ -1,7 +1,7 @@
 """
 Script de promotion des modèles MLflow
 
-Assigne l'alias "latest" aux dernières versions enregistrées dans MLflow.
+Assigne l'alias "champion" aux dernières versions enregistrées dans MLflow.
 Utilisé en CI après chaque entraînement pour marquer les modèles récents.
 
 Usage:
@@ -14,9 +14,9 @@ import argparse
 from mlflow import MlflowClient
 
 
-def promote_to_latest(model_names: list[str]) -> None:
+def promote_to_champion(model_names: list[str]) -> None:
     """
-    Assigne l'alias 'latest' aux dernières versions des modèles spécifiés
+    Assigne l'alias 'champion' aux dernières versions des modèles spécifiés
 
     Args:
         model_names: Liste des noms de modèles à promouvoir (ex: ["nlu-ner", "nlu-intent"])
@@ -36,14 +36,14 @@ def promote_to_latest(model_names: list[str]) -> None:
             latest_version = sorted(versions, key=lambda x: int(x.version), reverse=True)[0]
             version_number = latest_version.version
 
-            # Assigner l'alias "latest"
+            # Assigner l'alias "champion"
             client.set_registered_model_alias(
                 name=model_name,
-                alias="latest",
+                alias="champion",
                 version=version_number
             )
 
-            print(f"[OK] {model_name} v{version_number} -> alias 'latest'")
+            print(f"[OK] {model_name} v{version_number} -> alias 'champion'")
 
         except Exception as e:
             print(f"[ERROR] Échec de la promotion pour '{model_name}': {e}")
@@ -51,7 +51,7 @@ def promote_to_latest(model_names: list[str]) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Promouvoir les modèles MLflow avec l'alias 'latest'")
+    parser = argparse.ArgumentParser(description="Promouvoir les modèles MLflow avec l'alias 'champion'")
     parser.add_argument(
         "--models",
         nargs="+",
@@ -67,7 +67,7 @@ def main():
     print(f"Modèles: {', '.join(args.models)}")
     print()
 
-    promote_to_latest(args.models)
+    promote_to_champion(args.models)
 
     print("\n" + "="*70)
     print("PROMOTION TERMINÉE")
