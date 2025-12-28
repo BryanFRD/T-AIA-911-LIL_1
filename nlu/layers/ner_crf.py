@@ -49,7 +49,16 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
         # CRF Layer - apprend les transitions valides entre labels
+        # CRITICAL: CRF doit TOUJOURS être en FP32 pour stabilité numérique
+        # Les calculs de log-likelihood sont très sensibles aux underflows/overflows en FP16
         self.crf = CRF(config.num_labels, batch_first=True)
+
+        # CRITICAL: Force ALL CRF parameters to FP32 and prevent autocast from converting them
+        # This is essential when using mixed precision training (fp16/bf16)
+        for param in self.crf.parameters():
+            param.data = param.data.float()
+            # Prevent gradient scaler from converting to fp16
+            param.requires_grad = True
 
         # Initialiser les poids
         self.post_init()
@@ -90,6 +99,11 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
         # Produire les émissions (logits) pour chaque label
         emissions = self.classifier(sequence_output)  # (batch_size, seq_len, num_labels)
 
+        # CRITICAL: Convertir les émissions en FP32 pour le CRF
+        # Le CRF doit travailler en FP32 pour éviter les NaN/Inf
+        # Même si le reste du modèle est en FP16, on force FP32 ici
+        emissions_fp32 = emissions.float()
+
         loss = None
         predictions = None
 
@@ -116,21 +130,25 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
             crf_mask[:, 0] = True
 
             # Debug: vérifier les valeurs avant CRF
-            if torch.isnan(emissions).any() or torch.isinf(emissions).any():
+            if torch.isnan(emissions_fp32).any() or torch.isinf(emissions_fp32).any():
                 print("[ERROR] Emissions contain NaN or Inf!")
-                print(f"  Emissions range: [{emissions.min():.4f}, {emissions.max():.4f}]")
-                print(f"  NaN count: {torch.isnan(emissions).sum().item()}")
-                print(f"  Inf count: {torch.isinf(emissions).sum().item()}")
+                print(f"  Emissions range: [{emissions_fp32.min():.4f}, {emissions_fp32.max():.4f}]")
+                print(f"  NaN count: {torch.isnan(emissions_fp32).sum().item()}")
+                print(f"  Inf count: {torch.isinf(emissions_fp32).sum().item()}")
 
             # Calculer la negative log-likelihood du CRF
             # Le CRF maximise P(labels | emissions, mask)
             # reduction='token_mean' divise par le nombre de tokens valides
+            # CRITICAL: Disable autocast for CRF to ensure FP32 precision
+            # Mixed precision autocast can cause NaN in CRF log-likelihood calculations
             try:
-                log_likelihood = self.crf(emissions, labels_masked, mask=crf_mask, reduction='token_mean')
-                loss = -log_likelihood  # On minimise la negative log-likelihood
+                with torch.amp.autocast(device_type='cuda', enabled=False):
+                    # Ensure inputs are FP32 (already done above, but explicit here)
+                    log_likelihood = self.crf(emissions_fp32, labels_masked, mask=crf_mask, reduction='token_mean')
+                    loss = -log_likelihood  # On minimise la negative log-likelihood
             except Exception as e:
                 print(f"[ERROR] CRF forward failed: {e}")
-                print(f"  Emissions shape: {emissions.shape}")
+                print(f"  Emissions shape: {emissions_fp32.shape}")
                 print(f"  Labels shape: {labels_masked.shape}")
                 print(f"  Mask shape: {crf_mask.shape}")
                 print(f"  Mask sum per sequence: {crf_mask.sum(dim=1)}")
@@ -140,7 +158,7 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
             if torch.isnan(loss) or torch.isinf(loss):
                 print("[ERROR] CRF loss is NaN or Inf!")
                 print(f"  log_likelihood: {log_likelihood.item()}")
-                print(f"  Emissions stats: min={emissions.min().item():.4f}, max={emissions.max().item():.4f}, mean={emissions.mean().item():.4f}")
+                print(f"  Emissions stats: min={emissions_fp32.min().item():.4f}, max={emissions_fp32.max().item():.4f}, mean={emissions_fp32.mean().item():.4f}")
                 print(f"  Labels unique: {torch.unique(labels_masked).tolist()}")
                 print(f"  Mask ratio: {crf_mask.float().mean().item():.4f}")
                 print(f"  CRF transitions matrix range: [{self.crf.transitions.min().item():.4f}, {self.crf.transitions.max().item():.4f}]")
@@ -154,12 +172,12 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
                 # NOTE: On NE doit PAS ignorer le label 0 (c'est "O", un label valide)
                 # On utilise le masque pour filtrer les positions invalides
                 ce_loss = nn.functional.cross_entropy(
-                    emissions.view(-1, self.num_labels),
+                    emissions_fp32.view(-1, self.num_labels),
                     labels_masked.view(-1),
                     reduction='none'
                 )
                 # Appliquer le masque pour ne compter que les tokens valides
-                ce_loss = ce_loss.view(emissions.size(0), emissions.size(1))
+                ce_loss = ce_loss.view(emissions_fp32.size(0), emissions_fp32.size(1))
                 masked_loss = ce_loss * crf_mask.float()
                 # Calculer la moyenne sur les tokens valides uniquement
                 num_valid_tokens = crf_mask.float().sum()
@@ -167,17 +185,19 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
                     valid_loss = masked_loss.sum() / num_valid_tokens
                 else:
                     # Fallback si aucun token valide (ne devrait jamais arriver)
-                    valid_loss = torch.tensor(0.0, device=emissions.device, dtype=emissions.dtype)
+                    valid_loss = torch.tensor(0.0, device=emissions_fp32.device, dtype=emissions_fp32.dtype)
                 loss = valid_loss
 
         else:
             # === MODE INFERENCE ===
             # Décodage Viterbi pour trouver la séquence de labels la plus probable
-            predictions = self.crf.decode(emissions, mask=crf_mask)
+            # CRITICAL: Disable autocast for CRF decode (same as forward)
+            with torch.amp.autocast(device_type='cuda', enabled=False):
+                predictions = self.crf.decode(emissions_fp32, mask=crf_mask)
             # predictions est une liste de listes (batch), on doit la convertir en tensor
             # Padding à la longueur max de la séquence
-            max_len = emissions.size(1)
-            batch_size = emissions.size(0)
+            max_len = emissions_fp32.size(1)
+            batch_size = emissions_fp32.size(0)
 
             # Vectorized conversion using NumPy (5-10x faster than Python loop)
             import numpy as np
@@ -186,11 +206,11 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
                 predictions_array[i, :len(pred)] = pred
 
             # Single tensor conversion (not per-item)
-            predictions = torch.from_numpy(predictions_array).to(emissions.device)
+            predictions = torch.from_numpy(predictions_array).to(emissions_fp32.device)
 
         return TokenClassifierOutput(
             loss=loss,
-            logits=predictions if not self.training else emissions,
+            logits=predictions if not self.training else emissions,  # Retourner les émissions originales (FP16) pour compatibilité
             hidden_states=outputs.hidden_states if hasattr(outputs, 'hidden_states') else None,
             attentions=outputs.attentions if hasattr(outputs, 'attentions') else None,
         )

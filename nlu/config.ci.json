@@ -3,6 +3,7 @@
 
   "optimization": {
     "use_bf16": false,
+    "use_fp16": true,
     "use_tf32": false,
     "cudnn_benchmark": true,
     "dataloader_num_workers": 4,

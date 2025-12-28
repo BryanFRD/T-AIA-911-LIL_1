@@ -170,6 +170,11 @@ def main():
         # Detect attention once (not per model)
         best_attn = detect_best_attention() if not use_crf else None
 
+        # CRITICAL: Always load model in FP32
+        # Let Trainer handle mixed precision (fp16/bf16) automatically
+        # This avoids gradient scaler conflicts and ensures proper autocast behavior
+        model_dtype = torch.float32
+
         if use_crf:
             print("\n[CRF] CRF Layer active - Garantit des sequences BIO valides")
             from transformers import AutoConfig
@@ -186,7 +191,7 @@ def main():
             model_ner = CamembertForTokenClassificationWithCRF.from_pretrained(
                 config["tokenizer"]["type"],
                 config=model_config,
-                dtype=torch.float16 if device=="cuda" else torch.float32
+                dtype=model_dtype
             )
         else:
             # Use pre-detected attention (no retry loop - single model load)
@@ -194,7 +199,7 @@ def main():
                 "num_labels": len(config["entity_labels"]),
                 "id2label": id2label_ner,
                 "label2id": label2id_ner,
-                "torch_dtype": torch.float16 if device=="cuda" else torch.float32
+                "dtype": model_dtype
             }
             if best_attn:
                 model_kwargs["attn_implementation"] = best_attn
@@ -356,7 +361,7 @@ def main():
             greater_is_better=True,
             overwrite_output_dir=True,
             max_grad_norm=1.0,  # CRITICAL: Gradient clipping pour éviter explosion avec CRF
-            fp16=(device=="cuda" and opt_cfg.get("use_fp16", False)),  # FP16 if CUDA and explicitly enabled
+            fp16=(device=="cuda" and opt_cfg.get("use_fp16", False)),
             bf16=(device=="cuda" and opt_cfg.get("use_bf16", False)),
             gradient_accumulation_steps=train_cfg.get("gradient_accumulation_steps", 1),
             dataloader_num_workers=opt_cfg.get("dataloader_num_workers", 4),
@@ -372,7 +377,7 @@ def main():
             args=training_args_ner,
             train_dataset=tokenized_dataset_ner,
             eval_dataset=tokenized_val_dataset_ner,  # Dataset de validation
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
             data_collator=data_collator_ner,
             compute_metrics=compute_metrics_ner  # Ajout des mtriques F1/Precision/Recall
         )
@@ -473,7 +478,7 @@ def main():
             "num_labels": len(config["intent_labels"]),
             "id2label": id2label_intent,
             "label2id": label2id_intent,
-            "torch_dtype": torch.float16 if device=="cuda" else torch.float32
+            "dtype": model_dtype
         }
         if best_attn:
             model_kwargs_intent["attn_implementation"] = best_attn
@@ -589,7 +594,7 @@ def main():
             metric_for_best_model="f1",
             greater_is_better=True,
             overwrite_output_dir=True,
-            fp16=(device=="cuda" and opt_cfg.get("use_fp16", False)),  # FP16 if CUDA and explicitly enabled
+            fp16=(device=="cuda" and opt_cfg.get("use_fp16", False)),
             bf16=(device=="cuda" and opt_cfg.get("use_bf16", False)),
             gradient_accumulation_steps=train_cfg.get("gradient_accumulation_steps", 1),
             dataloader_num_workers=opt_cfg.get("dataloader_num_workers", 4),
@@ -608,7 +613,7 @@ def main():
             args=training_args_intent,
             train_dataset=tokenized_dataset_intent,
             eval_dataset=tokenized_val_dataset_intent,  # Dataset de validation
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
             data_collator=data_collator_intent,
             compute_metrics=compute_metrics_intent  # Ajout des mtriques F1/Precision/Recall
         )
