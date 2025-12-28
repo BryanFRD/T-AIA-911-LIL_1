@@ -26,3 +26,10 @@ target/
 
 #System Files
 .DS_Store/
+
+### ML Models Cache ###
+/tmp/djl-models/
+**/models/
+*.pt
+*.pth
+*.onnx
