@@ -1,7 +1,9 @@
 package com.epitech.travelorder.orchestrator.config;
 
 import com.epitech.travelorder.audio.AudioService;
-import com.epitech.travelorder.nlu.Gpu;
+import com.epitech.travelorder.common.ml.MLflowConfig;
+import com.epitech.travelorder.nlu.INLUService;
+import com.epitech.travelorder.nlu.NLUPredictService;
 import com.epitech.travelorder.pathfinder.PathfinderService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,13 +20,14 @@ public class ServicesConfig {
     }
 
     @Bean
-    public Gpu gpu() {
-        return new Gpu();
+    public PathfinderService pathfinderService() {
+        return new PathfinderService();
     }
 
     @Bean
-    public PathfinderService pathfinderService() {
-        return new PathfinderService();
+    public INLUService nluService() {
+        MLflowConfig mlflowConfig = new MLflowConfig();
+        return new NLUPredictService(mlflowConfig);
     }
 }
 
