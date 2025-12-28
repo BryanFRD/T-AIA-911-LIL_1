@@ -10,6 +10,7 @@ import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.Translator;
 import lombok.extern.slf4j.Slf4j;
+import org.mlflow.api.proto.Service;
 import org.mlflow.tracking.MlflowClient;
 import org.mlflow.tracking.creds.BasicMlflowHostCreds;
 
@@ -100,8 +101,7 @@ public class ModelLoader {
 
         try {
             // Get model version by alias
-            org.mlflow.api.proto.Service.ModelVersion modelVersion =
-                mlflowClient.getModelVersionByAlias(modelName, alias);
+            Service.ModelVersion modelVersion = mlflowClient.getModelVersionByAlias(modelName, alias);
 
             String runId = modelVersion.getRunId();
             log.info("Found model {} with alias {} (run_id: {})", modelName, alias, runId);
