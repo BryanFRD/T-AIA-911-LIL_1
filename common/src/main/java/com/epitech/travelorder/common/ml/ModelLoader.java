@@ -11,7 +11,6 @@ import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.Translator;
 import lombok.extern.slf4j.Slf4j;
 import org.mlflow.tracking.MlflowClient;
-import org.mlflow.tracking.MlflowModelRegistryClient;
 import org.mlflow.tracking.creds.BasicMlflowHostCreds;
 
 import java.io.IOException;
@@ -30,14 +29,12 @@ public class ModelLoader {
 
     private final MLflowConfig config;
     private final MlflowClient mlflowClient;
-    private final MlflowModelRegistryClient registryClient;
     private final Map<ModelType, ZooModel<?, ?>> modelCache;
 
     public ModelLoader(MLflowConfig config) {
         this.config = config;
         BasicMlflowHostCreds creds = new BasicMlflowHostCreds(config.getTrackingUri());
         this.mlflowClient = new MlflowClient(creds);
-        this.registryClient = new MlflowModelRegistryClient(creds);
         this.modelCache = new ConcurrentHashMap<>();
 
         // Create model cache directory
@@ -98,28 +95,18 @@ public class ModelLoader {
         String modelName = modelType.getMlflowName();
         String alias = config.getModelAlias();
 
-        log.debug("Fetching model {} from MLflow (alias: {})", modelName, alias);
+        log.info("Fetching model {} from MLflow (alias: {})", modelName, alias);
 
         try {
-            // Search for latest model version
-            // Note: The Java client doesn't support alias-based retrieval directly,
-            // so we get the latest version of the model
-            java.util.Optional<org.mlflow.api.proto.ModelRegistry.ModelVersion> latestVersion =
-                registryClient.getLatestVersions(modelName, java.util.Collections.emptyList())
-                    .stream()
-                    .findFirst();
+            // Use MLflow model URI with alias: models:/model-name@alias
+            String modelUri = String.format("models:/%s@%s", modelName, alias);
+            log.debug("Using model URI: {}", modelUri);
 
-            if (!latestVersion.isPresent()) {
-                throw new IOException("No version found for model: " + modelName);
-            }
-
-            String runId = latestVersion.get().getRunId();
-            log.info("Found model {} (version: {}, run_id: {})",
-                modelName, latestVersion.get().getVersion(), runId);
-
-            // Download model artifacts from the run
-            String artifactsPath = mlflowClient.downloadArtifacts(runId, "").getAbsolutePath();
+            // Download model artifacts using the URI
+            String artifactsPath = mlflowClient.downloadArtifacts(modelUri, "").getAbsolutePath();
             Path sourcePath = Paths.get(artifactsPath);
+
+            log.info("Downloaded model artifacts to: {}", sourcePath);
 
             // Find the model file (.pt or .onnx)
             Path modelFile = Files.walk(sourcePath)
@@ -131,7 +118,7 @@ public class ModelLoader {
             Path cachedPath = Paths.get(config.getModelCacheDir(), modelType.getDescription() + getFileExtension(modelFile));
             Files.copy(modelFile, cachedPath, StandardCopyOption.REPLACE_EXISTING);
 
-            log.info("Model {} downloaded to {}", modelType.getDescription(), cachedPath);
+            log.info("Model {} (alias: {}) downloaded to {}", modelName, alias, cachedPath);
             return cachedPath;
 
         } catch (Exception e) {
