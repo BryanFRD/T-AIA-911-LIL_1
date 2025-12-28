@@ -6,8 +6,8 @@ package com.epitech.travelorder.common.ml;
 public enum ModelType {
     NLU_INTENT("nlu-intent-onnx", "intent-classifier"),
     NLU_NER("nlu-ner-onnx", "named-entity-recognizer"),
-    STT("stt-onnx", "speech-to-text"),
-    TTS("tts-onnx", "text-to-speech");
+    STT("stt-onnx-full", "speech-to-text"),
+    TTS("tts-onnx-full", "text-to-speech");
 
     private final String mlflowName;
     private final String description;

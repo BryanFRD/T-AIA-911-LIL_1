@@ -14,6 +14,13 @@ public interface INLUService {
     NLUResult predict(String text);
 
     /**
+     * Get health status and model information
+     *
+     * @return Health status with loaded models information
+     */
+    NLUHealthStatus getHealthStatus();
+
+    /**
      * Clean up resources
      */
     void close();

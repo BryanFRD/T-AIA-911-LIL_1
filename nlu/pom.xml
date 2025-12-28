@@ -48,6 +48,13 @@
             <artifactId>pytorch-engine</artifactId>
             <version>${djl.version}</version> <scope>runtime</scope>
         </dependency>
+
+        <!-- HuggingFace Tokenizers -->
+        <dependency>
+            <groupId>ai.djl.huggingface</groupId>
+            <artifactId>tokenizers</artifactId>
+            <version>${djl.version}</version>
+        </dependency>
     </dependencies>
 
     <profiles>

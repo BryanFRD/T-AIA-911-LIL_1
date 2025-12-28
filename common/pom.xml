@@ -15,6 +15,10 @@
     <name>Travel Order - Common</name>
     <description>Common utilities and shared models</description>
 
+    <properties>
+        <djl.version>0.36.0</djl.version>
+    </properties>
+
     <dependencies>
         <!-- JPA / Hibernate -->
         <dependency>
@@ -43,21 +47,6 @@
             <groupId>ai.djl</groupId>
             <artifactId>api</artifactId>
             <version>${djl.version}</version>
-        </dependency>
-
-        <!-- DJL PyTorch Engine -->
-        <dependency>
-            <groupId>ai.djl.pytorch</groupId>
-            <artifactId>pytorch-engine</artifactId>
-            <version>${djl.version}</version>
-        </dependency>
-
-        <!-- DJL PyTorch Native (CPU) -->
-        <dependency>
-            <groupId>ai.djl.pytorch</groupId>
-            <artifactId>pytorch-native-cpu</artifactId>
-            <version>${pytorch.version}</version>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- DJL ONNX Runtime Engine -->
