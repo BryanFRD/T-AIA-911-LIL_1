@@ -108,7 +108,6 @@ def main():
 
             # Export and log ONNX model
             import tempfile
-            import os
             from common.onnx_utils import export_pytorch_to_onnx
 
             with tempfile.TemporaryDirectory() as tmp_dir:
