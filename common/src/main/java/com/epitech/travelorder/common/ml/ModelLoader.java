@@ -10,8 +10,8 @@ import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.Translator;
 import lombok.extern.slf4j.Slf4j;
-import org.mlflow.api.proto.Service;
 import org.mlflow.tracking.MlflowClient;
+import org.mlflow.tracking.MlflowModelRegistryClient;
 import org.mlflow.tracking.creds.BasicMlflowHostCreds;
 
 import java.io.IOException;
@@ -30,13 +30,14 @@ public class ModelLoader {
 
     private final MLflowConfig config;
     private final MlflowClient mlflowClient;
+    private final MlflowModelRegistryClient registryClient;
     private final Map<ModelType, ZooModel<?, ?>> modelCache;
 
     public ModelLoader(MLflowConfig config) {
         this.config = config;
-        this.mlflowClient = new MlflowClient(
-            new BasicMlflowHostCreds(config.getTrackingUri())
-        );
+        BasicMlflowHostCreds creds = new BasicMlflowHostCreds(config.getTrackingUri());
+        this.mlflowClient = new MlflowClient(creds);
+        this.registryClient = new MlflowModelRegistryClient(creds);
         this.modelCache = new ConcurrentHashMap<>();
 
         // Create model cache directory
@@ -100,8 +101,9 @@ public class ModelLoader {
         log.debug("Fetching model {} from MLflow (alias: {})", modelName, alias);
 
         try {
-            // Get model version by alias
-            Service.ModelVersion modelVersion = mlflowClient.getModelVersionByAlias(modelName, alias);
+            // Get model version by alias using registry client
+            org.mlflow.api.proto.ModelRegistry.ModelVersion modelVersion =
+                registryClient.getModelVersionByAlias(modelName, alias);
 
             String runId = modelVersion.getRunId();
             log.info("Found model {} with alias {} (run_id: {})", modelName, alias, runId);
