@@ -1,27 +1,27 @@
 package com.epitech.travelorder.common.ml;
 
 /**
- * Enumeration of available ML models with their MLflow identifiers and aliases
+ * Enumeration of available ML models with their MLflow identifiers
  */
 public enum ModelType {
-    NLU_INTENT("nlu-intent", "intent-classifier"),
-    NLU_NER("nlu-ner", "named-entity-recognizer"),
-    STT("stt", "speech-to-text"),
-    TTS("tts", "text-to-speech");
+    NLU_INTENT("nlu-intent-onnx", "intent-classifier"),
+    NLU_NER("nlu-ner-onnx", "named-entity-recognizer"),
+    STT("stt-onnx", "speech-to-text"),
+    TTS("tts-onnx", "text-to-speech");
 
     private final String mlflowName;
-    private final String alias;
+    private final String description;
 
-    ModelType(String mlflowName, String alias) {
+    ModelType(String mlflowName, String description) {
         this.mlflowName = mlflowName;
-        this.alias = alias;
+        this.description = description;
     }
 
     public String getMlflowName() {
         return mlflowName;
     }
 
-    public String getAlias() {
-        return alias;
+    public String getDescription() {
+        return description;
     }
 }
