@@ -60,6 +60,18 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
             # Prevent gradient scaler from converting to fp16
             param.requires_grad = True
 
+        # CRITICAL: Initialize CRF transitions with small values to prevent explosion
+        # Default torchcrf initialization uses uniform(-0.1, 0.1) which can explode with FP16
+        # We use a tighter range for better numerical stability
+        nn.init.uniform_(self.crf.transitions, -0.01, 0.01)
+        nn.init.uniform_(self.crf.start_transitions, -0.01, 0.01)
+        nn.init.uniform_(self.crf.end_transitions, -0.01, 0.01)
+
+        # Register backward hook to clip CRF gradients before optimizer step
+        # This prevents transition matrix explosion during training
+        for name, param in self.crf.named_parameters():
+            param.register_hook(lambda grad: torch.clamp(grad, -1.0, 1.0))
+
         # Initialiser les poids
         self.post_init()
 

@@ -16,6 +16,7 @@ variables:
 stages:
   - init
   - train
+  - promote
 
 # ===============================
 # Base Python job
@@ -100,6 +101,63 @@ train:tts:
   script:
     - python tts/train.py
   # Models are saved to MLflow - no local artifacts needed
+  rules:
+    - changes:
+        - tts/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+# ===============================
+# PROMOTE
+# ===============================
+promote:nlu:
+  stage: promote
+  tags:
+    - gpu-arthur
+  extends: .python
+  script:
+    - python common/promote_models.py --models NLU-NER NLU-Intent
+  needs:
+    - job: train:nlu
+      optional: false
+  rules:
+    - changes:
+        - nlu/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:stt:
+  stage: promote
+  tags:
+    - gpu-arthur
+  extends: .python
+  script:
+    - python common/promote_models.py --models STT
+  needs:
+    - job: train:stt
+      optional: false
+  rules:
+    - changes:
+        - stt/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:tts:
+  stage: promote
+  tags:
+    - gpu-arthur
+  extends: .python
+  script:
+    - python common/promote_models.py --models TTS
+  needs:
+    - job: train:tts
+      optional: false
   rules:
     - changes:
         - tts/**/*
