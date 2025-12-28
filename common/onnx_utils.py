@@ -151,9 +151,11 @@ def log_model_artifacts(
             )
 
             if success:
-                # Log as ONNX model
+                # Load ONNX model and log to MLflow
+                import onnx
+                onnx_model = onnx.load(onnx_path)
                 mlflow.onnx.log_model(
-                    onnx_model=onnx_path,
+                    onnx_model=onnx_model,
                     artifact_path=f"{artifact_base_name}_onnx"
                 )
                 print(f"[OK] {artifact_base_name} model (ONNX) logged to MLflow")
