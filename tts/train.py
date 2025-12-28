@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from common.mlflow_utils import setup_mlflow, start_run, log_training_config
 from common.training_utils import detect_device, print_system_info, load_config, get_machine_name
+from common.onnx_utils import log_model_artifacts
 import mlflow
 
 
@@ -99,14 +100,29 @@ def main():
             mlflow.log_metric("duration_loss", 0.08)
             mlflow.log_metric("total_loss", 0.23)
 
-            # Save model to MLflow (NO local save)
+            # Save model to MLflow (PyTorch + ONNX)
             print("\n[INFO] Saving TTS model to MLflow...")
-            mlflow.pytorch.log_model(
-                model,
-                artifact_path="model",
-                registered_model_name="tts"
+
+            # Create dummy input for ONNX export (adjust shape for real TTS model)
+            dummy_input = (torch.randn(1, 10),)
+
+            log_model_artifacts(
+                mlflow=mlflow,
+                model=model,
+                model_path=None,  # No HuggingFace format for dummy model
+                artifact_base_name="tts",
+                registered_model_name="tts",
+                export_onnx=True,
+                onnx_dummy_input=dummy_input,
+                onnx_input_names=["text_features"],
+                onnx_output_names=["mel_spectrogram"],
+                onnx_dynamic_axes={
+                    "text_features": {0: "batch_size"},
+                    "mel_spectrogram": {0: "batch_size"}
+                },
+                opset_version=17
             )
-            print("[OK] TTS model saved to MLflow Model Registry")
+            print("[OK] TTS model artifacts saved to MLflow")
 
             # Log tags
             mlflow.set_tag("model_type", "tts")

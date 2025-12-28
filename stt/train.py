@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from common.mlflow_utils import setup_mlflow, start_run, log_training_config
 from common.training_utils import detect_device, print_system_info, load_config, get_machine_name
+from common.onnx_utils import log_model_artifacts
 import mlflow
 
 
@@ -98,14 +99,29 @@ def main():
             mlflow.log_metric("wer", 0.25)  # Word Error Rate
             mlflow.log_metric("loss", 0.5)
 
-            # Save model to MLflow (NO local save)
+            # Save model to MLflow (PyTorch + ONNX)
             print("\n[INFO] Saving STT model to MLflow...")
-            mlflow.pytorch.log_model(
-                model,
-                artifact_path="model",
-                registered_model_name="stt"
+
+            # Create dummy input for ONNX export (adjust shape for real STT model)
+            dummy_input = (torch.randn(1, 10),)
+
+            log_model_artifacts(
+                mlflow=mlflow,
+                model=model,
+                model_path=None,  # No HuggingFace format for dummy model
+                artifact_base_name="stt",
+                registered_model_name="stt",
+                export_onnx=True,
+                onnx_dummy_input=dummy_input,
+                onnx_input_names=["audio_features"],
+                onnx_output_names=["logits"],
+                onnx_dynamic_axes={
+                    "audio_features": {0: "batch_size"},
+                    "logits": {0: "batch_size"}
+                },
+                opset_version=17
             )
-            print("[OK] STT model saved to MLflow Model Registry")
+            print("[OK] STT model artifacts saved to MLflow")
 
             # Log tags
             mlflow.set_tag("model_type", "stt")
