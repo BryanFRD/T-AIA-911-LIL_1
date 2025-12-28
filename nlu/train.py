@@ -30,6 +30,77 @@ from common.training_utils import detect_device, print_system_info, load_config,
 import mlflow
 
 
+def export_model_to_onnx(model, tokenizer, output_path, task_type="token-classification", opset_version=17):
+    """
+    Export a HuggingFace model to ONNX format
+
+    Args:
+        model: HuggingFace model to export
+        tokenizer: Tokenizer for creating dummy inputs
+        output_path: Path to save the ONNX model
+        task_type: "token-classification" or "sequence-classification"
+        opset_version: ONNX opset version (default 17 for PyTorch 2.x compatibility)
+    """
+    try:
+        from torch.onnx import export as onnx_export
+
+        print(f"[INFO] Exporting model to ONNX (opset {opset_version})...")
+
+        # Set model to eval mode
+        model.eval()
+        device = next(model.parameters()).device
+
+        # Create dummy inputs
+        dummy_text = "Je veux aller de Paris à Lyon"
+        inputs = tokenizer(dummy_text, return_tensors="pt", padding=True, truncation=True, max_length=128)
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+
+        # Dynamic axes for variable batch size and sequence length
+        dynamic_axes = {
+            "input_ids": {0: "batch_size", 1: "sequence_length"},
+            "attention_mask": {0: "batch_size", 1: "sequence_length"},
+            "logits": {0: "batch_size"}
+        }
+
+        if task_type == "token-classification":
+            dynamic_axes["logits"][1] = "sequence_length"
+
+        # Export to ONNX
+        with torch.no_grad():
+            onnx_export(
+                model,
+                (inputs["input_ids"], inputs["attention_mask"]),
+                output_path,
+                input_names=["input_ids", "attention_mask"],
+                output_names=["logits"],
+                dynamic_axes=dynamic_axes,
+                opset_version=opset_version,
+                do_constant_folding=True,
+                export_params=True
+            )
+
+        print(f"[OK] ONNX model exported to {output_path}")
+
+        # Verify ONNX model
+        try:
+            import onnx
+            onnx_model = onnx.load(output_path)
+            onnx.checker.check_model(onnx_model)
+            print("[OK] ONNX model validation passed")
+        except ImportError:
+            print("[WARN] onnx package not installed, skipping validation")
+        except Exception as e:
+            print(f"[WARN] ONNX validation failed: {e}")
+
+        return True
+
+    except Exception as e:
+        print(f"[ERROR] Failed to export ONNX model: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def cleanup_mlflow():
     """Cleanup function to ensure MLflow run is terminated properly"""
     if mlflow.active_run():
@@ -317,10 +388,19 @@ def main():
 
         # Fonction de calcul des mtriques pour NER (vectorized for performance)
         def compute_metrics_ner(pred):
-            predictions, labels = pred
+            # Handle both EvalPrediction object and tuple
+            if hasattr(pred, 'predictions'):
+                predictions = pred.predictions
+                labels = pred.label_ids
+            else:
+                predictions, labels = pred
 
             # CRF retourne directement les prédictions (1D), pas les logits (2D)
             # Vérifier la dimension pour savoir si c'est du CRF ou non
+            if isinstance(predictions, tuple):
+                # Transformers sometimes returns (logits, ...) tuple
+                predictions = predictions[0]
+
             if len(predictions.shape) == 3:  # (batch, seq_len, num_labels) - logits
                 predictions = np.argmax(predictions, axis=2)
             # Sinon predictions est déjà (batch, seq_len) - prédictions du CRF
@@ -402,15 +482,33 @@ def main():
         # Save NER model to MLflow immediately after training
         print("\n[INFO] Saving NER model to MLflow...")
         try:
+            export_formats = config.get("export", {}).get("formats", ["pytorch"])
+            onnx_opset = config.get("export", {}).get("onnx_opset", 17)
+
             # Save model using save_pretrained for better compatibility with custom layers
             with tempfile.TemporaryDirectory() as tmp_dir:
+                # PyTorch export (always done as primary format)
                 ner_model_path = os.path.join(tmp_dir, "ner_model")
                 model_ner.save_pretrained(ner_model_path)
                 tokenizer.save_pretrained(ner_model_path)
 
-                # Log the model directory as artifact
+                # Log the PyTorch model directory as artifact
                 mlflow.log_artifacts(ner_model_path, artifact_path="ner_model")
-                print("[OK] NER model saved to MLflow artifacts")
+                print("[OK] NER model (PyTorch) saved to MLflow artifacts")
+
+                # ONNX export (if enabled in config)
+                if "onnx" in export_formats:
+                    onnx_path = os.path.join(tmp_dir, "ner_model.onnx")
+                    success = export_model_to_onnx(
+                        model_ner,
+                        tokenizer,
+                        onnx_path,
+                        task_type="token-classification",
+                        opset_version=onnx_opset
+                    )
+                    if success:
+                        mlflow.log_artifact(onnx_path, artifact_path="ner_model_onnx")
+                        print("[OK] NER model (ONNX) saved to MLflow artifacts")
 
                 # Try to register in Model Registry
                 try:
@@ -561,7 +659,17 @@ def main():
 
         # Fonction de calcul des mtriques pour Intent
         def compute_metrics_intent(pred):
-            predictions, labels = pred
+            # Handle both EvalPrediction object and tuple
+            if hasattr(pred, 'predictions'):
+                predictions = pred.predictions
+                labels = pred.label_ids
+            else:
+                predictions, labels = pred
+
+            # Handle tuple predictions (logits, ...)
+            if isinstance(predictions, tuple):
+                predictions = predictions[0]
+
             predictions = np.argmax(predictions, axis=1)
 
             # Calculer les mtriques
@@ -626,15 +734,33 @@ def main():
         # Save Intent model to MLflow immediately after training
         print("\n[INFO] Saving Intent model to MLflow...")
         try:
+            export_formats = config.get("export", {}).get("formats", ["pytorch"])
+            onnx_opset = config.get("export", {}).get("onnx_opset", 17)
+
             # Save model using save_pretrained for better compatibility
             with tempfile.TemporaryDirectory() as tmp_dir:
+                # PyTorch export (always done as primary format)
                 intent_model_path = os.path.join(tmp_dir, "intent_model")
                 model_intent.save_pretrained(intent_model_path)
                 tokenizer.save_pretrained(intent_model_path)
 
-                # Log the model directory as artifact
+                # Log the PyTorch model directory as artifact
                 mlflow.log_artifacts(intent_model_path, artifact_path="intent_model")
-                print("[OK] Intent model saved to MLflow artifacts")
+                print("[OK] Intent model (PyTorch) saved to MLflow artifacts")
+
+                # ONNX export (if enabled in config)
+                if "onnx" in export_formats:
+                    onnx_path = os.path.join(tmp_dir, "intent_model.onnx")
+                    success = export_model_to_onnx(
+                        model_intent,
+                        tokenizer,
+                        onnx_path,
+                        task_type="sequence-classification",
+                        opset_version=onnx_opset
+                    )
+                    if success:
+                        mlflow.log_artifact(onnx_path, artifact_path="intent_model_onnx")
+                        print("[OK] Intent model (ONNX) saved to MLflow artifacts")
 
                 # Try to register in Model Registry
                 try:

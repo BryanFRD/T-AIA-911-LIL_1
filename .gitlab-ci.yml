@@ -118,7 +118,7 @@ promote:nlu:
   before_script:
     - pip install --quiet mlflow
   script:
-    - python common/promote_models.py --models NLU-NER NLU-Intent
+    - python common/promote_models.py --models nlu-ner nlu-intent
   needs:
     - job: train:nlu
       optional: false
@@ -136,7 +136,7 @@ promote:stt:
   before_script:
     - pip install --quiet mlflow
   script:
-    - python common/promote_models.py --models STT
+    - python common/promote_models.py --models stt
   needs:
     - job: train:stt
       optional: false
@@ -154,7 +154,7 @@ promote:tts:
   before_script:
     - pip install --quiet mlflow
   script:
-    - python common/promote_models.py --models TTS
+    - python common/promote_models.py --models tts
   needs:
     - job: train:tts
       optional: false

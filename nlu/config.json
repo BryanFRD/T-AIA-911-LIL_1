@@ -26,6 +26,10 @@
     "use_fused_optimizer": true,
     "pytorch_compile": false
   },
+  "export": {
+    "formats": ["pytorch", "onnx"],
+    "onnx_opset": 17
+  },
   "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA", "B-VOICE", "I-VOICE", "B-TIME", "I-TIME", "B-DATE", "I-DATE", "B-TRANSPORT", "I-TRANSPORT"],
   "intent_labels": ["trajet", "other"]
 }
