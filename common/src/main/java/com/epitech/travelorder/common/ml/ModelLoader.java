@@ -61,11 +61,11 @@ public class ModelLoader {
         @SuppressWarnings("unchecked")
         ZooModel<I, O> cachedModel = (ZooModel<I, O>) modelCache.get(modelType);
         if (cachedModel != null) {
-            log.info("Using cached model for {}", modelType.getAlias());
+            log.info("Using cached model for {}", modelType.getDescription());
             return cachedModel;
         }
 
-        log.info("Loading model {} from MLflow ({})", modelType.getAlias(), modelType.getMlflowName());
+        log.info("Loading model {} from MLflow ({})", modelType.getDescription(), modelType.getMlflowName());
 
         // Download model from MLflow
         Path modelPath = downloadModelFromMLflow(modelType);
@@ -85,7 +85,7 @@ public class ModelLoader {
         ZooModel<I, O> model = criteria.loadModel();
         modelCache.put(modelType, model);
 
-        log.info("Successfully loaded model {} using {} engine", modelType.getAlias(), engine);
+        log.info("Successfully loaded model {} using {} engine", modelType.getDescription(), engine);
         return model;
     }
 
@@ -99,11 +99,15 @@ public class ModelLoader {
         log.debug("Fetching model {} from MLflow (alias: {})", modelName, alias);
 
         try {
-            // Get model version by alias (e.g., "latest", "production", "staging") or version number
-            String modelUri = String.format("models:/%s@%s", modelName, alias);
+            // Get model version by alias
+            org.mlflow.api.proto.Service.ModelVersion modelVersion =
+                mlflowClient.getModelVersionByAlias(modelName, alias);
 
-            // Download model artifacts
-            String artifactsPath = mlflowClient.downloadArtifacts(modelUri).getAbsolutePath();
+            String runId = modelVersion.getRunId();
+            log.info("Found model {} with alias {} (run_id: {})", modelName, alias, runId);
+
+            // Download model artifacts from the run
+            String artifactsPath = mlflowClient.downloadArtifacts(runId, "").getAbsolutePath();
             Path sourcePath = Paths.get(artifactsPath);
 
             // Find the model file (.pt or .onnx)
@@ -113,10 +117,10 @@ public class ModelLoader {
                 .orElseThrow(() -> new IOException("No .pt or .onnx file found in model artifacts"));
 
             // Copy to cache directory
-            Path cachedPath = Paths.get(config.getModelCacheDir(), modelType.getAlias() + getFileExtension(modelFile));
+            Path cachedPath = Paths.get(config.getModelCacheDir(), modelType.getDescription() + getFileExtension(modelFile));
             Files.copy(modelFile, cachedPath, StandardCopyOption.REPLACE_EXISTING);
 
-            log.info("Model {} downloaded to {}", modelType.getAlias(), cachedPath);
+            log.info("Model {} downloaded to {}", modelType.getDescription(), cachedPath);
             return cachedPath;
 
         } catch (Exception e) {
