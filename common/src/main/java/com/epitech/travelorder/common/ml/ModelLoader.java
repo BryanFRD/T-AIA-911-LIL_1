@@ -101,12 +101,21 @@ public class ModelLoader {
         log.debug("Fetching model {} from MLflow (alias: {})", modelName, alias);
 
         try {
-            // Get model version by alias using registry client
-            org.mlflow.api.proto.ModelRegistry.ModelVersion modelVersion =
-                registryClient.getModelVersionByAlias(modelName, alias);
+            // Search for latest model version
+            // Note: The Java client doesn't support alias-based retrieval directly,
+            // so we get the latest version of the model
+            java.util.Optional<org.mlflow.api.proto.ModelRegistry.ModelVersion> latestVersion =
+                registryClient.getLatestVersions(modelName, java.util.Collections.emptyList())
+                    .stream()
+                    .findFirst();
 
-            String runId = modelVersion.getRunId();
-            log.info("Found model {} with alias {} (run_id: {})", modelName, alias, runId);
+            if (!latestVersion.isPresent()) {
+                throw new IOException("No version found for model: " + modelName);
+            }
+
+            String runId = latestVersion.get().getRunId();
+            log.info("Found model {} (version: {}, run_id: {})",
+                modelName, latestVersion.get().getVersion(), runId);
 
             // Download model artifacts from the run
             String artifactsPath = mlflowClient.downloadArtifacts(runId, "").getAbsolutePath();
