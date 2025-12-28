@@ -126,7 +126,8 @@ def log_model_artifacts(
     mlflow.pytorch.log_model(
         pytorch_model=model,
         artifact_path=f"{artifact_base_name}_pytorch",
-        registered_model_name=registered_model_name
+        registered_model_name=registered_model_name,
+        pip_requirements=None  # Disable automatic pip requirements to avoid torch version warning
     )
     print(f"[OK] {artifact_base_name} model (PyTorch) logged to MLflow")
 
@@ -156,7 +157,8 @@ def log_model_artifacts(
                 onnx_model = onnx.load(onnx_path)
                 mlflow.onnx.log_model(
                     onnx_model=onnx_model,
-                    artifact_path=f"{artifact_base_name}_onnx"
+                    artifact_path=f"{artifact_base_name}_onnx",
+                    registered_model_name=f"{registered_model_name}-onnx"
                 )
                 print(f"[OK] {artifact_base_name} model (ONNX) logged to MLflow")
 

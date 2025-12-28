@@ -515,9 +515,11 @@ def main():
                         opset_version=onnx_opset
                     )
                     if success:
-                        # Log as ONNX model
+                        # Load ONNX model and log to MLflow
+                        import onnx
+                        onnx_model = onnx.load(onnx_path)
                         mlflow.onnx.log_model(
-                            onnx_model=onnx_path,
+                            onnx_model=onnx_model,
                             artifact_path="ner_model_onnx"
                         )
                         print("[OK] NER model (ONNX) logged to MLflow")
@@ -775,9 +777,11 @@ def main():
                         opset_version=onnx_opset
                     )
                     if success:
-                        # Log as ONNX model
+                        # Load ONNX model and log to MLflow
+                        import onnx
+                        onnx_model = onnx.load(onnx_path)
                         mlflow.onnx.log_model(
-                            onnx_model=onnx_path,
+                            onnx_model=onnx_model,
                             artifact_path="intent_model_onnx"
                         )
                         print("[OK] Intent model (ONNX) logged to MLflow")
