@@ -5,9 +5,9 @@ Assigne l'alias "latest" aux dernières versions enregistrées dans MLflow.
 Utilisé en CI après chaque entraînement pour marquer les modèles récents.
 
 Usage:
-    python common/promote_models.py --models NLU-NER NLU-Intent
-    python common/promote_models.py --models STT
-    python common/promote_models.py --models TTS
+    python common/promote_models.py --models nlu-ner nlu-intent
+    python common/promote_models.py --models stt
+    python common/promote_models.py --models tts
 """
 
 import argparse
@@ -19,9 +19,9 @@ def promote_to_latest(model_names: list[str]) -> None:
     Assigne l'alias 'latest' aux dernières versions des modèles spécifiés
 
     Args:
-        model_names: Liste des noms de modèles à promouvoir (ex: ["NLU-NER", "NLU-Intent"])
+        model_names: Liste des noms de modèles à promouvoir (ex: ["nlu-ner", "nlu-intent"])
     """
-    client = MlflowClient()
+    client = MlflowClient("https://mlflow.bryan-ferrando.fr")
 
     for model_name in model_names:
         try:

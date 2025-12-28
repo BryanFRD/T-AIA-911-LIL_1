@@ -47,7 +47,10 @@ def setup_mlflow(experiment_name: str, enable_system_metrics: bool = True) -> No
 
     # Enable system metrics logging (CPU, GPU, RAM, etc.)
     if enable_system_metrics:
-        mlflow.enable_system_metrics_logging()
+        try:
+            mlflow.enable_system_metrics_logging()
+        except Exception as e:
+            print(f"[WARN] Failed to enable system metrics logging: {e}")
 
 
 def start_run(run_name: str, source_name: Optional[str] = None) -> mlflow.ActiveRun:
@@ -129,4 +132,6 @@ def log_pytorch_model(model, artifact_path: str = "model", registered_model_name
 
 def end_run() -> None:
     """End the active MLflow run."""
-    mlflow.end_run()
+    if mlflow.active_run():
+        mlflow.end_run()
+

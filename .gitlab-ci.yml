@@ -67,8 +67,8 @@ train:nlu:
   script:
     - python nlu/generate_from_templates.py
     - python nlu/train.py
-    - python nlu/predict.py
   # Models are saved to MLflow - no local artifacts needed
+  # Evaluation metrics are computed during training via trainer.evaluate()
   rules:
     - changes:
         - nlu/**/*
