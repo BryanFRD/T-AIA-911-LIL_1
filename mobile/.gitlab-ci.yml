@@ -1,0 +1,97 @@
+image: node:20
+
+stages:
+  - test
+  - quality
+  - build
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+  GIT_DEPTH: "0"
+
+# Install dependencies (reusable)
+.install_dependencies: &install_dependencies
+  - npm ci --legacy-peer-deps
+
+# Test stage
+test:
+  stage: test
+  script:
+    - *install_dependencies
+    - npm run type-check
+    - npm run test:coverage -- --watchAll=false
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+      junit: junit.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# Lint stage (optional)
+lint:
+  stage: test
+  script:
+    - *install_dependencies
+    - npm run lint
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# SonarQube analysis (uses coverage from test job)
+sonarqube:
+  stage: quality
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - sonar-scanner
+      -Dsonar.sources=src
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.token=$SONAR_TOKEN
+      -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
+  dependencies:
+    - test
+  needs:
+    - job: test
+      artifacts: true
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# Build Expo bundle (all platforms)
+build:
+  stage: build
+  script:
+    - *install_dependencies
+    - npx expo export --platform all
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  dependencies:
+    - test
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
