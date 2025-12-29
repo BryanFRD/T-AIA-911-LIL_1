@@ -1,0 +1,104 @@
+image: maven:3.9.6-eclipse-temurin-21
+
+stages:
+  - lint
+  - test
+  - sonarqube
+  - build
+  - deploy
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  ORCHESTRATOR_IMG: $CI_REGISTRY_IMAGE/orchestrator
+  GTFS_IMG: $CI_REGISTRY_IMAGE/gtfs
+
+cache:
+  paths:
+    - .m2/repository
+
+check-code-style:
+  stage: lint
+  script:
+    - mvn checkstyle:check
+  allow_failure: true
+
+run-tests:
+  stage: test
+  script:
+    - mvn verify
+  artifacts:
+    reports:
+      junit:
+        - "*/target/surefire-reports/*.xml"
+    paths:
+      - "*/target/site/jacoco/jacoco.xml"
+      - "*/target/surefire-reports/*.xml"
+      - "*/target/classes/**"
+      - "*/target/*.jar"
+    expire_in: 1 hour
+
+sonarqube-analysis:
+  stage: sonarqube
+  dependencies:
+    - run-tests
+  script:
+    - mvn sonar:sonar -Dsonar.projectKey=t-aia-911_backend_0927f75a-637e-4c5d-af96-0d0efb1177df -Dsonar.projectName="T-AIA Backend" -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN
+  only:
+    - main
+    - merge_requests
+  allow_failure: true
+
+orchestrator-build:
+  tags:
+    - home-server
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -f orchestrator/Dockerfile -t $ORCHESTRATOR_IMG:$CI_COMMIT_SHORT_SHA -t $ORCHESTRATOR_IMG:latest .
+    - docker push $ORCHESTRATOR_IMG:$CI_COMMIT_SHORT_SHA
+    - docker push $ORCHESTRATOR_IMG:latest
+
+gtfs-build:
+  tags:
+    - home-server
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -f gtfs/Dockerfile -t $GTFS_IMG:$CI_COMMIT_SHORT_SHA -t $GTFS_IMG:latest .
+    - docker push $GTFS_IMG:$CI_COMMIT_SHORT_SHA
+    - docker push $GTFS_IMG:latest
+
+deploy-to-k8s:
+  tags:
+    - home-server
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - echo "🚀 Déploiement PROD..."
+
+    - echo "Déploiement de la base de données PostgreSQL..."
+    - kubectl apply -f k8s/postgres.yaml
+    - kubectl wait --for=condition=ready pod -l app=postgres --timeout=120s || echo "⚠️ Timeout PostgreSQL (peut être déjà running)"
+
+    - echo "Déploiement de l'orchestrateur..."
+    - sed "s|__ORCHESTRATOR_IMAGE__|$ORCHESTRATOR_IMG:$CI_COMMIT_SHORT_SHA|g" k8s/deployment.yaml | kubectl apply -f -
+    - kubectl rollout status deployment/travel-resolver --timeout=180s
+
+    - echo "Configuration du réseau..."
+    - kubectl apply -f k8s/service.yaml
+    - kubectl apply -f k8s/ingress.yaml
+
+    - echo "Déploiement des tâches batch GTFS..."
+    - sed "s|__GTFS_IMAGE__|$GTFS_IMG:$CI_COMMIT_SHORT_SHA|g" k8s/cronjob.yaml | kubectl apply -f -
+
+    - echo "✅ Déploiement terminé avec succès !"
+  only:
+    - main

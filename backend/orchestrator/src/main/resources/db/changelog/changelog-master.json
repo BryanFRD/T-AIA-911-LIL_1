@@ -1,0 +1,16 @@
+{
+  "databaseChangeLog": [
+    {
+      "include": {
+        "file": "26122025-init-db.json",
+        "relativeToChangelogFile": true
+      }
+    },
+    {
+      "include": {
+        "file": "27122025-fix-column-type.json",
+        "relativeToChangelogFile": true
+      }
+    }
+  ]
+}

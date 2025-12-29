@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-resolver
+  labels:
+    app: travel-resolver
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: travel-resolver
+  template:
+    metadata:
+      labels:
+        app: travel-resolver
+    spec:
+      imagePullSecrets:
+        - name: gitlab-auth
+      containers:
+        - name: travel-resolver
+          image: __ORCHESTRATOR_IMAGE__
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-service:5432/travelorder"
+
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: username
+
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+              nvidia.com/gpu: 1
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+              nvidia.com/gpu: 1
