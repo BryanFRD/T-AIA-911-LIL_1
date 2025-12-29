@@ -1,0 +1,2 @@
+# Packages spécifiques STT
+# Pour l'instant, toutes les dépendances sont dans common/requirements.txt

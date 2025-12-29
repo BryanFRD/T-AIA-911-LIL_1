@@ -1,0 +1,4 @@
+-r common/requirements.txt
+-r nlu/requirements.txt
+-r stt/requirements.txt
+-r tts/requirements.txt

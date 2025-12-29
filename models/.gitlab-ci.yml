@@ -1,0 +1,243 @@
+# ===============================
+# Variables globales
+# ===============================
+variables:
+  PIP_CACHE_DIR: "/cache/pip"
+  HF_HOME: "/cache/huggingface"
+  XDG_CACHE_HOME: "/cache"
+  MODEL_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+  MODEL_VERSION: "${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+  # Use CI-optimized configuration for training
+  CONFIG_OVERRIDE: ""  # Override in specific jobs with config.ci.json
+
+# ===============================
+# Stages
+# ===============================
+stages:
+  - init
+  - train
+  - promote
+
+# ===============================
+# Base Python job
+# ===============================
+.python:
+  image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
+  before_script:
+    - nvidia-smi
+    - python --version
+    - mkdir -p /cache/pip /cache/huggingface
+    - export PIP_CACHE_DIR="/cache/pip"
+    - export XDG_CACHE_HOME="/cache"
+    - pip install --upgrade pip
+    - pip install --cache-dir=/cache/pip --upgrade-strategy only-if-needed -r requirements.txt
+    - python -c "import torch; print('CUDA:', torch.cuda.is_available(), 'GPUs:', torch.cuda.device_count(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)"
+
+# ===============================
+# INIT
+# ===============================
+init:sonarqube:
+  stage: init
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - sonar-scanner -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+# ===============================
+# TRAIN
+# ===============================
+train:nlu:
+  stage: train
+  tags:
+    - gpu-arthur
+  extends: .python
+  variables:
+    CONFIG_OVERRIDE: "nlu/config.ci.json"
+  script:
+    - python nlu/generate_from_templates.py
+    - python nlu/train.py
+  # Models are saved to MLflow - no local artifacts needed
+  # Evaluation metrics are computed during training via trainer.evaluate()
+  rules:
+    - changes:
+        - nlu/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual 
+
+train:stt:lite:
+  stage: train
+  tags:
+    - gpu-arthur
+  extends: .python
+  variables:
+    CONFIG_OVERRIDE: "stt/config.lite.json"
+    MODEL_VARIANT: "lite"
+  script:
+    - python stt/train.py
+  rules:
+    - changes:
+        - stt/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+train:stt:full:
+  stage: train
+  tags:
+    - gpu-arthur
+  extends: .python
+  variables:
+    CONFIG_OVERRIDE: "stt/config.full.json"
+    MODEL_VARIANT: "full"
+  script:
+    - python stt/train.py
+  rules:
+    - changes:
+        - stt/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+train:tts:lite:
+  stage: train
+  tags:
+    - gpu-arthur
+  extends: .python
+  variables:
+    CONFIG_OVERRIDE: "tts/config.lite.json"
+    MODEL_VARIANT: "lite"
+  script:
+    - python tts/train.py
+  rules:
+    - changes:
+        - tts/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+train:tts:full:
+  stage: train
+  tags:
+    - gpu-arthur
+  extends: .python
+  variables:
+    CONFIG_OVERRIDE: "tts/config.full.json"
+    MODEL_VARIANT: "full"
+  script:
+    - python tts/train.py
+  rules:
+    - changes:
+        - tts/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+# ===============================
+# PROMOTE
+# ===============================
+promote:nlu:
+  stage: promote
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
+  script:
+    - python common/promote_models.py --models nlu-ner-onnx nlu-intent-onnx
+  needs:
+    - job: train:nlu
+      optional: false
+  rules:
+    - changes:
+        - nlu/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:stt:lite:
+  stage: promote
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
+  script:
+    - python common/promote_models.py --models stt-onnx-lite
+  needs:
+    - job: train:stt:lite
+      optional: false
+  rules:
+    - changes:
+        - stt/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:stt:full:
+  stage: promote
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
+  script:
+    - python common/promote_models.py --models stt-onnx-full
+  needs:
+    - job: train:stt:full
+      optional: false
+  rules:
+    - changes:
+        - stt/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:tts:lite:
+  stage: promote
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
+  script:
+    - python common/promote_models.py --models tts-onnx-lite
+  needs:
+    - job: train:tts:lite
+      optional: false
+  rules:
+    - changes:
+        - tts/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual
+
+promote:tts:full:
+  stage: promote
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet mlflow
+  script:
+    - python common/promote_models.py --models tts-onnx-full
+  needs:
+    - job: train:tts:full
+      optional: false
+  rules:
+    - changes:
+        - tts/**/*
+        - common/**/*
+        - .gitlab-ci.yml
+      when: on_success
+    - when: manual

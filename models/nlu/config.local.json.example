@@ -1,0 +1,15 @@
+{
+  "_comment": "Local configuration overrides (copy to config.local.json and customize)",
+  "_comment2": "This file is not versioned in git - safe for local customizations",
+
+  "optimization": {
+    "pytorch_compile": false,
+    "use_tf32": true,
+    "cudnn_benchmark": true
+  },
+
+  "training": {
+    "batch_size": 48,
+    "logging_steps": 100
+  }
+}
