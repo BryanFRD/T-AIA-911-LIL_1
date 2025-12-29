@@ -3,7 +3,7 @@ package com.epitech.travelorder.nlu;
 import ai.djl.MalformedModelException;
 import ai.djl.inference.Predictor;
 import ai.djl.repository.zoo.ModelNotFoundException;
-import com.epitech.travelorder.common.ml.MLflowConfig;
+import com.epitech.travelorder.common.ml.MlFlowConfig;
 import com.epitech.travelorder.common.ml.ModelLoader;
 import com.epitech.travelorder.common.ml.ModelMetadata;
 import com.epitech.travelorder.common.ml.ModelType;
@@ -24,7 +24,7 @@ public class NLUPredictService implements INLUService {
     private Predictor<String, IntentResult> intentPredictor;
     private Predictor<String, NERResult> nerPredictor;
 
-    public NLUPredictService(MLflowConfig config) {
+    public NLUPredictService(MlFlowConfig config) {
         this.modelLoader = new ModelLoader(config);
 
         log.info("NLU Prediction Service initialized");

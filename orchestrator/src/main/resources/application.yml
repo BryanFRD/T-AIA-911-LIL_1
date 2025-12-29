@@ -1,6 +1,7 @@
 spring:
   application:
     name: travel-order-orchestrator
+    version: @project.version@
   liquibase:
     change-log: classpath:db/changelog/changelog-master.json
     enabled: true
@@ -21,3 +22,8 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+mlflow:
+  tracking-uri: https://mlflow.bryan-ferrando.fr
+  model-alias: champion
+  model-cache-dir: /tmp/djl-models

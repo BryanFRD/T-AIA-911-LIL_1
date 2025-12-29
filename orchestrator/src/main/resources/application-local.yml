@@ -14,8 +14,3 @@ spring:
   h2:
     console:
       enabled: true
-
-mlflow:
-  tracking-uri: https://mlflow.bryan-ferrando.fr
-  model-alias: latest
-  model-cache-dir: /tmp/djl-models

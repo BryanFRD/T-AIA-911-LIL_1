@@ -31,15 +31,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ModelLoader {
 
-    private final MLflowConfig config;
+    private final MlFlowConfig config;
     private final MlflowClient mlflowClient;
     private final Map<ModelType, ZooModel<?, ?>> modelCache;
     private final Map<ModelType, Path> artifactsPathCache;
     private final Map<ModelType, ModelMetadata> modelMetadataCache;
 
-    public ModelLoader(MLflowConfig config) {
+    public ModelLoader(MlFlowConfig config) {
         this.config = config;
-        BasicMlflowHostCreds creds = new BasicMlflowHostCreds(config.getTrackingUri());
+        BasicMlflowHostCreds creds = new BasicMlflowHostCreds(config.trackingUri());
         this.mlflowClient = new MlflowClient(creds);
         this.modelCache = new ConcurrentHashMap<>();
         this.artifactsPathCache = new ConcurrentHashMap<>();
@@ -47,7 +47,7 @@ public class ModelLoader {
 
         // Create model cache directory
         try {
-            Files.createDirectories(Paths.get(config.getModelCacheDir()));
+            Files.createDirectories(Paths.get(config.modelCacheDir()));
         } catch (IOException e) {
             log.error("Failed to create model cache directory", e);
         }
@@ -140,7 +140,7 @@ public class ModelLoader {
                 .orElseThrow(() -> new IOException("No .onnx file found in model artifacts"));
 
             // Copy to cache directory
-            Path cachedPath = Paths.get(config.getModelCacheDir(), modelType.getDescription() + getFileExtension(modelFile));
+            Path cachedPath = Paths.get(config.modelCacheDir(), modelType.getDescription() + getFileExtension(modelFile));
             Files.copy(modelFile, cachedPath, StandardCopyOption.REPLACE_EXISTING);
 
             log.info("Model {} version {} downloaded to {}", modelName, latestVersion.getVersion(), cachedPath);
