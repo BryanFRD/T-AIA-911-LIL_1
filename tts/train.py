@@ -108,7 +108,9 @@ def train_variant(variant: str, device: str, mini_train: bool):
             import tempfile
             from common.onnx_utils import export_pytorch_to_onnx
 
-            with tempfile.TemporaryDirectory() as tmp_dir:
+            # Create temporary directory that we'll manage manually
+            tmp_dir = tempfile.mkdtemp()
+            try:
                 onnx_path = os.path.join(tmp_dir, "tts.onnx")
 
                 success = export_pytorch_to_onnx(
@@ -140,6 +142,18 @@ def train_variant(variant: str, device: str, mini_train: bool):
                     # Also save raw ONNX file
                     mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
                     print("[OK] TTS ONNX file saved to MLflow")
+
+                # CRITICAL: Flush MLflow to ensure artifacts are uploaded before cleanup
+                if mlflow.active_run():
+                    mlflow.flush_async_logging()
+                    print("[INFO] MLflow artifacts flushed")
+
+            finally:
+                # Clean up temporary directory after MLflow has uploaded
+                if tmp_dir and os.path.exists(tmp_dir):
+                    import shutil
+                    shutil.rmtree(tmp_dir)
+                    print("[INFO] Temporary directory cleaned up")
 
             # Log tags
             mlflow.set_tag("model_type", "tts")

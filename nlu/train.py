@@ -481,48 +481,61 @@ def main():
 
         # Save NER model to MLflow immediately after training
         print("\n[INFO] Saving NER model to MLflow...")
+        tmp_dir = None
         try:
             export_formats = config.get("export", {}).get("formats", ["pytorch"])
             onnx_opset = config.get("export", {}).get("onnx_opset", 17)
 
-            # Export to ONNX only (no PyTorch/HuggingFace)
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                # ONNX export
-                if "onnx" in export_formats:
-                    onnx_path = os.path.join(tmp_dir, "ner_model.onnx")
-                    success = export_model_to_onnx(
-                        model_ner,
-                        tokenizer,
-                        onnx_path,
-                        task_type="token-classification",
-                        opset_version=onnx_opset
+            # Create temporary directory that we'll manage manually
+            tmp_dir = tempfile.mkdtemp()
+
+            # ONNX export
+            if "onnx" in export_formats:
+                onnx_path = os.path.join(tmp_dir, "ner_model.onnx")
+                success = export_model_to_onnx(
+                    model_ner,
+                    tokenizer,
+                    onnx_path,
+                    task_type="token-classification",
+                    opset_version=onnx_opset
+                )
+                if success:
+                    # Load ONNX model and log to MLflow
+                    import onnx
+                    onnx_model = onnx.load(onnx_path)
+                    mlflow.onnx.log_model(
+                        onnx_model=onnx_model,
+                        artifact_path="ner_model_onnx",
+                        registered_model_name="nlu-ner-onnx"
                     )
-                    if success:
-                        # Load ONNX model and log to MLflow
-                        import onnx
-                        onnx_model = onnx.load(onnx_path)
-                        mlflow.onnx.log_model(
-                            onnx_model=onnx_model,
-                            artifact_path="ner_model_onnx",
-                            registered_model_name="nlu-ner-onnx"
-                        )
-                        print("[OK] NER model (ONNX) logged to MLflow")
+                    print("[OK] NER model (ONNX) logged to MLflow")
 
-                        # Also save raw ONNX file
-                        mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
-                        print("[OK] NER ONNX file saved to MLflow")
+                    # Also save raw ONNX file
+                    mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
+                    print("[OK] NER ONNX file saved to MLflow")
 
-                # Save tokenizer
-                tokenizer_path = os.path.join(tmp_dir, "tokenizer")
-                tokenizer.save_pretrained(tokenizer_path)
-                mlflow.log_artifacts(tokenizer_path, artifact_path="ner_tokenizer")
-                print("[OK] NER tokenizer saved to MLflow")
+            # Save tokenizer
+            tokenizer_path = os.path.join(tmp_dir, "tokenizer")
+            tokenizer.save_pretrained(tokenizer_path)
+            mlflow.log_artifacts(tokenizer_path, artifact_path="ner_tokenizer")
+            print("[OK] NER tokenizer saved to MLflow")
+
+            # CRITICAL: Flush MLflow to ensure artifacts are uploaded before cleanup
+            if mlflow.active_run():
+                mlflow.flush_async_logging()
+                print("[INFO] MLflow artifacts flushed")
 
         except Exception as e:
             print(f"[ERROR] Failed to save NER model: {e}")
             import traceback
             traceback.print_exc()
             raise  # Re-raise to make the failure visible
+        finally:
+            # Clean up temporary directory after MLflow has uploaded
+            if tmp_dir and os.path.exists(tmp_dir):
+                import shutil
+                shutil.rmtree(tmp_dir)
+                print("[INFO] Temporary directory cleaned up")
 
         print("\n[INFO] NER training completed and saved to MLflow")
 
@@ -734,48 +747,61 @@ def main():
 
         # Save Intent model to MLflow immediately after training
         print("\n[INFO] Saving Intent model to MLflow...")
+        tmp_dir = None
         try:
             export_formats = config.get("export", {}).get("formats", ["pytorch"])
             onnx_opset = config.get("export", {}).get("onnx_opset", 17)
 
-            # Export to ONNX only (no PyTorch/HuggingFace)
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                # ONNX export
-                if "onnx" in export_formats:
-                    onnx_path = os.path.join(tmp_dir, "intent_model.onnx")
-                    success = export_model_to_onnx(
-                        model_intent,
-                        tokenizer,
-                        onnx_path,
-                        task_type="sequence-classification",
-                        opset_version=onnx_opset
+            # Create temporary directory that we'll manage manually
+            tmp_dir = tempfile.mkdtemp()
+
+            # ONNX export
+            if "onnx" in export_formats:
+                onnx_path = os.path.join(tmp_dir, "intent_model.onnx")
+                success = export_model_to_onnx(
+                    model_intent,
+                    tokenizer,
+                    onnx_path,
+                    task_type="sequence-classification",
+                    opset_version=onnx_opset
+                )
+                if success:
+                    # Load ONNX model and log to MLflow
+                    import onnx
+                    onnx_model = onnx.load(onnx_path)
+                    mlflow.onnx.log_model(
+                        onnx_model=onnx_model,
+                        artifact_path="intent_model_onnx",
+                        registered_model_name="nlu-intent-onnx"
                     )
-                    if success:
-                        # Load ONNX model and log to MLflow
-                        import onnx
-                        onnx_model = onnx.load(onnx_path)
-                        mlflow.onnx.log_model(
-                            onnx_model=onnx_model,
-                            artifact_path="intent_model_onnx",
-                            registered_model_name="nlu-intent-onnx"
-                        )
-                        print("[OK] Intent model (ONNX) logged to MLflow")
+                    print("[OK] Intent model (ONNX) logged to MLflow")
 
-                        # Also save raw ONNX file
-                        mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
-                        print("[OK] Intent ONNX file saved to MLflow")
+                    # Also save raw ONNX file
+                    mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
+                    print("[OK] Intent ONNX file saved to MLflow")
 
-                # Save tokenizer
-                tokenizer_path = os.path.join(tmp_dir, "tokenizer")
-                tokenizer.save_pretrained(tokenizer_path)
-                mlflow.log_artifacts(tokenizer_path, artifact_path="intent_tokenizer")
-                print("[OK] Intent tokenizer saved to MLflow")
+            # Save tokenizer
+            tokenizer_path = os.path.join(tmp_dir, "tokenizer")
+            tokenizer.save_pretrained(tokenizer_path)
+            mlflow.log_artifacts(tokenizer_path, artifact_path="intent_tokenizer")
+            print("[OK] Intent tokenizer saved to MLflow")
+
+            # CRITICAL: Flush MLflow to ensure artifacts are uploaded before cleanup
+            if mlflow.active_run():
+                mlflow.flush_async_logging()
+                print("[INFO] MLflow artifacts flushed")
 
         except Exception as e:
             print(f"[ERROR] Failed to save Intent model: {e}")
             import traceback
             traceback.print_exc()
             raise  # Re-raise to make the failure visible
+        finally:
+            # Clean up temporary directory after MLflow has uploaded
+            if tmp_dir and os.path.exists(tmp_dir):
+                import shutil
+                shutil.rmtree(tmp_dir)
+                print("[INFO] Temporary directory cleaned up")
 
         print("\n[INFO] Intent training completed and saved to MLflow")
 
