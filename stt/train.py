@@ -16,9 +16,12 @@ import torch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from common.mlflow_utils import setup_mlflow, start_run, log_training_config
-from common.training_utils import detect_device, print_system_info, load_config, get_machine_name
+from common.training_utils import detect_device, print_system_info, load_config, get_machine_name, load_env
 from common.onnx_utils import log_model_artifacts
 import mlflow
+
+# Load environment variables from .env (AWS credentials, MLflow config)
+load_env()
 
 
 def cleanup_mlflow():
@@ -133,7 +136,7 @@ def train_variant(variant: str, device: str, mini_train: bool):
 
                     mlflow.onnx.log_model(
                         onnx_model=onnx_model,
-                        artifact_path="stt_onnx",
+                        name="stt_onnx",
                         registered_model_name=registered_model_name
                     )
                     print(f"[OK] STT model (ONNX) logged to MLflow as {registered_model_name}")

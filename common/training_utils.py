@@ -6,7 +6,28 @@ import json
 import socket
 import platform
 import torch
+from pathlib import Path
 from typing import Dict, Tuple, Any
+
+
+def load_env():
+    """
+    Load environment variables from .env file in project root.
+    This loads AWS credentials and MLflow configuration.
+    """
+    try:
+        from dotenv import load_dotenv
+
+        # Find .env file in project root (parent of common/)
+        env_file = Path(__file__).parent.parent / ".env"
+
+        if env_file.exists():
+            load_dotenv(env_file)
+            print(f"[INFO] Environment variables loaded from {env_file}")
+        else:
+            print(f"[WARN] No .env file found at {env_file}")
+    except ImportError:
+        print("[WARN] python-dotenv not installed, skipping .env loading")
 
 
 def get_machine_name(env_var: str = "MACHINE_NAME") -> str:
