@@ -13,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NLUHealthStatus {
-
     private String status;
     private List<ModelInfo> models;
 }

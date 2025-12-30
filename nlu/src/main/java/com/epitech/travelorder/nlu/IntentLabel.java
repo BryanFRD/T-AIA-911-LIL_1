@@ -1,8 +1,13 @@
 package com.epitech.travelorder.nlu;
 
+import lombok.Getter;
+import lombok.ToString;
+
 /**
  * Intent labels for classification
  */
+@Getter
+@ToString
 public enum IntentLabel {
     TRAJET("trajet"),
     OTHER("other");
@@ -13,21 +18,12 @@ public enum IntentLabel {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
     public static IntentLabel fromString(String label) {
         for (IntentLabel intent : values()) {
             if (intent.label.equalsIgnoreCase(label)) {
                 return intent;
             }
         }
-        return OTHER; // Default fallback
-    }
-
-    @Override
-    public String toString() {
-        return label;
+        return OTHER;
     }
 }

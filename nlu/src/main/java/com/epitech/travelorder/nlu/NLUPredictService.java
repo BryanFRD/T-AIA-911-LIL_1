@@ -3,10 +3,11 @@ package com.epitech.travelorder.nlu;
 import ai.djl.MalformedModelException;
 import ai.djl.inference.Predictor;
 import ai.djl.repository.zoo.ModelNotFoundException;
-import com.epitech.travelorder.common.ml.MlFlowConfig;
-import com.epitech.travelorder.common.ml.ModelLoader;
-import com.epitech.travelorder.common.ml.ModelMetadata;
-import com.epitech.travelorder.common.ml.ModelType;
+import com.epitech.travelorder.common.model.MlFlowConfig;
+import com.epitech.travelorder.common.model.ModelLoader;
+import com.epitech.travelorder.common.model.ModelMetadata;
+import com.epitech.travelorder.common.model.ModelType;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.util.List;
 @Slf4j
 public class NLUPredictService implements INLUService {
 
+    @Getter
     private final ModelLoader modelLoader;
     private Predictor<String, IntentResult> intentPredictor;
     private Predictor<String, NERResult> nerPredictor;
@@ -30,7 +32,6 @@ public class NLUPredictService implements INLUService {
         log.info("NLU Prediction Service initialized");
         modelLoader.logAvailableEngines();
 
-        // Load models at construction
         init();
     }
 
@@ -38,53 +39,54 @@ public class NLUPredictService implements INLUService {
      * Initialize and load all models
      */
     private void init() {
-        try {
-            log.info("Loading NLU models from MLflow...");
-            loadIntentModel();
-            loadNERModel();
-            log.info("All NLU models loaded successfully");
-        } catch (Exception e) {
-            log.error("Failed to load NLU models at startup", e);
-            throw new RuntimeException("Failed to initialize NLU models", e);
-        }
+        log.info("Loading NLU models from MLflow...");
+        loadIntentModel();
+        loadNERModel();
+        log.info("NLU models initialization completed");
     }
 
     /**
      * Load the Intent Classification model
      */
-    private void loadIntentModel() throws ModelNotFoundException, IOException, MalformedModelException {
-        log.info("Loading Intent Classification model from MLflow...");
+    private void loadIntentModel() {
+        try {
+            log.info("Loading Intent Classification model from MLflow...");
 
-        // Ensure artifacts are downloaded and get the path
-        Path artifactsPath = modelLoader.ensureArtifactsDownloaded(ModelType.NLU_INTENT);
+            Path artifactsPath = modelLoader.ensureArtifactsDownloaded(ModelType.NLU_INTENT);
 
-        intentPredictor = modelLoader.createPredictor(
-            ModelType.NLU_INTENT,
-            new IntentTranslator(artifactsPath),
-            String.class,
-            IntentResult.class
-        );
+            intentPredictor = modelLoader.createPredictor(
+                ModelType.NLU_INTENT,
+                new IntentTranslator(artifactsPath),
+                String.class,
+                IntentResult.class
+            );
 
-        log.info("Intent model loaded successfully");
+            log.info("Intent model loaded successfully");
+        } catch (Exception e) {
+            log.error("Failed to load Intent model: {}", e.getMessage(), e);
+        }
     }
 
     /**
      * Load the NER model
      */
-    private void loadNERModel() throws ModelNotFoundException, IOException, MalformedModelException {
-        log.info("Loading NER model from MLflow...");
+    private void loadNERModel() {
+        try {
+            log.info("Loading NER model from MLflow...");
 
-        // Ensure artifacts are downloaded and get the path
-        Path artifactsPath = modelLoader.ensureArtifactsDownloaded(ModelType.NLU_NER);
+            Path artifactsPath = modelLoader.ensureArtifactsDownloaded(ModelType.NLU_NER);
 
-        nerPredictor = modelLoader.createPredictor(
-            ModelType.NLU_NER,
-            new NERTranslator(artifactsPath),
-            String.class,
-            NERResult.class
-        );
+            nerPredictor = modelLoader.createPredictor(
+                ModelType.NLU_NER,
+                new NERTranslator(artifactsPath),
+                String.class,
+                NERResult.class
+            );
 
-        log.info("NER model loaded successfully");
+            log.info("NER model loaded successfully");
+        } catch (Exception e) {
+            log.error("Failed to load NER model: {}", e.getMessage(), e);
+        }
     }
 
     @Override
@@ -92,10 +94,8 @@ public class NLUPredictService implements INLUService {
         try {
             log.debug("Running NLU analysis for: {}", text);
 
-            // Predict intent
             IntentResult intent = intentPredictor.predict(text);
 
-            // Extract entities
             NERResult entities = nerPredictor.predict(text);
 
             return new NLUResult(intent, entities);
@@ -109,7 +109,6 @@ public class NLUPredictService implements INLUService {
     public NLUHealthStatus getHealthStatus() {
         List<ModelInfo> models = new ArrayList<>();
 
-        // Get Intent model metadata
         ModelMetadata intentMetadata = modelLoader.getModelMetadata(ModelType.NLU_INTENT);
         if (intentMetadata != null) {
             models.add(new ModelInfo(
@@ -121,7 +120,6 @@ public class NLUPredictService implements INLUService {
             ));
         }
 
-        // Get NER model metadata
         ModelMetadata nerMetadata = modelLoader.getModelMetadata(ModelType.NLU_NER);
         if (nerMetadata != null) {
             models.add(new ModelInfo(

@@ -1,4 +1,4 @@
-package com.epitech.travelorder.common.ml;
+package com.epitech.travelorder.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

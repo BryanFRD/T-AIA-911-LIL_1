@@ -15,6 +15,10 @@ management:
     web:
       exposure:
         include: health,metrics,info
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
 
 springdoc:
   api-docs:

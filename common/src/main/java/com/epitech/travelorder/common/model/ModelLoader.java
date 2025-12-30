@@ -1,4 +1,4 @@
-package com.epitech.travelorder.common.ml;
+package com.epitech.travelorder.common.model;
 
 import ai.djl.Application;
 import ai.djl.MalformedModelException;
@@ -11,7 +11,6 @@ import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.Translator;
 import lombok.extern.slf4j.Slf4j;
 import org.mlflow.api.proto.ModelRegistry;
-import org.mlflow.api.proto.Service;
 import org.mlflow.tracking.MlflowClient;
 import org.mlflow.tracking.creds.BasicMlflowHostCreds;
 
@@ -26,7 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service for loading ML models from MLflow into DJL
+ * Service for loading ML models from MLFlow into DJL
  */
 @Slf4j
 public class ModelLoader {
@@ -36,16 +35,17 @@ public class ModelLoader {
     private final Map<ModelType, ZooModel<?, ?>> modelCache;
     private final Map<ModelType, Path> artifactsPathCache;
     private final Map<ModelType, ModelMetadata> modelMetadataCache;
+    private final Map<ModelType, ModelStatus> modelStatusCache;
 
     public ModelLoader(MlFlowConfig config) {
         this.config = config;
-        BasicMlflowHostCreds creds = new BasicMlflowHostCreds(config.trackingUri());
-        this.mlflowClient = new MlflowClient(creds);
+        BasicMlflowHostCreds mlflowHostCredentials = new BasicMlflowHostCreds(config.trackingUri());
+        this.mlflowClient = new MlflowClient(mlflowHostCredentials);
         this.modelCache = new ConcurrentHashMap<>();
         this.artifactsPathCache = new ConcurrentHashMap<>();
+        this.modelStatusCache = new ConcurrentHashMap<>();
         this.modelMetadataCache = new ConcurrentHashMap<>();
 
-        // Create model cache directory
         try {
             Files.createDirectories(Paths.get(config.modelCacheDir()));
         } catch (IOException e) {
@@ -54,12 +54,12 @@ public class ModelLoader {
     }
 
     /**
-     * Load a model from MLflow and create a DJL ZooModel
+     * Load a model from MLFlow and create a DJL ZooModel
      *
      * @param modelType The type of model to load
      * @param translator The DJL translator for input/output processing
      * @return ZooModel instance ready for inference
-     * @throws ModelNotFoundException if model cannot be found in MLflow
+     * @throws ModelNotFoundException if model cannot be found in MLFlow
      * @throws IOException if model download or loading fails
      */
     public <I, O> ZooModel<I, O> loadModel(ModelType modelType, Translator<I, O> translator, Class<I> inputClass, Class<O> outputClass)
@@ -72,15 +72,11 @@ public class ModelLoader {
             return cachedModel;
         }
 
-        log.info("Loading model {} from MLflow ({})", modelType.getDescription(), modelType.getMlflowName());
+        log.info("Loading model {} from MLFlow ({})", modelType.getDescription(), modelType.getMlflowName());
 
-        // Download model from MLflow
-        Path modelPath = downloadModelFromMLflow(modelType);
-
-        // Determine engine based on file extension
+        Path modelPath = downloadModelFromMLFlow(modelType);
         String engine = determineEngine(modelPath);
 
-        // Create DJL Criteria
         Criteria<I, O> criteria = Criteria.builder()
             .setTypes(inputClass, outputClass)
             .optModelPath(modelPath)
@@ -97,22 +93,23 @@ public class ModelLoader {
     }
 
     /**
-     * Download model from MLflow registry to local cache
+     * Download model from MLFlow registry to local cache
      */
-    private Path downloadModelFromMLflow(ModelType modelType) throws IOException {
+    private Path downloadModelFromMLFlow(ModelType modelType) throws IOException {
         String modelName = modelType.getMlflowName();
 
-        log.info("Fetching latest version of model {} from MLflow", modelName);
+        // Set status to LOADING
+        modelStatusCache.put(modelType, ModelStatus.loading(modelType));
+
+        log.info("Fetching latest version of model {} from MLFlow", modelName);
 
         try {
-            // Get latest versions of the model
             List<ModelRegistry.ModelVersion> versions = mlflowClient.getLatestVersions(modelName);
 
             if (versions.isEmpty()) {
                 throw new IOException("No versions found for model: " + modelName);
             }
 
-            // Sort by version number and get the latest
             ModelRegistry.ModelVersion latestVersion = versions.stream()
                 .max(Comparator.comparing(ModelRegistry.ModelVersion::getVersion))
                 .orElseThrow(() -> new IOException("No valid version found for model: " + modelName));
@@ -121,33 +118,45 @@ public class ModelLoader {
             String version = latestVersion.getVersion();
             log.info("Found model {} version {} (run_id: {})", modelName, version, runId);
 
-            // Cache model metadata
-            modelMetadataCache.put(modelType, new ModelMetadata(modelName, version, runId));
+            ModelMetadata metadata = new ModelMetadata(modelName, version, runId);
+            modelMetadataCache.put(modelType, metadata);
 
-            // Download model artifacts from the run using the run_id
+            log.info("Downloading artifacts for model {} from MLFlow (this may take a while for large models)...", modelName);
+            long startTime = System.currentTimeMillis();
+
             String artifactsPath = mlflowClient.downloadArtifacts(runId, "").getAbsolutePath();
             Path sourcePath = Paths.get(artifactsPath);
 
-            // Cache the artifacts path for this model type
+            long downloadTime = System.currentTimeMillis() - startTime;
             artifactsPathCache.put(modelType, sourcePath);
 
-            log.info("Downloaded model artifacts to: {}", sourcePath);
+            log.info("Downloaded model artifacts to: {} (took {}s)", sourcePath, downloadTime / 1000.0);
 
-            // Find the model file (.onnx)
-            Path modelFile = Files.walk(sourcePath)
-                .filter(p -> p.toString().endsWith(".onnx"))
-                .findFirst()
-                .orElseThrow(() -> new IOException("No .onnx file found in model artifacts"));
+            Path modelFile;
+            try (var paths = Files.walk(sourcePath)) {
+                modelFile = paths
+                    .filter(p -> p.toString().endsWith(".onnx"))
+                    .findFirst()
+                    .orElseThrow(() -> new IOException("No .onnx file found in model artifacts"));
+            }
 
-            // Copy to cache directory
+            long fileSize = Files.size(modelFile);
+            String fileSizeStr = formatFileSize(fileSize);
+
             Path cachedPath = Paths.get(config.modelCacheDir(), modelType.getDescription() + getFileExtension(modelFile));
             Files.copy(modelFile, cachedPath, StandardCopyOption.REPLACE_EXISTING);
 
-            log.info("Model {} version {} downloaded to {}", modelName, latestVersion.getVersion(), cachedPath);
+            log.info("Model {} version {} downloaded to {} (size: {})", modelName, latestVersion.getVersion(), cachedPath, fileSizeStr);
+
+            // Set status to READY
+            modelStatusCache.put(modelType, ModelStatus.ready(modelType, metadata));
+
             return cachedPath;
 
         } catch (Exception e) {
-            throw new IOException("Failed to download model from MLflow: " + e.getMessage(), e);
+            // Set status to FAILED
+            modelStatusCache.put(modelType, ModelStatus.failed(modelType, "Failed to download model"));
+            throw new IOException("Failed to download model from MLFlow: " + e.getMessage(), e);
         }
     }
 
@@ -169,6 +178,18 @@ public class ModelLoader {
         String fileName = path.getFileName().toString();
         int dotIndex = fileName.lastIndexOf('.');
         return dotIndex > 0 ? fileName.substring(dotIndex) : "";
+    }
+
+    /**
+     * Format file size in human-readable format
+     */
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        int exp = (int) (Math.log(bytes) / Math.log(1024));
+        String pre = "KMGTPE".charAt(exp - 1) + "";
+        return String.format("%.2f %sB", bytes / Math.pow(1024, exp), pre);
     }
 
     /**
@@ -230,9 +251,34 @@ public class ModelLoader {
             return cachedPath;
         }
 
-        // Download model artifacts (this will cache the path)
-        downloadModelFromMLflow(modelType);
+        downloadModelFromMLFlow(modelType);
 
         return artifactsPathCache.get(modelType);
+    }
+
+    /**
+     * Check if a model is loaded
+     * @param modelType The model type
+     * @return true if the model artifacts are cached
+     */
+    public boolean isModelLoaded(ModelType modelType) {
+        return artifactsPathCache.containsKey(modelType);
+    }
+
+    /**
+     * Get status for all model types
+     * @return Map of model type to ModelStatus
+     */
+    public Map<ModelType, ModelStatus> getAllModelStatuses() {
+        Map<ModelType, ModelStatus> statuses = new java.util.EnumMap<>(ModelType.class);
+        for (ModelType modelType : ModelType.values()) {
+            ModelStatus status = modelStatusCache.get(modelType);
+            if (status != null) {
+                statuses.put(modelType, status);
+            } else {
+                statuses.put(modelType, ModelStatus.notLoaded(modelType));
+            }
+        }
+        return statuses;
     }
 }

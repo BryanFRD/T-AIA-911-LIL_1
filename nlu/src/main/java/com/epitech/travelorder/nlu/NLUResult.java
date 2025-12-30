@@ -3,6 +3,7 @@ package com.epitech.travelorder.nlu;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Combined NLU result containing both intent and entities
@@ -10,12 +11,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class NLUResult {
     private IntentResult intent;
     private NERResult entities;
-
-    @Override
-    public String toString() {
-        return String.format("NLU Result: %s | %s", intent, entities);
-    }
 }

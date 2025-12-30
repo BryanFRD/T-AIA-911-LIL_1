@@ -26,10 +26,13 @@ WORKDIR /app
 
 RUN apt-get update && \
     apt-get install -y openjdk-21-jre-headless && \
-    pip install mlflow && \
+    pip install mlflow boto3 && \
     rm -rf /var/lib/apt/lists/*
 
-# Configuration NVIDIA pour DJL
+ENV MLFLOW_TRACKING_URI=https://mlflow.bryan-ferrando.fr
+ENV MLFLOW_S3_ENDPOINT_URL=https://minio.bryan-ferrando.fr
+ENV MLFLOW_S3_IGNORE_TLS=false
+
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV DJL_PYTORCH_DEVICE=gpu

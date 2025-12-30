@@ -36,6 +36,6 @@ public class NERResult {
         if (entities == null || entities.isEmpty()) {
             return "No entities found";
         }
-        return "Entities: " + entities.toString();
+        return "Entities: " + entities;
     }
 }

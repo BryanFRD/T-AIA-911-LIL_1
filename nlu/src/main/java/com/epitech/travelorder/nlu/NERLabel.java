@@ -1,8 +1,13 @@
 package com.epitech.travelorder.nlu;
 
+import lombok.Getter;
+import lombok.ToString;
+
 /**
  * NER labels in BIO (Begin-Inside-Outside) format
  */
+@Getter
+@ToString
 public enum NERLabel {
     // Outside
     O("O"),
@@ -41,10 +46,6 @@ public enum NERLabel {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
     /**
      * Check if this is a Begin tag
      */
@@ -73,7 +74,7 @@ public enum NERLabel {
         if (isOutside()) {
             return "O";
         }
-        return label.substring(2); // Remove "B-" or "I-"
+        return label.substring(2);
     }
 
     public static NERLabel fromString(String label) {
@@ -82,7 +83,7 @@ public enum NERLabel {
                 return nerLabel;
             }
         }
-        return O; // Default fallback
+        return O;
     }
 
     /**
@@ -132,10 +133,5 @@ public enum NERLabel {
      */
     public boolean isTransport() {
         return this == B_TRANSPORT || this == I_TRANSPORT;
-    }
-
-    @Override
-    public String toString() {
-        return label;
     }
 }

@@ -1,7 +1,8 @@
 package com.epitech.travelorder.orchestrator.config;
 
 import com.epitech.travelorder.audio.AudioService;
-import com.epitech.travelorder.common.ml.MlFlowConfig;
+import com.epitech.travelorder.audio.IAudioService;
+import com.epitech.travelorder.common.model.MlFlowConfig;
 import com.epitech.travelorder.nlu.INLUService;
 import com.epitech.travelorder.nlu.NLUPredictService;
 import com.epitech.travelorder.pathfinder.PathfinderService;
@@ -22,8 +23,14 @@ public class ServicesConfig {
     private String mlflowModelCacheDir;
 
     @Bean
-    public AudioService audioService() {
-        return new AudioService();
+    public IAudioService audioService() {
+        MlFlowConfig mlflowConfig = MlFlowConfig.builder()
+                .trackingUri(mlflowTrackingUri)
+                .modelAlias(mlflowModelAlias)
+                .modelCacheDir(mlflowModelCacheDir)
+                .build();
+
+        return new AudioService(mlflowConfig);
     }
 
     @Bean

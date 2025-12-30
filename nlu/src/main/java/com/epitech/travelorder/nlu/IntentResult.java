@@ -3,6 +3,7 @@ package com.epitech.travelorder.nlu;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Result of intent classification
@@ -10,12 +11,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class IntentResult {
     private IntentLabel intent;
     private float confidence;
-
-    @Override
-    public String toString() {
-        return String.format("Intent: %s (confidence: %.2f%%)", intent.getLabel(), confidence * 100);
-    }
 }

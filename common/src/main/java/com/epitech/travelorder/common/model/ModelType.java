@@ -1,8 +1,13 @@
-package com.epitech.travelorder.common.ml;
+package com.epitech.travelorder.common.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Enumeration of available ML models with their MLflow identifiers
  */
+@Getter
+@AllArgsConstructor
 public enum ModelType {
     NLU_INTENT("nlu-intent-onnx", "intent-classifier"),
     NLU_NER("nlu-ner-onnx", "named-entity-recognizer"),
@@ -11,17 +16,4 @@ public enum ModelType {
 
     private final String mlflowName;
     private final String description;
-
-    ModelType(String mlflowName, String description) {
-        this.mlflowName = mlflowName;
-        this.description = description;
-    }
-
-    public String getMlflowName() {
-        return mlflowName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
 }
