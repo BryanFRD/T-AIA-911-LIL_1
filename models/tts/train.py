@@ -16,9 +16,12 @@ import torch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from common.mlflow_utils import setup_mlflow, start_run, log_training_config
-from common.training_utils import detect_device, print_system_info, load_config, get_machine_name
+from common.training_utils import detect_device, print_system_info, load_config, get_machine_name, load_env
 from common.onnx_utils import log_model_artifacts
 import mlflow
+
+# Load environment variables from .env (AWS credentials, MLflow config)
+load_env()
 
 
 def cleanup_mlflow():
@@ -108,7 +111,9 @@ def train_variant(variant: str, device: str, mini_train: bool):
             import tempfile
             from common.onnx_utils import export_pytorch_to_onnx
 
-            with tempfile.TemporaryDirectory() as tmp_dir:
+            # Create temporary directory that we'll manage manually
+            tmp_dir = tempfile.mkdtemp()
+            try:
                 onnx_path = os.path.join(tmp_dir, "tts.onnx")
 
                 success = export_pytorch_to_onnx(
@@ -132,7 +137,7 @@ def train_variant(variant: str, device: str, mini_train: bool):
 
                     mlflow.onnx.log_model(
                         onnx_model=onnx_model,
-                        artifact_path="tts_onnx",
+                        name="tts_onnx",
                         registered_model_name=registered_model_name
                     )
                     print(f"[OK] TTS model (ONNX) logged to MLflow as {registered_model_name}")
@@ -140,6 +145,18 @@ def train_variant(variant: str, device: str, mini_train: bool):
                     # Also save raw ONNX file
                     mlflow.log_artifact(onnx_path, artifact_path="onnx_files")
                     print("[OK] TTS ONNX file saved to MLflow")
+
+                # CRITICAL: Flush MLflow to ensure artifacts are uploaded before cleanup
+                if mlflow.active_run():
+                    mlflow.flush_async_logging()
+                    print("[INFO] MLflow artifacts flushed")
+
+            finally:
+                # Clean up temporary directory after MLflow has uploaded
+                if tmp_dir and os.path.exists(tmp_dir):
+                    import shutil
+                    shutil.rmtree(tmp_dir)
+                    print("[INFO] Temporary directory cleaned up")
 
             # Log tags
             mlflow.set_tag("model_type", "tts")

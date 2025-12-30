@@ -1,5 +1,7 @@
 # Packages communs pour tous les modèles (NLU, STT, TTS)
 mlflow>=3.7.0
+boto3  # Required by MLflow for S3 artifact handling
+python-dotenv  # Load environment variables from .env file
 torch==2.5.1
 numpy==1.26.4
 nvidia-ml-py>=12.0.0
