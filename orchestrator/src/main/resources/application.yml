@@ -13,10 +13,13 @@ server:
     context-path: /api
 
 management:
+  server:
+    base-path: /
   endpoints:
     web:
       exposure:
         include: health,metrics,info
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
