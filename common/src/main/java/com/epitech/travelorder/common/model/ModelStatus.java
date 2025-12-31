@@ -1,44 +1,31 @@
 package com.epitech.travelorder.common.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.Instant;
 
-/**
- * Status information for a loaded model
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ModelStatus {
-    private ModelType modelType;
-    private LoadStatus status;
-    private String message;
-    private Instant lastAttempt;
-    private ModelMetadata metadata;
+import static com.epitech.travelorder.common.model.LoadStatus.FAILED;
+import static com.epitech.travelorder.common.model.LoadStatus.LOADING;
+import static com.epitech.travelorder.common.model.LoadStatus.NOT_LOADED;
+import static com.epitech.travelorder.common.model.LoadStatus.READY;
 
-    public enum LoadStatus {
-        LOADING,
-        READY,
-        FAILED,
-        NOT_LOADED
-    }
+public record ModelStatus(ModelType modelType,
+                          LoadStatus status,
+                          String message,
+                          Instant lastAttempt,
+                          ModelMetadata metadata) {
 
     public static ModelStatus loading(ModelType modelType) {
-        return new ModelStatus(modelType, LoadStatus.LOADING, "Model is loading...", Instant.now(), null);
+        return new ModelStatus(modelType, LOADING, "Model is loading...", Instant.now(), null);
     }
 
     public static ModelStatus ready(ModelType modelType, ModelMetadata metadata) {
-        return new ModelStatus(modelType, LoadStatus.READY, "Model loaded successfully", Instant.now(), metadata);
+        return new ModelStatus(modelType, READY, "Model loaded successfully", Instant.now(), metadata);
     }
 
     public static ModelStatus failed(ModelType modelType, String errorMessage) {
-        return new ModelStatus(modelType, LoadStatus.FAILED, errorMessage, Instant.now(), null);
+        return new ModelStatus(modelType, FAILED, errorMessage, Instant.now(), null);
     }
 
     public static ModelStatus notLoaded(ModelType modelType) {
-        return new ModelStatus(modelType, LoadStatus.NOT_LOADED, "Model not yet loaded", null, null);
+        return new ModelStatus(modelType, NOT_LOADED, "Model not yet loaded", null, null);
     }
 }

@@ -43,6 +43,30 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
 
+            - name: MLFLOW_TRACKING_URI
+              value: "https://mlflow.bryan-ferrando.fr"
+
+            - name: MLFLOW_TRACKING_INSECURE_TLS
+              value: "false"
+
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: "https://minio.bryan-ferrando.fr"
+
+            - name: MLFLOW_S3_IGNORE_TLS
+              value: "false"
+
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-s3-credentials
+                  key: aws-access-key-id
+
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-s3-credentials
+                  key: aws-secret-access-key
+
           resources:
             limits:
               memory: "2Gi"

@@ -1,63 +1,48 @@
 package com.epitech.travelorder.audio;
 
-import com.epitech.travelorder.common.model.MlFlowConfig;
 import com.epitech.travelorder.common.model.ModelLoader;
 import com.epitech.travelorder.common.model.ModelType;
+import com.epitech.travelorder.common.util.LogContext;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import jakarta.annotation.PostConstruct;
 
-/**
- * Audio service implementation for speech-to-text and text-to-speech
- */
+import static com.epitech.travelorder.common.util.LogContext.AUDIO;
+
 @Slf4j
-public class AudioService implements IAudioService {
+@RequiredArgsConstructor
+public class AudioService {
 
+    private static final LogContext LOG_CONTEXT = LogContext.of(AUDIO, "AudioService");
+
+    @Getter
     private final ModelLoader modelLoader;
-
-    public AudioService(MlFlowConfig mlflowConfig) {
-        this.modelLoader = new ModelLoader(mlflowConfig);
-    }
 
     @PostConstruct
     public void init() {
-        log.info("Initializing audio models...");
-        loadSTTModel();
-        loadTTSModel();
-        log.info("Audio models initialization completed");
+        log.info(LOG_CONTEXT.format("Load audio models at startup"));
+        loadModel(ModelType.STT);
+        loadModel(ModelType.TTS);
+        log.info(LOG_CONTEXT.format("Audio models loaded with success"));
     }
 
-    private void loadSTTModel() {
+    private void loadModel(ModelType modelType) {
         try {
-            log.info("Loading STT model from MLflow");
-            modelLoader.ensureArtifactsDownloaded(ModelType.STT);
-            log.info("STT model loaded successfully");
+            log.info(LOG_CONTEXT.format("Loading model: %s", modelType));
+            modelLoader.ensureArtifactsDownloaded(modelType);
+            log.info(LOG_CONTEXT.format("Model %s loaded successfully", modelType));
         } catch (Exception e) {
-            log.error("Failed to load STT model: {}", e.getMessage(), e);
+            log.error(LOG_CONTEXT.format("Failed to load model: %s", modelType), e);
         }
     }
 
-    private void loadTTSModel() {
-        try {
-            log.info("Loading TTS model from MLflow");
-            modelLoader.ensureArtifactsDownloaded(ModelType.TTS);
-            log.info("TTS model loaded successfully");
-        } catch (Exception e) {
-            log.error("Failed to load TTS model: {}", e.getMessage(), e);
-        }
-    }
-
-    @Override
     public String speechToText(byte[] audioData) {
         throw new UnsupportedOperationException("STT inference not yet implemented");
     }
 
-    @Override
     public byte[] textToSpeech(String text) {
         throw new UnsupportedOperationException("TTS inference not yet implemented");
-    }
-
-    public ModelLoader getModelLoader() {
-        return modelLoader;
     }
 }

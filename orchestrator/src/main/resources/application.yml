@@ -9,6 +9,8 @@ spring:
 server:
   port: 8080
   shutdown: graceful
+  servlet:
+    context-path: /api
 
 management:
   endpoints:

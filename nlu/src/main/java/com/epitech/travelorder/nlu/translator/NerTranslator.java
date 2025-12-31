@@ -1,57 +1,52 @@
-package com.epitech.travelorder.nlu;
+package com.epitech.travelorder.nlu.translator;
 
 import ai.djl.huggingface.tokenizers.Encoding;
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer;
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
+import ai.djl.translate.TranslatorContext;
 import com.epitech.travelorder.common.model.BaseTranslator;
+import com.epitech.travelorder.nlu.dto.NerEntity;
+import com.epitech.travelorder.nlu.dto.NerResult;
+import com.epitech.travelorder.nlu.model.NerLabel;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Translator for Named Entity Recognition model using CamemBERT tokenizer
- */
-public class NERTranslator extends BaseTranslator<String, NERResult> {
+import static com.epitech.travelorder.nlu.util.TokenizerUtils.tokenize;
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
+
+public class NerTranslator extends BaseTranslator<String, NerResult> {
 
     private static final int MAX_LENGTH = 128;
-    private static final NERLabel[] NER_LABELS = NERLabel.values();
+    private static final NerLabel[] NER_LABELS = NerLabel.values();
 
     private final HuggingFaceTokenizer tokenizer;
 
-    public NERTranslator(Path artifactsPath) {
+    public NerTranslator(Path artifactsPath) {
         try {
             Path tokenizerPath = artifactsPath.resolve("ner_tokenizer");
-            this.tokenizer = HuggingFaceTokenizer.newInstance(tokenizerPath, Map.of("maxLength", String.valueOf(MAX_LENGTH)));
+            this.tokenizer = HuggingFaceTokenizer.newInstance(
+                tokenizerPath,
+                Map.of("maxLength", String.valueOf(MAX_LENGTH))
+            );
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load tokenizer from artifacts: " + artifactsPath, e);
+            throw new RuntimeException("Failed to load tokenizer from: " + artifactsPath, e);
         }
     }
 
     @Override
-    public NDList processInput(ai.djl.translate.TranslatorContext ctx, String input) {
+    public NDList processInput(TranslatorContext ctx, String input) {
         NDManager manager = ctx.getNDManager();
         ctx.setAttachment("input_text", input);
-
-        return getNdArrays(input, manager, tokenizer);
-    }
-
-    static NDList getNdArrays(final String input, final NDManager manager, final HuggingFaceTokenizer tokenizer) {
-        Encoding encoding = tokenizer.encode(input);
-        long[] inputIds = encoding.getIds();
-        long[] attentionMask = encoding.getAttentionMask();
-
-        NDArray inputIdsTensor = manager.create(inputIds).reshape(1, inputIds.length);
-        NDArray attentionMaskTensor = manager.create(attentionMask).reshape(1, attentionMask.length);
-
-        return new NDList(inputIdsTensor, attentionMaskTensor);
+        return tokenize(input, manager, tokenizer);
     }
 
     @Override
-    public NERResult processOutput(ai.djl.translate.TranslatorContext ctx, NDList list) {
+    public NerResult processOutput(TranslatorContext ctx, NDList list) {
         NDArray output = list.singletonOrThrow();
 
         if (output.getShape().dimension() == 3) {
@@ -61,13 +56,19 @@ public class NERTranslator extends BaseTranslator<String, NERResult> {
         long[] shape = output.getShape().getShape();
         int seqLength = (int) shape[0];
 
-        List<NERResult.Entity> entities = new ArrayList<>();
-
         Encoding encoding = tokenizer.encode(ctx.getAttachment("input_text").toString());
         String[] tokens = encoding.getTokens();
 
+        List<NerEntity> entities = emptyIfNull(extractEntities(output, tokens, seqLength));
+
+        return new NerResult(entities);
+    }
+
+    private List<NerEntity> extractEntities(NDArray output, String[] tokens, int seqLength) {
+        List<NerEntity> entities = new ArrayList<>();
+
         StringBuilder currentEntity = null;
-        NERLabel currentLabel = null;
+        NerLabel currentLabel = null;
         int entityStart = -1;
         float entityConfidence = 0.0f;
 
@@ -78,13 +79,13 @@ public class NERTranslator extends BaseTranslator<String, NERResult> {
             NDArray probabilities = tokenLogits.softmax(0);
             float confidence = probabilities.getFloat(predictedLabelIdx);
 
-            NERLabel label = predictedLabelIdx < NER_LABELS.length
+            NerLabel label = predictedLabelIdx < NER_LABELS.length
                 ? NER_LABELS[predictedLabelIdx]
-                : NERLabel.O;
+                : NerLabel.O;
 
-            if (label.getLabel().startsWith("B-")) {
+            if (label.isBegin()) {
                 if (currentEntity != null) {
-                    entities.add(new NERResult.Entity(
+                    entities.add(new NerEntity(
                         currentEntity.toString().trim(),
                         currentLabel,
                         entityConfidence,
@@ -98,13 +99,13 @@ public class NERTranslator extends BaseTranslator<String, NERResult> {
                 entityStart = i;
                 entityConfidence = confidence;
 
-            } else if (label.getLabel().startsWith("I-") && currentEntity != null) {
+            } else if (label.isInside() && currentEntity != null) {
                 currentEntity.append(tokens[i].replace("▁", " "));
                 entityConfidence = Math.max(entityConfidence, confidence);
 
-            } else if (label == NERLabel.O || !label.getLabel().startsWith("I-")) {
+            } else if (label.isOutside() || !label.isInside()) {
                 if (currentEntity != null) {
-                    entities.add(new NERResult.Entity(
+                    entities.add(new NerEntity(
                         currentEntity.toString().trim(),
                         currentLabel,
                         entityConfidence,
@@ -118,7 +119,7 @@ public class NERTranslator extends BaseTranslator<String, NERResult> {
         }
 
         if (currentEntity != null) {
-            entities.add(new NERResult.Entity(
+            entities.add(new NerEntity(
                 currentEntity.toString().trim(),
                 currentLabel,
                 entityConfidence,
@@ -127,6 +128,7 @@ public class NERTranslator extends BaseTranslator<String, NERResult> {
             ));
         }
 
-        return new NERResult(entities);
+        return entities;
     }
 }
+

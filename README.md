@@ -10,6 +10,7 @@ Multi-module Maven project that processes voice commands to plan train journeys:
 - Route calculation (Pathfinding)
 - Text → Voice output (TTS)
 - REST API orchestration
+- GTFS data processing (collect SNCF travel data)
 
 ## Modules
 
@@ -19,6 +20,7 @@ travelorder-parent/
 ├── nlu/            # Natural Language Understanding (DJL)
 ├── audio/          # Text-to-Speech / Speech-to-Text
 ├── pathfinder/     # Route finding algorithms
+├── gtfs-batch/     # GTFS data processing (Spring Batch)
 └── orchestrator/   # REST API (Spring Boot)
 ```
 
