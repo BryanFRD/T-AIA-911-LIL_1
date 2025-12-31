@@ -1,4 +1,4 @@
-package com.epitech.travelorder.common.ml;
+package com.epitech.travelorder.common.model;
 
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;

@@ -1,5 +1,6 @@
 package com.epitech.travelorder.gtfs.tasklet;
 
+import com.epitech.travelorder.common.util.LogContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -31,6 +32,8 @@ public class DownloadTasklet implements Tasklet {
 
     private static final int BUFFER_SIZE = 8192;
 
+    private final LogContext LOG_CTX = LogContext.of(LogContext.GTFS, "DownloadTasklet");
+
     @Value("${gtfs.source-url}")
     private String gtfsUrl;
 
@@ -39,14 +42,14 @@ public class DownloadTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(@NonNull final StepContribution contribution, @NonNull final ChunkContext chunkContext) throws Exception {
-        log.info("Starting GTFS download from: {}", gtfsUrl);
+        log.info(LOG_CTX.format("Starting GTFS download and extraction from URL: {}", gtfsUrl));
 
         Path directory = createDirectoryIfNotExists();
         File zipFile = downloadZipFile(directory);
         extractTextFiles(zipFile, directory);
         cleanupZipFile(zipFile);
 
-        log.info("GTFS download and extraction completed successfully");
+        log.info(LOG_CTX.format("GTFS download and extraction completed successfully."));
         return RepeatStatus.FINISHED;
     }
 
@@ -59,7 +62,7 @@ public class DownloadTasklet implements Tasklet {
     private File downloadZipFile(Path directory) throws Exception {
         File zipFile = directory.resolve(ZIP_FILENAME).toFile();
 
-        log.debug("Downloading GTFS data to: {}", zipFile.getAbsolutePath());
+        log.debug(LOG_CTX.format("Downloading GTFS zip file from {}", gtfsUrl));
 
         try (InputStream in = URI.create(gtfsUrl).toURL().openStream();
              FileOutputStream out = new FileOutputStream(zipFile)) {
@@ -70,7 +73,7 @@ public class DownloadTasklet implements Tasklet {
     }
 
     private void extractTextFiles(File zipFile, Path directory) throws Exception {
-        log.debug("Extracting GTFS text files");
+        log.debug(LOG_CTX.format("Extracting text files from zip"));
 
         byte[] buffer = new byte[BUFFER_SIZE];
 
@@ -99,14 +102,14 @@ public class DownloadTasklet implements Tasklet {
             }
         }
 
-        log.debug("Extracted: {}", entry.getName());
+        log.debug(LOG_CTX.format("Extracted file: {}", outputFile.getAbsolutePath()));
     }
 
     private void cleanupZipFile(File zipFile) {
         if (zipFile.delete()) {
-            log.debug("Temporary zip file deleted");
+            log.debug(LOG_CTX.format("Deleted temporary zip file: {}", zipFile.getAbsolutePath()));
         } else {
-            log.warn("Failed to delete temporary zip file: {}", zipFile.getAbsolutePath());
+            log.warn(LOG_CTX.format("Failed to delete temporary zip file: {}", zipFile.getAbsolutePath()));
         }
     }
 }

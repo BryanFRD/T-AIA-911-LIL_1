@@ -1,5 +1,6 @@
 package com.epitech.travelorder.gtfs.tasklet;
 
+import com.epitech.travelorder.common.util.LogContext;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +18,11 @@ public class TruncateDatabaseTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final LogContext LOG_CTX = LogContext.of(LogContext.GTFS, "TruncateDatabaseTasklet");
+
     @Override
     public RepeatStatus execute(@NonNull final StepContribution contribution, @NonNull final ChunkContext chunkContext) {
-        log.info("Truncating GTFS tables before import");
+        log.info(LOG_CTX.format("Truncating GTFS tables in the database"));
 
         try {
             jdbcTemplate.execute("TRUNCATE TABLE stop_times CASCADE");
@@ -28,9 +31,10 @@ public class TruncateDatabaseTasklet implements Tasklet {
             jdbcTemplate.execute("TRUNCATE TABLE calendar_dates CASCADE");
             jdbcTemplate.execute("TRUNCATE TABLE stops CASCADE");
             jdbcTemplate.execute("TRUNCATE TABLE transfers CASCADE");
-            log.info("GTFS tables truncated successfully");
+            log.info(LOG_CTX.format("Successfully truncated GTFS tables"));
         } catch (Exception e) {
-            log.warn("Could not truncate tables (may not exist yet): {}", e.getMessage());
+            log.error(LOG_CTX.format("Error while truncating GTFS tables: {}", e.getMessage()), e);
+            throw e;
         }
 
         return RepeatStatus.FINISHED;

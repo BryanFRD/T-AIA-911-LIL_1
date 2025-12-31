@@ -17,12 +17,16 @@ cache:
     - .m2/repository
 
 check-code-style:
+  tags:
+    - home-server
   stage: lint
   script:
     - mvn checkstyle:check
   allow_failure: true
 
 run-tests:
+  tags:
+    - home-server
   stage: test
   script:
     - mvn verify
@@ -38,6 +42,8 @@ run-tests:
     expire_in: 1 hour
 
 sonarqube-analysis:
+  tags:
+    - home-server
   stage: sonarqube
   dependencies:
     - run-tests

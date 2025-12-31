@@ -20,16 +20,20 @@ COPY orchestrator/ orchestrator/
 
 RUN mvn -B clean package -DskipTests -P gpu -pl orchestrator -am
 
-FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y openjdk-21-jre-headless && \
-    pip install mlflow && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+    openjdk-21-jre-headless \
+    python3 \
+    python3-pip \
+    python-is-python3 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Configuration NVIDIA pour DJL
+RUN pip3 install --no-cache-dir mlflow boto3
+
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV DJL_PYTORCH_DEVICE=gpu

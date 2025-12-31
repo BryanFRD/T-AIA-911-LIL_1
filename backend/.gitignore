@@ -27,6 +27,11 @@ target/
 #System Files
 .DS_Store/
 
+### Environment Variables ###
+.env
+.env.local
+.env.*.local
+
 # ML Models Cache ###
 /tmp/djl-models/
 **/models/
