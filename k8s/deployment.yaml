@@ -1,78 +1,78 @@
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: travel-resolver
-    labels:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-resolver
+  labels:
+    app: travel-resolver
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
       app: travel-resolver
-  spec:
-    replicas: 1
-    strategy:
-      type: Recreate
-    selector:
-      matchLabels:
+  template:
+    metadata:
+      labels:
         app: travel-resolver
-    template:
-      metadata:
-        labels:
-          app: travel-resolver
-      spec:
-        imagePullSecrets:
-          - name: gitlab-auth
-        containers:
-          - name: travel-resolver
-            image: __ORCHESTRATOR_IMAGE__
-            imagePullPolicy: Always
-            ports:
-              - containerPort: 8080
-            env:
-              - name: SPRING_DATASOURCE_URL
-                value: "jdbc:postgresql://postgres-service:5432/travelorder"
+    spec:
+      imagePullSecrets:
+        - name: gitlab-auth
+      containers:
+        - name: travel-resolver
+          image: __ORCHESTRATOR_IMAGE__
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-service:5432/travelorder"
 
-              - name: SPRING_DATASOURCE_USERNAME
-                valueFrom:
-                  secretKeyRef:
-                    name: db-credentials
-                    key: username
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: username
 
-              - name: SPRING_DATASOURCE_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: db-credentials
-                    key: password
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
 
-              - name: SPRING_PROFILES_ACTIVE
-                value: "prod"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
 
-              - name: MLFLOW_TRACKING_URI
-                value: "https://mlflow.bryan-ferrando.fr"
+            - name: MLFLOW_TRACKING_URI
+              value: "https://mlflow.bryan-ferrando.fr"
 
-              - name: MLFLOW_TRACKING_INSECURE_TLS
-                value: "false"
+            - name: MLFLOW_TRACKING_INSECURE_TLS
+              value: "false"
 
-              - name: MLFLOW_S3_ENDPOINT_URL
-                value: "https://minio.bryan-ferrando.fr"
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: "https://minio.bryan-ferrando.fr"
 
-              - name: MLFLOW_S3_IGNORE_TLS
-                value: "false"
+            - name: MLFLOW_S3_IGNORE_TLS
+              value: "false"
 
-              - name: AWS_ACCESS_KEY_ID
-                valueFrom:
-                  secretKeyRef:
-                    name: mlflow-s3-credentials
-                    key: aws-access-key-id
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-s3-credentials
+                  key: aws-access-key-id
 
-              - name: AWS_SECRET_ACCESS_KEY
-                valueFrom:
-                  secretKeyRef:
-                    name: mlflow-s3-credentials
-                    key: aws-secret-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-s3-credentials
+                  key: aws-secret-access-key
 
-            resources:
-              limits:
-                memory: "6Gi"
-                cpu: "2000m"
-                nvidia.com/gpu: 1
-              requests:
-                memory: "2Gi"
-                cpu: "500m"
-                nvidia.com/gpu: 1
+          resources:
+            limits:
+              memory: "6Gi"
+              cpu: "2000m"
+              nvidia.com/gpu: 1
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+              nvidia.com/gpu: 1
