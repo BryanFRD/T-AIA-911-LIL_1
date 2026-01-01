@@ -2,12 +2,12 @@ package com.epitech.travelorder.nlu.dto;
 
 import com.epitech.travelorder.nlu.model.IntentLabel;
 
-public record IntentResult (
-    IntentLabel intent,
+public record Intent(
+    IntentLabel intentLabel,
     float confidence
 ) {
     @Override
     public String toString() {
-        return String.format("%s (%.2f%%)", intent.label(), confidence * 100);
+        return String.format("%s (%.2f%%)", intentLabel, confidence * 100);
     }
 }

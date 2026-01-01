@@ -4,14 +4,14 @@ import com.epitech.travelorder.nlu.model.NerLabel;
 
 public record NerEntity(
     String text,
-    NerLabel label,
+    NerLabel nerLabel,
     float confidence,
     int start,
     int end
 ) {
     @Override
     public String toString() {
-        return String.format("%s (%s, %.2f%%)", text, label.label(), confidence * 100);
+        return String.format("%s (%s, %.2f%%)", text, nerLabel.label(), confidence * 100);
     }
 }
 

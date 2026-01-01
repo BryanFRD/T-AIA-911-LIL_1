@@ -1,6 +1,6 @@
 package com.epitech.travelorder.orchestrator.health;
 
-import com.epitech.travelorder.audio.AudioService;
+import com.epitech.travelorder.common.model.ModelLoader;
 import com.epitech.travelorder.common.model.ModelMetadata;
 import com.epitech.travelorder.common.model.ModelStatus;
 import com.epitech.travelorder.common.model.ModelType;
@@ -24,11 +24,11 @@ public class ModelsHealthIndicator implements HealthIndicator {
 
     private static final LogContext LOG_CTX = LogContext.of(LogContext.ORCH, "ModelsHealth");
 
-    private final AudioService audioService;
+    private final ModelLoader modelLoader;
 
     @Override
     public Health health() {
-        Map<ModelType, ModelStatus> modelStatuses = audioService.getModelLoader().getAllModelStatuses();
+        Map<ModelType, ModelStatus> modelStatuses = modelLoader.getAllModelStatuses();
 
         Map<String, Object> details = new HashMap<>();
         int readyCount = 0;
@@ -49,15 +49,15 @@ public class ModelsHealthIndicator implements HealthIndicator {
         }
 
         details.put("summary", Map.of(
-            "total", totalCount,
-            "ready", readyCount,
-            "failed", failedCount
+                "total", totalCount,
+                "ready", readyCount,
+                "failed", failedCount
         ));
 
         Health health = determineHealth(readyCount, totalCount, details);
 
         log.debug(LOG_CTX.format("Health check: %s (%d/%d models ready)",
-            health.getStatus(), readyCount, totalCount));
+                health.getStatus(), readyCount, totalCount));
 
         return health;
     }

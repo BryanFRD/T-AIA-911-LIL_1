@@ -42,7 +42,7 @@ public class DownloadTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(@NonNull final StepContribution contribution, @NonNull final ChunkContext chunkContext) throws Exception {
-        log.info(LOG_CTX.format("Starting GTFS download and extraction from URL: {}", gtfsUrl));
+        log.info(LOG_CTX.format("Starting GTFS download and extraction from URL: %s", gtfsUrl));
 
         Path directory = createDirectoryIfNotExists();
         File zipFile = downloadZipFile(directory);
@@ -62,7 +62,7 @@ public class DownloadTasklet implements Tasklet {
     private File downloadZipFile(Path directory) throws Exception {
         File zipFile = directory.resolve(ZIP_FILENAME).toFile();
 
-        log.debug(LOG_CTX.format("Downloading GTFS zip file from {}", gtfsUrl));
+        log.debug(LOG_CTX.format("Downloading GTFS zip file from %s", gtfsUrl));
 
         try (InputStream in = URI.create(gtfsUrl).toURL().openStream();
              FileOutputStream out = new FileOutputStream(zipFile)) {
@@ -102,14 +102,14 @@ public class DownloadTasklet implements Tasklet {
             }
         }
 
-        log.debug(LOG_CTX.format("Extracted file: {}", outputFile.getAbsolutePath()));
+        log.debug(LOG_CTX.format("Extracted file: %s", outputFile.getAbsolutePath()));
     }
 
     private void cleanupZipFile(File zipFile) {
         if (zipFile.delete()) {
-            log.debug(LOG_CTX.format("Deleted temporary zip file: {}", zipFile.getAbsolutePath()));
+            log.debug(LOG_CTX.format("Deleted temporary zip file: %s", zipFile.getAbsolutePath()));
         } else {
-            log.warn(LOG_CTX.format("Failed to delete temporary zip file: {}", zipFile.getAbsolutePath()));
+            log.warn(LOG_CTX.format("Failed to delete temporary zip file: %s", zipFile.getAbsolutePath()));
         }
     }
 }

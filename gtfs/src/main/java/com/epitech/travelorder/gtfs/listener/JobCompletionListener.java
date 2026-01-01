@@ -18,7 +18,7 @@ public class JobCompletionListener implements JobExecutionListener {
         if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
             log.info(LOG_CTX.format("Job has completed successfully."));
         } else {
-            log.error(LOG_CTX.format("Job has failed with status: {}", jobExecution.getStatus()));
+            log.error(LOG_CTX.format("Job has failed with status: %s", jobExecution.getStatus()));
             jobExecution.getAllFailureExceptions().forEach(exception ->
                     log.error("Exception during job execution: ", exception));
         }

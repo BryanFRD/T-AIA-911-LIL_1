@@ -8,7 +8,7 @@ import ai.djl.ndarray.NDManager;
 import ai.djl.translate.TranslatorContext;
 import com.epitech.travelorder.common.model.BaseTranslator;
 import com.epitech.travelorder.nlu.dto.NerEntity;
-import com.epitech.travelorder.nlu.dto.NerResult;
+import com.epitech.travelorder.nlu.dto.Ner;
 import com.epitech.travelorder.nlu.model.NerLabel;
 
 import java.nio.file.Path;
@@ -19,7 +19,7 @@ import java.util.Map;
 import static com.epitech.travelorder.nlu.util.TokenizerUtils.tokenize;
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
-public class NerTranslator extends BaseTranslator<String, NerResult> {
+public class NerTranslator extends BaseTranslator<String, Ner> {
 
     private static final int MAX_LENGTH = 128;
     private static final NerLabel[] NER_LABELS = NerLabel.values();
@@ -46,7 +46,7 @@ public class NerTranslator extends BaseTranslator<String, NerResult> {
     }
 
     @Override
-    public NerResult processOutput(TranslatorContext ctx, NDList list) {
+    public Ner processOutput(TranslatorContext ctx, NDList list) {
         NDArray output = list.singletonOrThrow();
 
         if (output.getShape().dimension() == 3) {
@@ -61,7 +61,7 @@ public class NerTranslator extends BaseTranslator<String, NerResult> {
 
         List<NerEntity> entities = emptyIfNull(extractEntities(output, tokens, seqLength));
 
-        return new NerResult(entities);
+        return new Ner(entities);
     }
 
     private List<NerEntity> extractEntities(NDArray output, String[] tokens, int seqLength) {

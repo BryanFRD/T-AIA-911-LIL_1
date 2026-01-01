@@ -5,27 +5,29 @@ import com.epitech.travelorder.common.model.MlFlowConfig;
 import com.epitech.travelorder.common.model.ModelLoader;
 import com.epitech.travelorder.nlu.service.NluPredictService;
 import com.epitech.travelorder.pathfinder.PathfinderService;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
+@ConfigurationProperties(prefix = "mlflow")
+@Getter
+@Setter
 public class InternalBeanConfig {
 
-    @Value("${mlflow.tracking-uri}")
-    private String mlflowTrackingUri;
-
-    @Value("${mlflow.model-alias}")
-    private String mlflowModelAlias;
-
-    @Value("${mlflow.model-cache-dir}")
-    private String mlflowModelCacheDir;
+    private String trackingUri;
+    private String modelAlias;
+    private String modelCacheDir;
 
     @Bean
     protected MlFlowConfig mlFlowConfig() {
-        return new MlFlowConfig(mlflowTrackingUri, mlflowModelAlias, mlflowModelCacheDir);
+        log.info("Configuring MlFlow with trackingUri: {}, modelAlias: {}, modelCacheDir: {}",
+                trackingUri, modelAlias, modelCacheDir);
+        return new MlFlowConfig(trackingUri, modelAlias, modelCacheDir);
     }
 
     @Bean

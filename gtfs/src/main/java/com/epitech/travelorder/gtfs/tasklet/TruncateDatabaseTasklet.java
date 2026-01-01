@@ -33,7 +33,7 @@ public class TruncateDatabaseTasklet implements Tasklet {
             jdbcTemplate.execute("TRUNCATE TABLE transfers CASCADE");
             log.info(LOG_CTX.format("Successfully truncated GTFS tables"));
         } catch (Exception e) {
-            log.error(LOG_CTX.format("Error while truncating GTFS tables: {}", e.getMessage()), e);
+            log.error(LOG_CTX.format("Error while truncating GTFS tables: %s", e.getMessage()), e);
             throw e;
         }
 

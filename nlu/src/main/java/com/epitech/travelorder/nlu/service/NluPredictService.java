@@ -5,11 +5,11 @@ import com.epitech.travelorder.common.model.ModelLoader;
 import com.epitech.travelorder.common.model.ModelMetadata;
 import com.epitech.travelorder.common.model.ModelType;
 import com.epitech.travelorder.common.util.LogContext;
-import com.epitech.travelorder.nlu.dto.IntentResult;
+import com.epitech.travelorder.nlu.dto.Intent;
 import com.epitech.travelorder.nlu.dto.ModelInfo;
-import com.epitech.travelorder.nlu.dto.NerResult;
-import com.epitech.travelorder.nlu.dto.NluHealthStatus;
-import com.epitech.travelorder.nlu.dto.NluResult;
+import com.epitech.travelorder.nlu.dto.Ner;
+import com.epitech.travelorder.nlu.dto.NluStatus;
+import com.epitech.travelorder.nlu.dto.Nlu;
 import com.epitech.travelorder.nlu.translator.IntentTranslator;
 import com.epitech.travelorder.nlu.translator.NerTranslator;
 import lombok.Getter;
@@ -33,9 +33,9 @@ public class NluPredictService {
     @Getter
     private final ModelLoader modelLoader;
 
-    private Predictor<String, IntentResult> intentPredictor;
+    private Predictor<String, Intent> intentPredictor;
 
-    private Predictor<String, NerResult> nerPredictor;
+    private Predictor<String, Ner> nerPredictor;
 
     public NluPredictService(ModelLoader modelLoader) {
         this.modelLoader = modelLoader;
@@ -60,7 +60,7 @@ public class NluPredictService {
                     ModelType.NLU_INTENT,
                     new IntentTranslator(artifactsPath),
                     String.class,
-                    IntentResult.class
+                    Intent.class
             );
 
             log.info(LOG_CTX_MODEL.format("Intent model loaded successfully"));
@@ -79,7 +79,7 @@ public class NluPredictService {
                     ModelType.NLU_NER,
                     new NerTranslator(artifactsPath),
                     String.class,
-                    NerResult.class
+                    Ner.class
             );
 
             log.info(LOG_CTX_MODEL.format("NER model loaded successfully"));
@@ -88,7 +88,7 @@ public class NluPredictService {
         }
     }
 
-    public NluResult predict(String text) {
+    public Nlu predict(String text) {
         if (text == null || text.isBlank()) {
             log.warn(LOG_CTX_PREDICT.format("Empty or null text provided"));
             return null;
@@ -102,10 +102,10 @@ public class NluPredictService {
         try {
             log.debug(LOG_CTX_PREDICT.format("Running NLU analysis for text: '%s'", text));
 
-            IntentResult intent = intentPredictor.predict(text);
-            NerResult entities = nerPredictor.predict(text);
+            Intent intent = intentPredictor.predict(text);
+            Ner entities = nerPredictor.predict(text);
 
-            NluResult result = new NluResult(intent, entities);
+            Nlu result = new Nlu(intent, entities);
             log.debug(LOG_CTX_PREDICT.format("Analysis completed: %s", result));
 
             return result;
@@ -115,14 +115,14 @@ public class NluPredictService {
         }
     }
 
-    public NluHealthStatus healthStatus() {
+    public NluStatus healthStatus() {
         List<ModelInfo> models = new ArrayList<>();
 
         ModelMetadata intentMetadata = modelLoader.getModelMetadata(ModelType.NLU_INTENT);
         if (intentMetadata != null) {
             models.add(new ModelInfo(
                     intentMetadata.modelName(),
-                    "intent-classification",
+                    "intentLabel-classification",
                     intentMetadata.version(),
                     intentMetadata.runId(),
                     intentPredictor != null
@@ -143,7 +143,7 @@ public class NluPredictService {
         String status = (intentPredictor != null && nerPredictor != null) ? "healthy" : "degraded";
         log.debug(LOG_CTX_HEALTH.format("Health check: %s (%d models)", status, models.size()));
 
-        return new NluHealthStatus(status, models);
+        return new NluStatus(status, models);
     }
 
     public void close() {

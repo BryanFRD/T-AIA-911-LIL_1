@@ -9,8 +9,6 @@ spring:
 server:
   port: 8080
   shutdown: graceful
-  servlet:
-    context-path: /api
 
 management:
   server:
@@ -36,3 +34,11 @@ mlflow:
   tracking-uri: https://mlflow.bryan-ferrando.fr
   model-alias: champion
   model-cache-dir: /tmp/djl-models
+cors:
+  allowed-origins: "*"
+  allowed-methods:
+    - POST
+    - OPTIONS
+  allowed-headers: "*"
+  max-age: 3600
+
