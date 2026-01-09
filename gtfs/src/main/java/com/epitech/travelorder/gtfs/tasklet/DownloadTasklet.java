@@ -1,6 +1,6 @@
 package com.epitech.travelorder.gtfs.tasklet;
 
-import com.epitech.travelorder.common.util.LogContext;
+import com.epitech.travelorder.common.infrastructure.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -32,7 +32,7 @@ public class DownloadTasklet implements Tasklet {
 
     private static final int BUFFER_SIZE = 8192;
 
-    private final LogContext LOG_CTX = LogContext.of(LogContext.GTFS, "DownloadTasklet");
+    private final Log LOG_CTX = Log.of(Log.GTFS, "DownloadTasklet");
 
     @Value("${gtfs.source-url}")
     private String gtfsUrl;

@@ -1,21 +1,21 @@
 package com.epitech.travelorder.audio;
 
-import com.epitech.travelorder.common.model.ModelLoader;
-import com.epitech.travelorder.common.model.ModelType;
-import com.epitech.travelorder.common.util.LogContext;
+import com.epitech.travelorder.common.domain.mlflow.ModelLoader;
+import com.epitech.travelorder.common.domain.enumeration.ModelType;
+import com.epitech.travelorder.common.infrastructure.Log;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.epitech.travelorder.common.model.ModelType.STT;
-import static com.epitech.travelorder.common.model.ModelType.TTS;
-import static com.epitech.travelorder.common.util.LogContext.AUDIO;
+import static com.epitech.travelorder.common.domain.enumeration.ModelType.STT;
+import static com.epitech.travelorder.common.domain.enumeration.ModelType.TTS;
+import static com.epitech.travelorder.common.infrastructure.Log.AUDIO;
 
 @Slf4j
 @RequiredArgsConstructor
 public class AudioService {
 
-    private static final LogContext LOG_CONTEXT = LogContext.of(AUDIO, "AudioService");
+    private static final Log LOG_CONTEXT = Log.of(AUDIO, "AudioService");
 
     private final ModelLoader modelLoader;
 

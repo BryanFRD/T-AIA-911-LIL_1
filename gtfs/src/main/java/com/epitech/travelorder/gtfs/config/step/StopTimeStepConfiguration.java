@@ -1,6 +1,6 @@
 package com.epitech.travelorder.gtfs.config.step;
 
-import com.epitech.travelorder.common.entity.StopTime;
+import com.epitech.travelorder.common.domain.gtfs.StopTime;
 import com.epitech.travelorder.gtfs.processor.StopTimeProcessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Step;

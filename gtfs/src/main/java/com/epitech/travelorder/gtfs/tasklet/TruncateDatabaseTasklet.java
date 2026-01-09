@@ -1,6 +1,6 @@
 package com.epitech.travelorder.gtfs.tasklet;
 
-import com.epitech.travelorder.common.util.LogContext;
+import com.epitech.travelorder.common.infrastructure.Log;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ public class TruncateDatabaseTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final LogContext LOG_CTX = LogContext.of(LogContext.GTFS, "TruncateDatabaseTasklet");
+    private final Log LOG_CTX = Log.of(Log.GTFS, "TruncateDatabaseTasklet");
 
     @Override
     public RepeatStatus execute(@NonNull final StepContribution contribution, @NonNull final ChunkContext chunkContext) {

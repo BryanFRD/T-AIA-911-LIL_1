@@ -5,9 +5,9 @@ import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
 import ai.djl.translate.TranslatorContext;
-import com.epitech.travelorder.common.model.BaseTranslator;
-import com.epitech.travelorder.nlu.dto.Intent;
-import com.epitech.travelorder.nlu.model.IntentLabel;
+import com.epitech.travelorder.common.domain.mlflow.BaseTranslator;
+import com.epitech.travelorder.common.domain.nlu.intent.Intent;
+import com.epitech.travelorder.common.domain.enumeration.IntentLabel;
 
 import java.nio.file.Path;
 import java.util.Map;
