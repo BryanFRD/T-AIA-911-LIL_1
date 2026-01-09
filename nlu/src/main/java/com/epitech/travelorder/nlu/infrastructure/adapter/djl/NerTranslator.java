@@ -1,4 +1,4 @@
-package com.epitech.travelorder.nlu.translator;
+package com.epitech.travelorder.nlu.infrastructure.adapter.djl;
 
 import ai.djl.huggingface.tokenizers.Encoding;
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.epitech.travelorder.nlu.util.TokenizerUtils.tokenize;
+import static com.epitech.travelorder.nlu.infrastructure.util.TokenizerUtils.tokenize;
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
 public class NerTranslator extends BaseTranslator<String, Ner> {

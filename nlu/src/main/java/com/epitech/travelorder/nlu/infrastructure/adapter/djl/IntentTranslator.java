@@ -1,4 +1,4 @@
-package com.epitech.travelorder.nlu.translator;
+package com.epitech.travelorder.nlu.infrastructure.adapter.djl;
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer;
 import ai.djl.ndarray.NDArray;
@@ -12,7 +12,7 @@ import com.epitech.travelorder.common.domain.enumeration.IntentLabel;
 import java.nio.file.Path;
 import java.util.Map;
 
-import static com.epitech.travelorder.nlu.util.TokenizerUtils.tokenize;
+import static com.epitech.travelorder.nlu.infrastructure.util.TokenizerUtils.tokenize;
 
 public class IntentTranslator extends BaseTranslator<String, Intent> {
 

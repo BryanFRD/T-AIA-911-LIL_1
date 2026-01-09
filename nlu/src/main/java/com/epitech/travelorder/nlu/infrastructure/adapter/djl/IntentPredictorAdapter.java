@@ -6,7 +6,6 @@ import com.epitech.travelorder.common.domain.enumeration.ModelType;
 import com.epitech.travelorder.common.domain.nlu.intent.Intent;
 import com.epitech.travelorder.common.infrastructure.Log;
 import com.epitech.travelorder.nlu.domain.port.out.IntentPredictorPort;
-import com.epitech.travelorder.nlu.translator.IntentTranslator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;

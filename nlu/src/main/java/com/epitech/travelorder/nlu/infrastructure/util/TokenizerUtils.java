@@ -1,4 +1,4 @@
-package com.epitech.travelorder.nlu.util;
+package com.epitech.travelorder.nlu.infrastructure.util;
 
 import ai.djl.huggingface.tokenizers.Encoding;
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer;
