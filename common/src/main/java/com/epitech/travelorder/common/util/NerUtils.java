@@ -29,7 +29,6 @@ public class NerUtils {
         for (var entity : entities) {
             var label = entity.nerLabel();
 
-            // Check if continuation (Inside tag matching current type)
             boolean isContinuation = currentType != null
                     && label.isInside()
                     && label.entityType().equals(currentType.entityType());
@@ -54,7 +53,6 @@ public class NerUtils {
             }
         }
 
-        // Flush remaining buffer
         if (currentType != null) {
             addEntityToMap(extractedData, currentType.entityType(), currentBuffer.toString());
         }
