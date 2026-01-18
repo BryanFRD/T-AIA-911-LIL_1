@@ -1,6 +1,6 @@
 package com.epitech.travelorder.gtfs.tasklet;
 
-import com.epitech.travelorder.common.infrastructure.Log;
+import com.epitech.travelorder.common.util.LogUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,10 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
+
+import static com.epitech.travelorder.common.util.LogUtils.GTFS;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -18,23 +22,38 @@ public class TruncateDatabaseTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final Log LOG_CTX = Log.of(Log.GTFS, "TruncateDatabaseTasklet");
+    private final LogUtils LOG_CTX = LogUtils.of(GTFS, "TruncateDatabaseTasklet");
 
     @Override
     public RepeatStatus execute(@NonNull final StepContribution contribution, @NonNull final ChunkContext chunkContext) {
         log.info(LOG_CTX.format("Truncating GTFS tables in the database"));
 
         try {
-            jdbcTemplate.execute("TRUNCATE TABLE stop_times CASCADE");
-            jdbcTemplate.execute("TRUNCATE TABLE trips CASCADE");
-            jdbcTemplate.execute("TRUNCATE TABLE routes CASCADE");
-            jdbcTemplate.execute("TRUNCATE TABLE calendar_dates CASCADE");
-            jdbcTemplate.execute("TRUNCATE TABLE stops CASCADE");
-            jdbcTemplate.execute("TRUNCATE TABLE transfers CASCADE");
+            DataSource dataSource = jdbcTemplate.getDataSource();
+            if (dataSource == null) {
+                log.error(LOG_CTX.format("DataSource is null, cannot truncate tables"));
+                return RepeatStatus.FINISHED;
+            }
+
+            String databaseProductName = dataSource.getConnection().getMetaData().getDatabaseProductName();
+            boolean isPostgreSQL = "postgresql".equalsIgnoreCase(databaseProductName);
+
+            if (isPostgreSQL) {
+                log.debug(LOG_CTX.format("Using PostgreSQL TRUNCATE CASCADE syntax"));
+                jdbcTemplate.execute("TRUNCATE TABLE stop_times, trips, calendar_dates, transfers, routes, stops CASCADE");
+            } else {
+                log.debug(LOG_CTX.format("Using H2-compatible DELETE FROM syntax"));
+                jdbcTemplate.execute("DELETE FROM stop_times");
+                jdbcTemplate.execute("DELETE FROM trips");
+                jdbcTemplate.execute("DELETE FROM calendar_dates");
+                jdbcTemplate.execute("DELETE FROM transfers");
+                jdbcTemplate.execute("DELETE FROM routes");
+                jdbcTemplate.execute("DELETE FROM stops");
+            }
+
             log.info(LOG_CTX.format("Successfully truncated GTFS tables"));
         } catch (Exception e) {
-            log.error(LOG_CTX.format("Error while truncating GTFS tables: %s", e.getMessage()), e);
-            throw e;
+            log.warn(LOG_CTX.format("Could not truncate tables (maybe they don't exist yet): %s", e.getMessage()));
         }
 
         return RepeatStatus.FINISHED;

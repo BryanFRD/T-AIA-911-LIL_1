@@ -1,17 +1,19 @@
 package com.epitech.travelorder.gtfs.listener;
 
-import com.epitech.travelorder.common.infrastructure.Log;
+import com.epitech.travelorder.common.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
+import static com.epitech.travelorder.common.util.LogUtils.GTFS;
+
 @Slf4j
 @Component
 public class JobCompletionListener implements JobExecutionListener {
 
-    private final Log LOG_CTX = Log.of(Log.GTFS, "JobCompletionListener");
+    private final LogUtils LOG_CTX = LogUtils.of(GTFS, "JobCompletionListener");
 
     @Override
     public void afterJob(JobExecution jobExecution) {

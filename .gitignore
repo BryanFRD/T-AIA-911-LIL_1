@@ -38,3 +38,8 @@ target/
 *.pt
 *.pth
 *.onnx
+
+### H2 Database Local ###
+data/
+*.mv.db
+*.trace.db

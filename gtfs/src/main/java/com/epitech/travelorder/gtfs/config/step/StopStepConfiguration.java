@@ -1,6 +1,6 @@
 package com.epitech.travelorder.gtfs.config.step;
 
-import com.epitech.travelorder.common.domain.gtfs.Stop;
+import com.epitech.travelorder.common.domain.sncf.Stop;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobRepository;

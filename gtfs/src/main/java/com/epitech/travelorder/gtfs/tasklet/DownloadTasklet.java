@@ -1,6 +1,6 @@
 package com.epitech.travelorder.gtfs.tasklet;
 
-import com.epitech.travelorder.common.infrastructure.Log;
+import com.epitech.travelorder.common.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -22,6 +22,8 @@ import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static com.epitech.travelorder.common.util.LogUtils.GTFS;
+
 @Slf4j
 @Component
 public class DownloadTasklet implements Tasklet {
@@ -32,7 +34,7 @@ public class DownloadTasklet implements Tasklet {
 
     private static final int BUFFER_SIZE = 8192;
 
-    private final Log LOG_CTX = Log.of(Log.GTFS, "DownloadTasklet");
+    private final LogUtils LOG_CTX = LogUtils.of(GTFS, "DownloadTasklet");
 
     @Value("${gtfs.source-url}")
     private String gtfsUrl;

@@ -3,15 +3,24 @@ spring:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:h2:mem:travelorder;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    url: jdbc:h2:file:./data/gtfs-shared;AUTO_SERVER=TRUE;MODE=PostgreSQL
     driver-class-name: org.h2.Driver
     username: sa
     password:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  batch:
+    jdbc:
+      initialize-schema: always
 
 logging:
   level:
