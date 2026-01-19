@@ -5,14 +5,14 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import static com.epitech.travelorder.gtfs.util.TimeFormatter.formatStopTime;
+import static com.epitech.travelorder.gtfs.util.TimeFormatterUtils.formatStopTime;
 
 @Component
 public class StopTimeProcessor implements ItemProcessor<StopTime, StopTime> {
 
     @Override
     public StopTime process(@NonNull StopTime stopTime) {
-        if (isInvalid(stopTime)) {
+        if (isStopTimeInvalid(stopTime)) {
             return null;
         }
 
@@ -22,7 +22,7 @@ public class StopTimeProcessor implements ItemProcessor<StopTime, StopTime> {
         return stopTime;
     }
 
-    private boolean isInvalid(StopTime stopTime) {
+    private boolean isStopTimeInvalid(StopTime stopTime) {
         return stopTime.getTripId() == null || stopTime.getStopId() == null;
     }
 }

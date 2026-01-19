@@ -1,16 +1,22 @@
 package com.epitech.travelorder.gtfs.util;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
-public final class TimeFormatter {
+public final class TimeFormatterUtils {
 
     private static final String TIME_SEPARATOR = ":";
+
     private static final int HOURS_IN_DAY = 24;
 
+    /**
+     * In SNCF GTFS data, stop times can exceed 24 hours (e.g., "25:30:00").
+     *
+     * @param time the stop time string in the format "HH:MM:SS"
+     * @return the formatted stop time string
+     */
     public static String formatStopTime(String time) {
         if (time == null || time.isBlank()) {
             return time;
