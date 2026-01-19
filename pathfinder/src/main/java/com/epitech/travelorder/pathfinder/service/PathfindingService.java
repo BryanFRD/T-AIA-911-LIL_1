@@ -34,7 +34,7 @@ public class PathfindingService {
             return "No route found: destination not found.";
         }
 
-        // for now we just take the first matching stops
+        // for now, we just take the first matching stops
         Stop originStop = origins.getFirst();
         Stop destinationStop = destinations.getFirst();
 
