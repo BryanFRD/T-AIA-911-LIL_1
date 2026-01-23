@@ -1,9 +1,8 @@
-package com.epitech.travelorder.orchestrator.service;
+package com.epitech.travelorder.orchestrator.service.module;
 
 import com.epitech.travelorder.common.domain.nlu.Nlu;
 import com.epitech.travelorder.nlu.service.NluService;
 import com.epitech.travelorder.orchestrator.config.exception.business.IncompleteTravelRequestException;
-import com.epitech.travelorder.orchestrator.config.exception.technical.InternalServiceDown;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +14,8 @@ public class OrchestratorNluService {
 
     private final NluService nluService;
 
-    public Nlu analyze(String text) {
-        return ofNullable(nluService.analyze(text))
-                .orElseThrow(() -> new IncompleteTravelRequestException("Failed to analyze the text for NLU."));
+    public Nlu getUnderstandingCustomerPath(String customerRequest) {
+        return ofNullable(nluService.understand(customerRequest))
+                .orElseThrow(() -> new IncompleteTravelRequestException("NLU could not understand the customer request"));
     }
-
 }

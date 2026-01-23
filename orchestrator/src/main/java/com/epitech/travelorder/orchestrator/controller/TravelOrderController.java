@@ -1,10 +1,10 @@
 package com.epitech.travelorder.orchestrator.controller;
 
-import com.epitech.travelorder.orchestrator.dto.PathRequest;
-import com.epitech.travelorder.orchestrator.dto.TranscribeRequest;
-import com.epitech.travelorder.orchestrator.dto.TranscribeResponse;
-import com.epitech.travelorder.orchestrator.service.OrchestratorAudioService;
-import com.epitech.travelorder.orchestrator.service.OrchestratorPathfindingService;
+import com.epitech.travelorder.common.dto.CustomerTravelSolution;
+import com.epitech.travelorder.orchestrator.controller.dto.CustomerPathRequest;
+import com.epitech.travelorder.orchestrator.controller.dto.TranscribeRequest;
+import com.epitech.travelorder.orchestrator.controller.dto.TranscribeResponse;
+import com.epitech.travelorder.orchestrator.service.OrchestratorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +23,17 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 @RequiredArgsConstructor
 public class TravelOrderController {
 
-    private final OrchestratorAudioService orchestratorAudioService;
-    private final OrchestratorPathfindingService orchestratorPathfindingService;
+    private final OrchestratorService orchestratorService;
 
     @PostMapping(value = "/transcribe", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TranscribeResponse> transcribeAudio(@Valid @ModelAttribute TranscribeRequest request) throws IOException {
-        String transcribedText = orchestratorAudioService.transcribe(request.audio().getBytes());
+        String transcribedText = orchestratorService.transcribeAudio(request.audio().getBytes());
         return ResponseEntity.ok(new TranscribeResponse(transcribedText));
     }
 
-    @PostMapping("/find")
-    public ResponseEntity<String> findPathForCustomer(@Valid @RequestBody PathRequest request) {
-        String path = orchestratorPathfindingService.findPath(request.customerPath());
-        return ResponseEntity.ok(path);
+    @PostMapping("/find-solution")
+    public ResponseEntity<CustomerTravelSolution> findCustomerSolution(@Valid @RequestBody CustomerPathRequest request) {
+        CustomerTravelSolution solution = orchestratorService.findCustomerSolution(request);
+        return ResponseEntity.ok(solution);
     }
 }

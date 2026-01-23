@@ -88,7 +88,7 @@ public class NluService {
         }
     }
 
-    public Nlu predict(String text) {
+    public Nlu understand(String text) {
         if (text == null || text.isBlank()) {
             log.warn(LOG_CTX_PREDICT.format("Empty or null text provided"));
             return null;
@@ -113,10 +113,6 @@ public class NluService {
             log.error(LOG_CTX_PREDICT.format("Prediction failed: %s", e.getMessage()), e);
             return null;
         }
-    }
-
-    public Nlu analyze(String text) {
-        return predict(text);
     }
 
     public NluStatus healthStatus() {

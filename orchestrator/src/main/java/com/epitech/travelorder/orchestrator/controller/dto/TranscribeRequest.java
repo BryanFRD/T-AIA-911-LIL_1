@@ -1,4 +1,4 @@
-package com.epitech.travelorder.orchestrator.dto;
+package com.epitech.travelorder.orchestrator.controller.dto;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.web.multipart.MultipartFile;

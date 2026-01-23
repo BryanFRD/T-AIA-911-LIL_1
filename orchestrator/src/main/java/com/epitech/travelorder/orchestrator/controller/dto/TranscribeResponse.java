@@ -1,4 +1,4 @@
-package com.epitech.travelorder.orchestrator.dto;
+package com.epitech.travelorder.orchestrator.controller.dto;
 
 public record TranscribeResponse(
         String transcribedText

@@ -4,16 +4,22 @@ import com.epitech.travelorder.common.domain.enumeration.NerLabel;
 import com.epitech.travelorder.common.domain.nlu.ner.NerEntity;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
+
+import static java.time.LocalDateTime.now;
+import static java.util.Collections.emptyMap;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 @Slf4j
 @UtilityClass
 public class NerUtils {
 
     public static Map<String, List<String>> groupEntitiesByType(List<NerEntity> entities) {
-        if (entities == null || entities.isEmpty()) {
-            return Collections.emptyMap();
+        if (isEmpty(entities)) {
+            return emptyMap();
         }
 
         Map<String, List<String>> extractedData = new HashMap<>();
@@ -53,6 +59,15 @@ public class NerUtils {
 
         flushEntity(extractedData, currentEntityType, currentBuffer);
         return extractedData;
+    }
+
+    public static LocalDateTime extractDateTime(String dateTimeStr) {
+        try {
+            return LocalDateTime.parse(dateTimeStr);
+        } catch (Exception e) {
+            log.warn("Failed to parse dateTime: {}", dateTimeStr, e);
+            return now();
+        }
     }
 
     private static void flushEntity(Map<String, List<String>> map, String type, StringBuilder buffer) {

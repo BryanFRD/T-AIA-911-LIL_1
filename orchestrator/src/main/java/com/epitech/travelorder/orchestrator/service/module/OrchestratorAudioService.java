@@ -1,4 +1,4 @@
-package com.epitech.travelorder.orchestrator.service;
+package com.epitech.travelorder.orchestrator.service.module;
 
 import com.epitech.travelorder.audio.AudioService;
 import com.epitech.travelorder.common.util.LogUtils;
@@ -14,16 +14,13 @@ import static com.epitech.travelorder.common.util.LogUtils.AUDIO;
 @RequiredArgsConstructor
 public class OrchestratorAudioService {
 
-    private static final LogUtils LOG_CTX = LogUtils.of(AUDIO, "OrchestratorAudioService");
-
     private final AudioService audioService;
 
     public String transcribe(byte[] audioData) {
         try {
             return audioService.speechToText(audioData);
         } catch (Exception e) {
-            log.error(LOG_CTX.format("Failed to transcribe audio"), e);
-            throw new AudioProcessingException("Audio transcription failed", e);
+            throw new AudioProcessingException("Failed to transcribe audio", e);
         }
     }
 }
