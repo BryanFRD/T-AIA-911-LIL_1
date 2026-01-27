@@ -6,10 +6,10 @@ import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
 import ai.djl.translate.TranslatorContext;
-import com.epitech.travelorder.common.domain.enumeration.NerLabel;
-import com.epitech.travelorder.common.domain.mlflow.BaseTranslator;
-import com.epitech.travelorder.common.domain.nlu.ner.Ner;
-import com.epitech.travelorder.common.domain.nlu.ner.NerEntity;
+import com.epitech.travelorder.common.enumeration.NerLabel;
+import com.epitech.travelorder.common.nlu.mlflow.BaseTranslator;
+import com.epitech.travelorder.nlu.model.ner.Ner;
+import com.epitech.travelorder.nlu.model.ner.NerEntity;
 import com.epitech.travelorder.nlu.util.TokenizerUtils;
 
 import java.nio.file.Path;

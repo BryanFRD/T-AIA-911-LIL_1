@@ -8,16 +8,17 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
+        "com.epitech.travelorder.common",
         "com.epitech.travelorder.orchestrator",
         "com.epitech.travelorder.pathfinder",
         "com.epitech.travelorder.nlu",
         "com.epitech.travelorder.audio"
 })
 @EnableJpaRepositories(basePackages = {
-        "com.epitech.travelorder.pathfinder.repository",
+        "com.epitech.travelorder.common.repository",
 })
 @EntityScan(basePackages = {
-        "com.epitech.travelorder.common.domain.sncf"
+        "com.epitech.travelorder.common.db"
 })
 public class OrchestratorApplication {
 

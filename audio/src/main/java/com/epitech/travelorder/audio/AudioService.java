@@ -1,13 +1,13 @@
 package com.epitech.travelorder.audio;
 
-import com.epitech.travelorder.common.domain.enumeration.ModelType;
-import com.epitech.travelorder.common.domain.mlflow.ModelLoader;
+import com.epitech.travelorder.common.enumeration.ModelType;
+import com.epitech.travelorder.common.nlu.ModelLoader;
 import com.epitech.travelorder.common.util.LogUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.epitech.travelorder.common.domain.enumeration.ModelType.STT;
-import static com.epitech.travelorder.common.domain.enumeration.ModelType.TTS;
+import static com.epitech.travelorder.common.enumeration.ModelType.STT;
+import static com.epitech.travelorder.common.enumeration.ModelType.TTS;
 import static com.epitech.travelorder.common.util.LogUtils.AUDIO;
 
 @Slf4j

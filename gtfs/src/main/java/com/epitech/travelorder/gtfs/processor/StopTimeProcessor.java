@@ -1,6 +1,6 @@
 package com.epitech.travelorder.gtfs.processor;
 
-import com.epitech.travelorder.common.domain.sncf.StopTime;
+import com.epitech.travelorder.common.db.StopTime;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;

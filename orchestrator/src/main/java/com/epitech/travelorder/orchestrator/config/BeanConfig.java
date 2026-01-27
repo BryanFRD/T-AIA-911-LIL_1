@@ -1,10 +1,9 @@
 package com.epitech.travelorder.orchestrator.config;
 
 import com.epitech.travelorder.audio.AudioService;
-import com.epitech.travelorder.common.domain.mlflow.MlFlowConfig;
-import com.epitech.travelorder.common.domain.mlflow.ModelLoader;
+import com.epitech.travelorder.common.nlu.mlflow.MlFlowConfig;
+import com.epitech.travelorder.common.nlu.ModelLoader;
 import com.epitech.travelorder.nlu.service.NluService;
-import com.epitech.travelorder.pathfinder.service.PathfindingService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,9 @@ import org.springframework.context.annotation.Configuration;
 public class BeanConfig {
 
     private String trackingUri;
+
     private String modelAlias;
+
     private String modelCacheDir;
 
     @Bean
@@ -41,5 +42,7 @@ public class BeanConfig {
     }
 
     @Bean
-    public NluService nluService(ModelLoader modelLoader) { return new NluService(modelLoader);}
+    public NluService nluService(ModelLoader modelLoader) {
+        return new NluService(modelLoader);
+    }
 }

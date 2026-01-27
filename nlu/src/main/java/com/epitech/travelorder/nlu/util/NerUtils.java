@@ -1,10 +1,9 @@
 package com.epitech.travelorder.nlu.util;
 
-import com.epitech.travelorder.common.domain.enumeration.NerLabel;
-import com.epitech.travelorder.common.domain.nlu.ner.NerEntity;
+import com.epitech.travelorder.common.enumeration.NerLabel;
+import com.epitech.travelorder.nlu.model.ner.NerEntity;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;

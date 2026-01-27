@@ -1,6 +1,6 @@
 package com.epitech.travelorder.orchestrator.service.module;
 
-import com.epitech.travelorder.common.domain.nlu.Nlu;
+import com.epitech.travelorder.nlu.model.Nlu;
 import com.epitech.travelorder.nlu.service.NluService;
 import com.epitech.travelorder.orchestrator.config.exception.business.IncompleteTravelRequestException;
 import lombok.RequiredArgsConstructor;

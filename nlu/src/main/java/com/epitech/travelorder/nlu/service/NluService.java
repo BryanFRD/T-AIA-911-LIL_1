@@ -1,14 +1,14 @@
 package com.epitech.travelorder.nlu.service;
 
 import ai.djl.inference.Predictor;
-import com.epitech.travelorder.common.domain.mlflow.ModelLoader;
-import com.epitech.travelorder.common.domain.mlflow.ModelMetadata;
-import com.epitech.travelorder.common.domain.enumeration.ModelType;
-import com.epitech.travelorder.common.domain.nlu.Nlu;
-import com.epitech.travelorder.common.domain.nlu.NluModelInfo;
-import com.epitech.travelorder.common.domain.nlu.NluStatus;
-import com.epitech.travelorder.common.domain.nlu.intent.Intent;
-import com.epitech.travelorder.common.domain.nlu.ner.Ner;
+import com.epitech.travelorder.common.nlu.ModelLoader;
+import com.epitech.travelorder.common.nlu.mlflow.ModelMetadata;
+import com.epitech.travelorder.common.enumeration.ModelType;
+import com.epitech.travelorder.nlu.model.Nlu;
+import com.epitech.travelorder.nlu.model.NluModelInfo;
+import com.epitech.travelorder.nlu.model.NluStatus;
+import com.epitech.travelorder.nlu.model.intent.Intent;
+import com.epitech.travelorder.nlu.model.ner.Ner;
 import com.epitech.travelorder.common.util.LogUtils;
 import com.epitech.travelorder.nlu.translator.IntentTranslator;
 import com.epitech.travelorder.nlu.translator.NerTranslator;

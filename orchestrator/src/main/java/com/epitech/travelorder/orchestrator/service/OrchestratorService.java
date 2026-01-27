@@ -1,6 +1,6 @@
 package com.epitech.travelorder.orchestrator.service;
 
-import com.epitech.travelorder.common.domain.nlu.Nlu;
+import com.epitech.travelorder.nlu.model.Nlu;
 import com.epitech.travelorder.common.dto.CustomerTravelSolution;
 import com.epitech.travelorder.common.dto.RouteQuery;
 import com.epitech.travelorder.orchestrator.controller.dto.CustomerPathRequest;

@@ -1,7 +1,7 @@
 package com.epitech.travelorder.orchestrator.mapper;
 
-import com.epitech.travelorder.common.domain.nlu.Nlu;
-import com.epitech.travelorder.common.domain.nlu.ner.Ner;
+import com.epitech.travelorder.nlu.model.Nlu;
+import com.epitech.travelorder.nlu.model.ner.Ner;
 import com.epitech.travelorder.common.dto.RouteQuery;
 import com.epitech.travelorder.nlu.util.NerUtils;
 import com.epitech.travelorder.orchestrator.config.exception.business.IncompleteTravelRequestException;

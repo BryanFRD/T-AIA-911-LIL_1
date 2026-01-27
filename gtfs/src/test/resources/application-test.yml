@@ -1,0 +1,10 @@
+wiremock:
+  server:
+    port: 8089
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  liquibase:
+    enabled: false

@@ -1,9 +1,9 @@
 package com.epitech.travelorder.orchestrator.config.health;
 
-import com.epitech.travelorder.common.domain.mlflow.ModelLoader;
-import com.epitech.travelorder.common.domain.mlflow.ModelMetadata;
-import com.epitech.travelorder.common.domain.mlflow.ModelStatus;
-import com.epitech.travelorder.common.domain.enumeration.ModelType;
+import com.epitech.travelorder.common.nlu.ModelLoader;
+import com.epitech.travelorder.common.nlu.mlflow.ModelMetadata;
+import com.epitech.travelorder.common.nlu.mlflow.ModelStatus;
+import com.epitech.travelorder.common.enumeration.ModelType;
 import com.epitech.travelorder.common.util.LogUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.epitech.travelorder.common.domain.enumeration.LoadStatus.FAILED;
-import static com.epitech.travelorder.common.domain.enumeration.LoadStatus.READY;
+import static com.epitech.travelorder.common.enumeration.LoadStatus.FAILED;
+import static com.epitech.travelorder.common.enumeration.LoadStatus.READY;
 import static com.epitech.travelorder.common.util.LogUtils.ORCHESTRATOR;
 
 @Slf4j
