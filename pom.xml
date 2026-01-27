@@ -223,6 +223,25 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>org/testcontainers/**</exclude>
+                        <exclude>**/sun/util/resources/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
