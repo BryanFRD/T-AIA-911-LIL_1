@@ -234,11 +234,20 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <configuration>
                     <excludes>
                         <exclude>org/testcontainers/**</exclude>
+                        <exclude>**/com/github/dockerjava/**</exclude>
                         <exclude>**/sun/util/resources/**</exclude>
+                        <exclude>**/jdk/internal/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
