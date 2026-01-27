@@ -11,8 +11,6 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
   ORCHESTRATOR_IMG: $CI_REGISTRY_IMAGE/orchestrator
   GTFS_IMG: $CI_REGISTRY_IMAGE/gtfs
-  DOCKER_API_VERSION: "1.44"
-  TESTCONTAINERS_DOCKER_CLIENT_STRATEGY: "org.testcontainers.dockerclient.UnixSocketClientProviderStrategy"
 
 cache:
   paths:
