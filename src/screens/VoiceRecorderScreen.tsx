@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, Text, TouchableOpacity, Animated, Dimensions } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { Mic, ArrowUpFromDot } from "lucide-react-native";
+import { Mic, ArrowUpFromDot, Navigation } from "lucide-react-native";
 import WaveBars from "../components/audio/AudioWave";
 
 export default function VoiceRecorderScreen() {
   const [isRecording, setIsRecording] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [localisation, setLocalisation] = useState<string | null>("Paris, France");
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const modalAnim = useRef(new Animated.Value(0)).current;
 
   const screenWidth = Dimensions.get("window").width;
@@ -13,6 +16,24 @@ export default function VoiceRecorderScreen() {
   const modalPadding = 16;
 
   const iconSize: number = 24;
+
+  useEffect(() => {
+    if (isRecording) {
+      intervalRef.current = setInterval(() => {
+        setTimer((s) => s + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isRecording]);
+
+  useEffect(() => {
+    if (!isRecording) {
+      setTimer(0);
+    }
+  });
 
   useEffect(() => {
     Animated.spring(modalAnim, {
@@ -27,6 +48,14 @@ export default function VoiceRecorderScreen() {
     setIsRecording(!isRecording);
   };
 
+  const formatTime = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
   const modalWidth = modalAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [buttonSize + modalPadding * 2, screenWidth - 32],
@@ -35,13 +64,24 @@ export default function VoiceRecorderScreen() {
   return (
     <View className="flex-1">
       <StatusBar style="light" />
-
-      <View className="flex-1 justify-center items-center px-4">
+      <View className="flex-1 justify-center items-center px-4 gap-2">
         <Text className="text-black font-bold text-2xl">Travel Order Resolver</Text>
-        <Text className="text-black text-2xl mb-8">Voice Recorder</Text>
+        <Text className="text-black text-2xl ">Voice Recorder</Text>
+
+        {localisation && (
+          <View className=" text-center items-center mb-4 flex-row justify-center gap-2">
+            <Navigation size={20} color="black" className="self-center mb-1" />
+            <Text className="text-black text-center font-medium py-2 text-lg">{localisation}</Text>
+          </View>
+        )}
       </View>
 
-      <View className="py-8 items-center">
+      {isRecording && (
+        <View>
+          <Text className="text-black text-center font-bold py-2 text-2xl">{formatTime(timer)}</Text>
+        </View>
+      )}
+      <View className="pb-8 items-center">
         <Animated.View
           className={`py-2 rounded-full flex-row items-center justify-center overflow-hidden ${isRecording ? "bg-blue-500" : "border-2 border-black"}`}
           style={{ width: modalWidth }}
