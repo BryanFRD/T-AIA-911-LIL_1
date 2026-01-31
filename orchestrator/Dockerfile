@@ -42,6 +42,8 @@ ENV DJL_CACHE_DIR=/app/.djl_cache
 
 COPY --from=builder /app/orchestrator/target/orchestrator-*.jar app.jar
 
+COPY audiomodels/ audiomodels/
+
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
