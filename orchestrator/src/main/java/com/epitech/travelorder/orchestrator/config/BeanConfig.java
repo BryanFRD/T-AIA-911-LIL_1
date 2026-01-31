@@ -1,8 +1,8 @@
 package com.epitech.travelorder.orchestrator.config;
 
 import com.epitech.travelorder.audio.AudioService;
-import com.epitech.travelorder.common.nlu.mlflow.MlFlowConfig;
 import com.epitech.travelorder.common.nlu.ModelLoader;
+import com.epitech.travelorder.common.nlu.mlflow.MlFlowConfig;
 import com.epitech.travelorder.nlu.service.NluService;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,10 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.vosk.Model;
 
 @Slf4j
 @Configuration
-@ConfigurationProperties(prefix = "mlflow")
+@ConfigurationProperties(prefix = "bean-config")
 @Getter
 @Setter
 public class BeanConfig {
@@ -23,6 +24,17 @@ public class BeanConfig {
     private String modelAlias;
 
     private String modelCacheDir;
+
+    private String voskResourcePath;
+
+    @Bean
+    public Model voskModel() {
+        try {
+            return new Model(voskResourcePath);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load Vosk model from path: " + voskResourcePath, e);
+        }
+    }
 
     @Bean
     public MlFlowConfig mlFlowConfig() {
@@ -37,8 +49,8 @@ public class BeanConfig {
     }
 
     @Bean
-    public AudioService audioService(ModelLoader modelLoader) {
-        return new AudioService(modelLoader);
+    public AudioService audioService(Model voskModel) {
+        return new AudioService(voskModel);
     }
 
     @Bean

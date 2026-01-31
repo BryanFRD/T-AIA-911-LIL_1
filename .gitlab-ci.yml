@@ -35,7 +35,6 @@ run-tests:
       junit:
         - "*/target/surefire-reports/*.xml"
     paths:
-      - "*/target/site/jacoco/jacoco.xml"
       - "*/target/surefire-reports/*.xml"
       - "*/target/classes/**"
       - "*/target/*.jar"
