@@ -39,6 +39,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV DJL_PYTORCH_DEVICE=gpu
 ENV DJL_ENGINE=PyTorch
 ENV DJL_CACHE_DIR=/app/.djl_cache
+ENV JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8"
 
 COPY --from=builder /app/orchestrator/target/orchestrator-*.jar app.jar
 
@@ -46,4 +47,4 @@ COPY audiomodels/ audiomodels/
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dfile.encoding=UTF-8", "-jar", "app.jar"]
