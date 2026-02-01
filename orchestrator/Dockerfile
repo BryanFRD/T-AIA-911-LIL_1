@@ -30,16 +30,23 @@ RUN apt-get update && \
     python3 \
     python3-pip \
     python-is-python3 \
+    locales \
+    && locale-gen fr_FR.UTF-8 \
+    && update-locale LANG=fr_FR.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir mlflow boto3
 
+ENV LANG=fr_FR.UTF-8
+ENV LANGUAGE=fr_FR:fr
+ENV LC_ALL=fr_FR.UTF-8
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV DJL_PYTORCH_DEVICE=gpu
 ENV DJL_ENGINE=PyTorch
 ENV DJL_CACHE_DIR=/app/.djl_cache
-ENV JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8"
+ENV JNA_ENCODING=UTF-8
+ENV JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Djna.encoding=UTF-8"
 
 COPY --from=builder /app/orchestrator/target/orchestrator-*.jar app.jar
 
@@ -47,4 +54,4 @@ COPY audiomodels/ audiomodels/
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Dfile.encoding=UTF-8", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dfile.encoding=UTF-8", "-Djna.encoding=UTF-8", "-jar", "app.jar"]
