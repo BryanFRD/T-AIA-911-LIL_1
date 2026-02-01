@@ -6,9 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.charset.StandardCharsets;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static lombok.AccessLevel.PRIVATE;
 
 @Slf4j
@@ -20,13 +17,9 @@ public final class AudioExtractorUtils {
 
     public static String extractTextFromModelResponse(String json) {
         try {
-            byte[] jsonBytes = json.getBytes(UTF_8);
-            String utf8Json = new String(jsonBytes, UTF_8);
-
-            JsonNode node = MAPPER.readTree(utf8Json);
+            JsonNode node = MAPPER.readTree(json);
             if (node.hasNonNull(TEXT_FIELD)) {
-                String text = node.get(TEXT_FIELD).asText();
-                return new String(text.getBytes(UTF_8), UTF_8);
+                return node.get(TEXT_FIELD).asText();
             }
             log.warn("The 'text' field is missing in Vosk response");
             return "";

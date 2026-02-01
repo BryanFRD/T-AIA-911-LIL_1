@@ -11,8 +11,12 @@ import org.vosk.Model;
 import org.vosk.Recognizer;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import static com.epitech.travelorder.common.util.LogUtils.AUDIO;
+import static java.util.Locale.US;
+import static java.util.Locale.getDefault;
+import static java.util.Locale.setDefault;
 
 @Slf4j
 @Service
@@ -46,15 +50,23 @@ public class AudioService {
     }
 
     private String runInference(byte[] pcmData) throws IOException {
-        try (Recognizer recognizer = new Recognizer(voskModel, 16000)) {
-            recognizer.setMaxAlternatives(0);
-            recognizer.setWords(true);
+        Locale originalLocale = getDefault();
+        try {
+            setDefault(US);
 
-            if (recognizer.acceptWaveForm(pcmData, pcmData.length)) {
-                return recognizer.getResult();
-            } else {
-                return recognizer.getFinalResult();
+            try (Recognizer recognizer = new Recognizer(voskModel, 16000)) {
+                recognizer.setMaxAlternatives(0);
+                recognizer.setWords(true);
+
+                if (recognizer.acceptWaveForm(pcmData, pcmData.length)) {
+                    return recognizer.getResult();
+                } else {
+                    return recognizer.getFinalResult();
+                }
             }
+        } finally {
+            // Restore original locale
+            setDefault(originalLocale);
         }
     }
 

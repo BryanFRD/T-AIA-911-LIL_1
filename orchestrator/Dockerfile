@@ -31,15 +31,15 @@ RUN apt-get update && \
     python3-pip \
     python-is-python3 \
     locales \
-    && locale-gen fr_FR.UTF-8 \
-    && update-locale LANG=fr_FR.UTF-8 \
+    && locale-gen en_US.UTF-8 \
+    && update-locale LANG=en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir mlflow boto3
 
-ENV LANG=fr_FR.UTF-8
-ENV LANGUAGE=fr_FR:fr
-ENV LC_ALL=fr_FR.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV DJL_PYTORCH_DEVICE=gpu
