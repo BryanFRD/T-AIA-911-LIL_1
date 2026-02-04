@@ -103,7 +103,7 @@ public class DirectJourneyExecutor implements RuleExecutor {
                                     routeQuery.departureTime().toLocalDate()
                             );
 
-                            travelProposals.add(TravelProposalMapper.INSTANCE.mapTravelProposal(solutionBo));
+                            travelProposals.add(TravelProposalMapper.INSTANCE.convert(solutionBo));
                         }
                     }
                 }

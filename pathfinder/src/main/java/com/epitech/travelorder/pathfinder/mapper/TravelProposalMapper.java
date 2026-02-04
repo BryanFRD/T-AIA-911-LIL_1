@@ -24,7 +24,7 @@ public interface TravelProposalMapper {
     @Mapping(target = "arrivalTime", source = ".", qualifiedByName = "mapArrivalTime")
     @Mapping(target = "travelTime", source = ".", qualifiedByName = "mapTravelTime")
     @Mapping(target = "legs", source = ".", qualifiedByName = "mapLegs")
-    TravelProposal mapTravelProposal(DirectTravelSolution solution);
+    TravelProposal convert(DirectTravelSolution solution);
 
     @Named("mapDepartureTime")
     default LocalDateTime mapDepartureTime(DirectTravelSolution solution) {
