@@ -16,7 +16,7 @@ public class MultiStopJourneyExecutor implements RuleExecutor {
 
     @Override
     public CustomerTravelSolution execute(RouteQuery query) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return null;
     }
 
     @Override

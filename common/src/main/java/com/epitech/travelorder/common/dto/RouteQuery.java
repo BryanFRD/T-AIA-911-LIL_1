@@ -6,6 +6,7 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static java.time.LocalDateTime.now;
 import static java.util.Collections.emptyList;
 import static java.util.List.copyOf;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -20,18 +21,19 @@ public record RouteQuery(
 
     public RouteQuery {
         vias = isEmpty(vias) ? emptyList() : copyOf(vias);
+        departureTime = (departureTime == null || departureTime.isBefore(now()))
+                ? now()
+                : departureTime;
     }
 
     public boolean hasOrigin() {
         return isNotEmpty(origin);
     }
 
+    public boolean hasDestination() { return isNotEmpty(destination);}
+
     public boolean hasVias() {
         return !isEmpty(vias);
-    }
-
-    public boolean hasDepartureTime() {
-        return departureTime != null;
     }
 }
 

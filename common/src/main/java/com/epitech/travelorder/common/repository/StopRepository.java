@@ -6,18 +6,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface StopRepository extends JpaRepository<Stop, String> {
 
-    List<Stop> findAllByStopNameContainingIgnoreCase(String stopName);
+    @Query("SELECT s FROM Stop s WHERE LOWER(s.stopName) LIKE LOWER(CONCAT('%', :stopName, '%')) AND (s.parentStation IS NULL OR s.parentStation = '')")
+    Set<Stop> findAllByStopNameContainingIgnoreCaseAndParentStationEmpty(@Param("stopName") String stopName);
 
-    // (x - a)² + (y - b)² is minimized when the point (x, y) is closest to (a, b)
     @Query(value = """
-        SELECT * FROM stops 
-        ORDER BY (POWER(stop_lat - :lat, 2) + POWER(stop_lon - :lon, 2)) ASC 
+        SELECT * FROM stops
+        ORDER BY (POWER(stop_lat - :lat, 2) + POWER(stop_lon - :lon, 2)) ASC
         LIMIT 1
     """, nativeQuery = true)
     Optional<Stop> findNearestStation(@Param("lat") Double lat, @Param("lon") Double lon);
