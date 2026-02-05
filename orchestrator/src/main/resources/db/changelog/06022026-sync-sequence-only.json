@@ -23,10 +23,10 @@
         "author": "Arthur",
         "dbms": "postgresql",
         "preConditions": {
-          "onFail": "MARK_RAN",
+          "onFail": "CONTINUE",
           "sqlCheck": {
             "expectedResult": "1",
-            "sql": "SELECT EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'stop_times_id_seq')"
+            "sql": "SELECT COUNT(*) FROM pg_sequences WHERE sequencename = 'stop_times_id_seq'"
           }
         },
         "changes": [
@@ -37,7 +37,7 @@
           }
         ],
         "rollback": "",
-        "comment": "Verify PostgreSQL sequence exists (will be marked as ran if already exists)"
+        "comment": "Verify PostgreSQL sequence exists (no-op if already exists)"
       }
     }
   ]
