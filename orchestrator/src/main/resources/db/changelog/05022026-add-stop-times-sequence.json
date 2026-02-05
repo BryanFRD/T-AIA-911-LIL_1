@@ -2,14 +2,21 @@
   "databaseChangeLog": [
     {
       "changeSet": {
-        "id": "fix-stop-times-sequence-2026-02-05",
+        "id": "fix-stop-times-sequence-2026-02-05-v2",
         "author": "Arthur",
         "comment": "Fix missing stop_times_id_seq sequence in production",
         "dbms": "postgresql",
         "changes": [
           {
             "sql": {
-              "sql": "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'stop_times_id_seq' AND relkind = 'S') THEN CREATE SEQUENCE stop_times_id_seq START WITH 1 INCREMENT BY 1; PERFORM setval('stop_times_id_seq', COALESCE((SELECT MAX(id) FROM stop_times), 0) + 1, false); END IF; END $$;"
+              "sql": "CREATE SEQUENCE IF NOT EXISTS stop_times_id_seq START WITH 1 INCREMENT BY 1;",
+              "endDelimiter": ";"
+            }
+          },
+          {
+            "sql": {
+              "sql": "SELECT setval('stop_times_id_seq', GREATEST(COALESCE((SELECT MAX(id) FROM stop_times), 0) + 1, 1), false);",
+              "endDelimiter": ";"
             }
           }
         ]
