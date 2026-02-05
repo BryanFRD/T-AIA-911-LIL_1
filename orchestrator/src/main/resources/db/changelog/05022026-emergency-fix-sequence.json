@@ -1,0 +1,43 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "recreate-missing-sequence-prod-fix",
+        "author": "Arthur",
+        "changes": [
+          {
+            "createSequence": {
+              "sequenceName": "stop_times_id_seq",
+              "dataType": "bigint",
+              "incrementBy": 1,
+              "startValue": 1
+            }
+          },
+          {
+            "sql": {
+              "dbms": "postgresql",
+              "sql": "SELECT setval('stop_times_id_seq', COALESCE((SELECT MAX(id) FROM stop_times), 1));"
+            }
+          },
+          {
+            "addDefaultValue": {
+              "tableName": "stop_times",
+              "columnName": "id",
+              "defaultValueSequenceNext": "stop_times_id_seq"
+            }
+          }
+        ],
+        "preConditions": [
+          {
+            "onFail": "MARK_RAN",
+            "not": {
+              "sequenceExists": {
+                "sequenceName": "stop_times_id_seq"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
