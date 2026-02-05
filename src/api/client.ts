@@ -28,7 +28,7 @@ if (config.env.isDevelopment) {
       return response;
     },
     (error) => {
-      console.error("[API Response Error]", error.response?.status, error.message);
+      console.error("[API Response Error]", error.response?.status, error);
       return Promise.reject(error);
     },
   );

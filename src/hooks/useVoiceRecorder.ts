@@ -1,5 +1,63 @@
 import { useState, useRef, useEffect } from "react";
 import { Audio } from "expo-av";
+import { Platform } from "react-native";
+
+// Configuration pour enregistrer en format WAV
+const getRecordingOptions = () => {
+  if (Platform.OS === "ios") {
+    return {
+      android: {
+        extension: ".wav",
+        outputFormat: Audio.AndroidOutputFormat.DEFAULT,
+        audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+        sampleRate: 44100,
+        numberOfChannels: 1,
+        bitRate: 128000,
+      },
+      ios: {
+        extension: ".wav",
+        outputFormat: Audio.IOSOutputFormat.LINEARPCM,
+        audioQuality: Audio.IOSAudioQuality.HIGH,
+        sampleRate: 44100,
+        numberOfChannels: 1,
+        bitRate: 128000,
+        linearPCMBitDepth: 16,
+        linearPCMIsBigEndian: false,
+        linearPCMIsFloat: false,
+      },
+      web: {
+        mimeType: "audio/wav",
+        bitsPerSecond: 128000,
+      },
+    };
+  } else {
+    return {
+      android: {
+        extension: ".wav",
+        outputFormat: Audio.AndroidOutputFormat.DEFAULT,
+        audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+        sampleRate: 44100,
+        numberOfChannels: 1,
+        bitRate: 128000,
+      },
+      ios: {
+        extension: ".wav",
+        outputFormat: Audio.IOSOutputFormat.LINEARPCM,
+        audioQuality: Audio.IOSAudioQuality.HIGH,
+        sampleRate: 44100,
+        numberOfChannels: 1,
+        bitRate: 128000,
+        linearPCMBitDepth: 16,
+        linearPCMIsBigEndian: false,
+        linearPCMIsFloat: false,
+      },
+      web: {
+        mimeType: "audio/wav",
+        bitsPerSecond: 128000,
+      },
+    };
+  }
+};
 
 export function useVoiceRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -30,10 +88,12 @@ export function useVoiceRecorder() {
         playsInSilentModeIOS: true,
       });
 
-      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      const recordingOptions = getRecordingOptions();
+      const { recording } = await Audio.Recording.createAsync(recordingOptions);
 
       recordingRef.current = recording;
       setIsRecording(true);
+      console.log("Enregistrement WAV terminé, prêt à être envoyé pour transcription");
     } catch (err) {
       console.error("Erreur au démarrage:", err);
     }
@@ -77,7 +137,7 @@ export function useVoiceRecorder() {
         allowsRecordingIOS: false,
       });
 
-      console.log("Enregistrement sauvegardé:", uri);
+      console.log("Enregistrement audio sauvegardé:", uri);
       return uri;
     } catch (err) {
       console.error("Erreur à l'arrêt:", err);

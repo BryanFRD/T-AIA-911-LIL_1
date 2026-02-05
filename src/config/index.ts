@@ -1,9 +1,5 @@
 import { API_BASE_URL, API_TIMEOUT, NODE_ENV } from "@env";
 
-/**
- * Configuration centralisée de l'application
- * Toutes les variables d'environnement sont importées ici
- */
 export const config = {
   api: {
     baseURL: API_BASE_URL,
