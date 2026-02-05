@@ -1,19 +1,19 @@
-package com.epitech.travelorder.pathfinder.util.bo;
+package com.epitech.travelorder.pathfinder.service.algorithm.bo;
 
 import com.epitech.travelorder.common.db.Route;
 import com.epitech.travelorder.common.db.Stop;
 import com.epitech.travelorder.common.db.StopTime;
 import com.epitech.travelorder.common.db.Trip;
+import lombok.Builder;
 
-import java.time.LocalDate;
-
-public record DirectTravelSolution(
+@Builder
+public record GraphSegmentBo(
         StopTime startStopTime,
         StopTime endStopTime,
+        Stop startStop,
+        Stop endStop,
         Trip trip,
         Route route,
-        Stop origin,
-        Stop destination,
-        LocalDate referenceDate) {
-
-}
+        double cost,
+        boolean isTransfer
+) {}

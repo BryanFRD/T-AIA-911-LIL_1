@@ -1,0 +1,31 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "create-stop-times-sequence",
+        "author": "Arthur",
+        "preConditions": [
+          {
+            "onFail": "MARK_RAN"
+          },
+          {
+            "not": {
+              "sequenceExists": {
+                "sequenceName": "stop_times_id_seq"
+              }
+            }
+          }
+        ],
+        "changes": [
+          {
+            "createSequence": {
+              "sequenceName": "stop_times_id_seq",
+              "startValue": "1",
+              "incrementBy": "1"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

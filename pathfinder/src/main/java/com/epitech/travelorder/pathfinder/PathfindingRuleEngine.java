@@ -26,23 +26,41 @@ public class PathfindingRuleEngine {
     private final List<RuleExecutor> rules;
 
     public CustomerTravelSolution process(RouteQuery query) {
-        List<RuleExecutor> ruleExecutors = rules.stream()
+        List<RuleExecutor> applicableRules = rules.stream()
                 .filter(rule -> rule.canExecute(query))
-                .max(comparingInt(RuleExecutor::getPriority))
-                .stream()
+                .sorted(comparingInt(RuleExecutor::getPriority))
                 .toList();
 
-        if (isEmpty(ruleExecutors)) {
-            log.error(LOG_CTX.format("No rule executor found for the given query: {}", query));
-            return null;
+        if (isEmpty(applicableRules)) {
+            log.error(LOG_CTX.format("No rule executor found for the given query: %s", query));
+            return CustomerTravelSolution.empty(query);
         }
 
-        if (size(ruleExecutors) > ONE_RULE_IS_RETURNED) {
-            log.warn(LOG_CTX.format("Priority conflict: multiple rule executors found for the given query: {}. Executing the highest priority rule.", query));
+        log.info(LOG_CTX.format("Found %d applicable rule(s) for query", size(applicableRules)));
+
+        for (RuleExecutor rule : applicableRules) {
+            log.debug(LOG_CTX.format("Executing rule: %s (priority: %d)",
+                    rule.getClass().getSimpleName(), rule.getPriority()));
+
+            CustomerTravelSolution result = rule.execute(query);
+
+            if (result != null && !isEmpty(result.proposals())) {
+                log.info(LOG_CTX.format("Rule %s found %d travel proposal(s)",
+                        rule.getClass().getSimpleName(), size(result.proposals())));
+                return result;
+            }
+
+            if (rule.shouldStopOnEmpty()) {
+                log.debug(LOG_CTX.format("Rule %s returned empty and requested stop",
+                        rule.getClass().getSimpleName()));
+                break;
+            }
+
+            log.debug(LOG_CTX.format("Rule %s returned empty, trying next rule",
+                    rule.getClass().getSimpleName()));
         }
 
-        return ruleExecutors
-                .getFirst()
-                .execute(query);
+        log.warn(LOG_CTX.format("No travel proposals found for query"));
+        return CustomerTravelSolution.empty(query);
     }
 }

@@ -17,7 +17,10 @@ public record TravelLeg(
         String routeShortName,   // "TGV, "TER", "BUS", etc.
         String routeLongName,    // "Paris - Lyon",
         String routeColor,
-        String headSign
+        String headSign,
+
+        // Duration
+        TravelTime travelTime
 ) {
 
 }

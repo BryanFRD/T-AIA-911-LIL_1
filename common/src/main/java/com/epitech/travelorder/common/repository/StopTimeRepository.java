@@ -8,6 +8,9 @@ import java.util.Set;
 
 public interface StopTimeRepository extends JpaRepository<StopTime, Long> {
 
-    Set<StopTime> findByStopIdAndDepartureTimeGreaterThanEqualOrderByDepartureTime(final String stopId, final String departureTime);
     Optional<StopTime> findByTripIdAndStopId(final String tripId, final String stopId);
+
+    Set<StopTime> findByStopIdAndDepartureTimeGreaterThanEqualOrderByDepartureTimeAsc(String stopId, String departureTime);
+
+    Set<StopTime> findByTripIdAndStopSequenceGreaterThanOrderByStopSequenceAsc(String tripId, Integer stopSequence);
 }

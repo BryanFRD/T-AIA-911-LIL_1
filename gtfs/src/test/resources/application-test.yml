@@ -8,3 +8,5 @@ spring:
       ddl-auto: create-drop
   liquibase:
     enabled: false
+  main:
+    allow-bean-definition-overriding: true

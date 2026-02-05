@@ -6,6 +6,7 @@ import com.epitech.travelorder.common.repository.CalendarDateRepository;
 import com.epitech.travelorder.common.util.LogUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ public class TravelCalendarDateService {
 
     private final CalendarDateRepository calendarDateRepository;
 
+    @Cacheable(value = "calendarDates", key = "#serviceId + '_' + #date")
     public boolean canTravelForThisDate(String serviceId, LocalDate date) {
         String gtfsDate = date.format(GTFS_DATE_FORMATTER);
 

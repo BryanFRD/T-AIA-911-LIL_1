@@ -7,4 +7,7 @@ public interface RuleExecutor {
     boolean canExecute(RouteQuery routeQuery);
     CustomerTravelSolution execute(RouteQuery routeQuery);
     int getPriority();
+    default boolean shouldStopOnEmpty() {
+        return true;
+    }
 }

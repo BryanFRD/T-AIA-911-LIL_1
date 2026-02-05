@@ -12,11 +12,28 @@ import java.util.Set;
 @Repository
 public interface StopRepository extends JpaRepository<Stop, String> {
 
-    @Query("SELECT s FROM Stop s WHERE LOWER(s.stopName) LIKE LOWER(CONCAT('%', :stopName, '%')) AND (s.parentStation IS NULL OR s.parentStation = '')")
+    @Query("""
+        SELECT s FROM Stop s
+        WHERE LOWER(s.stopName) LIKE LOWER(CONCAT('%', :stopName, '%'))
+        AND s.parentStation IS NOT NULL
+        AND s.parentStation != ''
+        AND s.locationType = 0
+        AND (s.stopId LIKE '%Train TER%'
+             OR s.stopId LIKE '%TGV INOUI%'
+             OR s.stopId LIKE '%OUIGO%'
+             OR s.stopId LIKE '%INTERCITES%')
+        """)
     Set<Stop> findAllByStopNameContainingIgnoreCaseAndParentStationEmpty(@Param("stopName") String stopName);
 
     @Query(value = """
         SELECT * FROM stops
+        WHERE parent_station IS NOT NULL
+        AND parent_station != ''
+        AND location_type = 0
+        AND (stop_id LIKE '%Train TER%'
+             OR stop_id LIKE '%TGV INOUI%'
+             OR stop_id LIKE '%OUIGO%'
+             OR stop_id LIKE '%INTERCITES%')
         ORDER BY (POWER(stop_lat - :lat, 2) + POWER(stop_lon - :lon, 2)) ASC
         LIMIT 1
     """, nativeQuery = true)

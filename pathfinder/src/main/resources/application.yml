@@ -1,0 +1,12 @@
+pathfinder:
+  search:
+    max-results: 10
+    max-transfers: 3
+    search-horizon-days: 2
+    min-transfer-minutes: 5
+    max-transfer-minutes: 120
+    transfer-penalty-minutes: 15.0
+
+logging:
+  level:
+    com.epitech.travelorder.pathfinder: INFO

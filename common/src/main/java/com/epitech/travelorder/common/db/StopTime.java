@@ -3,12 +3,14 @@ package com.epitech.travelorder.common.db;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
+import static jakarta.persistence.GenerationType.SEQUENCE;
 
 @Entity
 @Table(name = "stop_times")
@@ -17,7 +19,8 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public class StopTime {
 
     @Id
-    @GeneratedValue(strategy = IDENTITY)
+    @GeneratedValue(strategy = SEQUENCE, generator = "stop_times_seq")
+    @SequenceGenerator(name = "stop_times_seq", sequenceName = "stop_times_id_seq", allocationSize = 1)
     private Long id;
 
     @Column(name = "trip_id")
