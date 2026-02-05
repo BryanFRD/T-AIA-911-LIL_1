@@ -222,7 +222,7 @@ def main():
                     config["tokenizer"]["type"],
                     config=test_config,
                     attn_implementation="flash_attention_2",
-                    torch_dtype=torch.float16
+                    dtype=torch.float16
                 )
                 return "flash_attention_2"
             except Exception:
@@ -232,7 +232,7 @@ def main():
                         config["tokenizer"]["type"],
                         config=test_config,
                         attn_implementation="sdpa",
-                        torch_dtype=torch.float16
+                        dtype=torch.float16
                     )
                     return "sdpa"
                 except Exception:

@@ -17,7 +17,8 @@
     "save_strategy": "no"
   },
   "optimization": {
-    "use_bf16": true,
+    "use_bf16": false,
+    "use_fp16": true,
     "use_tf32": true,
     "cudnn_benchmark": true,
     "dataloader_num_workers": 4,
