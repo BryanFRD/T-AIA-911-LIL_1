@@ -14,7 +14,7 @@
     },
     {
       "include": {
-        "file": "05022026-emergency-fix-sequence.json",
+        "file": "05022026-force-recreate-sequence.json",
         "relativeToChangelogFile": true
       }
     }
