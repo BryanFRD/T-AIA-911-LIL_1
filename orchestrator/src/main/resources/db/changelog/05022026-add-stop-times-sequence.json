@@ -2,8 +2,9 @@
   "databaseChangeLog": [
     {
       "changeSet": {
-        "id": "create-stop-times-sequence",
+        "id": "ensure-stop-times-sequence-exists",
         "author": "Arthur",
+        "comment": "Ensure stop_times_id_seq exists (created automatically by serial type, but needs explicit declaration for JPA)",
         "preConditions": [
           {
             "onFail": "MARK_RAN"
@@ -22,6 +23,21 @@
               "sequenceName": "stop_times_id_seq",
               "startValue": "1",
               "incrementBy": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "sync-stop-times-sequence",
+        "author": "Arthur",
+        "comment": "Synchronize sequence value with existing data (PostgreSQL only)",
+        "dbms": "postgresql",
+        "changes": [
+          {
+            "sql": {
+              "sql": "SELECT setval('stop_times_id_seq', COALESCE((SELECT MAX(id) FROM stop_times), 0) + 1, false);"
             }
           }
         ]
