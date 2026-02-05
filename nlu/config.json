@@ -30,6 +30,26 @@
     "formats": ["pytorch", "onnx"],
     "onnx_opset": 17
   },
-  "entity_labels": ["O", "B-FROM", "I-FROM", "B-TO", "I-TO", "B-VIA", "I-VIA", "B-VOICE", "I-VOICE", "B-TIME", "I-TIME", "B-DATE", "I-DATE", "B-TRANSPORT", "I-TRANSPORT"],
+  "entity_labels": [
+    "O",
+    "B-FROM",
+    "I-FROM",
+    "B-TO",
+    "I-TO",
+    "B-VIA",
+    "I-VIA",
+    "B-VOICE",
+    "I-VOICE",
+    "B-TIME",
+    "I-TIME",
+    "B-DATE",
+    "I-DATE",
+    "B-TRANSPORT",
+    "I-TRANSPORT",
+    "B-DEPARTURE_TIME",
+    "I-DEPARTURE_TIME",
+    "B-ARRIVAL_TIME",
+    "I-ARRIVAL_TIME"
+  ],
   "intent_labels": ["trajet", "other"]
 }
