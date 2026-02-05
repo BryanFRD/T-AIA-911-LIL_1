@@ -10,7 +10,6 @@ export default function RecordingTimer({ timer }: RecordingTimerProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-20)).current;
 
-  // Animation d'entrée (montage du composant)
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {

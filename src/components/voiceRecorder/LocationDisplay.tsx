@@ -51,12 +51,13 @@ export default function LocationDisplay({
 
   return (
     <TouchableOpacity onPress={onRequestLocation} disabled={loadingLocation} className="flex-row items-center gap-2 px-4 py-2 bg-gray-100 rounded-full">
-      <MapPin size={20} color={loadingLocation ? "#9ca3af" : "#000"} />
-      <Text className={loadingLocation ? "text-gray-400" : "text-black"}>
-        {loadingLocation ?
-          <Spinner />
-        : "Activer la localisation"}
-      </Text>
+      {loadingLocation ?
+        <Spinner />
+      : <>
+          <MapPin size={20} color="#000" />
+          <Text className="text-black">Activer la localisation</Text>
+        </>
+      }
     </TouchableOpacity>
   );
 }
