@@ -2,42 +2,14 @@
   "databaseChangeLog": [
     {
       "changeSet": {
-        "id": "ensure-stop-times-sequence-exists",
+        "id": "fix-stop-times-sequence-2026-02-05",
         "author": "Arthur",
-        "comment": "Ensure stop_times_id_seq exists (created automatically by serial type, but needs explicit declaration for JPA)",
-        "preConditions": [
-          {
-            "onFail": "MARK_RAN"
-          },
-          {
-            "not": {
-              "sequenceExists": {
-                "sequenceName": "stop_times_id_seq"
-              }
-            }
-          }
-        ],
-        "changes": [
-          {
-            "createSequence": {
-              "sequenceName": "stop_times_id_seq",
-              "startValue": "1",
-              "incrementBy": "1"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "changeSet": {
-        "id": "sync-stop-times-sequence",
-        "author": "Arthur",
-        "comment": "Synchronize sequence value with existing data (PostgreSQL only)",
+        "comment": "Fix missing stop_times_id_seq sequence in production",
         "dbms": "postgresql",
         "changes": [
           {
             "sql": {
-              "sql": "SELECT setval('stop_times_id_seq', COALESCE((SELECT MAX(id) FROM stop_times), 0) + 1, false);"
+              "sql": "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'stop_times_id_seq' AND relkind = 'S') THEN CREATE SEQUENCE stop_times_id_seq START WITH 1 INCREMENT BY 1; PERFORM setval('stop_times_id_seq', COALESCE((SELECT MAX(id) FROM stop_times), 0) + 1, false); END IF; END $$;"
             }
           }
         ]
