@@ -36,12 +36,12 @@ def get_placeholders(pattern: str) -> List[str]:
     """Extrait tous les placeholders d'un pattern"""
     return re.findall(r'\{([^}]+)\}', pattern)
 
-def generate_from_template(pattern: str, cities: List[str], voices: List[str], times: List[str] = None, dates: List[str] = None, transports: List[str] = None) -> Dict:
+def generate_from_template(pattern: str, cities: List[str], voices: List[str], times: List[str] = None, dates: List[str] = None, transports: List[str] = None, departure_times: List[str] = None, arrival_times: List[str] = None) -> Dict:
     """
     Génère un exemple à partir d'un template
 
     Returns:
-        Dict avec 'text' et 'entities' (from, to, via, voice, time, date, transport)
+        Dict avec 'text' et 'entities' (from, to, via, voice, time, date, transport, departure_time, arrival_time)
     """
     placeholders = get_placeholders(pattern)
 
@@ -53,6 +53,8 @@ def generate_from_template(pattern: str, cities: List[str], voices: List[str], t
     time = None
     date = None
     transport = "train"  # Valeur par défaut
+    departure_time = None
+    arrival_time = None
 
     format_dict = {}
     used_cities = set()
@@ -84,6 +86,14 @@ def generate_from_template(pattern: str, cities: List[str], voices: List[str], t
             if dates:
                 date = random.choice(dates)
                 format_dict["date"] = date
+        elif placeholder == "departure_time":
+            if departure_times:
+                departure_time = random.choice(departure_times)
+                format_dict["departure_time"] = departure_time
+        elif placeholder == "arrival_time":
+            if arrival_times:
+                arrival_time = random.choice(arrival_times)
+                format_dict["arrival_time"] = arrival_time
         elif placeholder == "transport":
             if transports:
                 transport = random.choice(transports)
@@ -104,6 +114,8 @@ def generate_from_template(pattern: str, cities: List[str], voices: List[str], t
             "voice": voice or "",
             "time": time or "",
             "date": date or "",
+            "departure_time": departure_time or "",
+            "arrival_time": arrival_time or "",
             "transport": transport
         }
     }
@@ -148,16 +160,18 @@ def text_to_bio(text: str, entities: Dict) -> tuple:
     tag_entity(entities.get("voice", ""), "VOICE")
     tag_entity(entities.get("time", ""), "TIME")
     tag_entity(entities.get("date", ""), "DATE")
+    tag_entity(entities.get("departure_time", ""), "DEPARTURE_TIME")
+    tag_entity(entities.get("arrival_time", ""), "ARRIVAL_TIME")
     tag_entity(entities.get("transport", ""), "TRANSPORT")
 
     return tokens, bio_labels
 
-def _generate_example_with_intent(pattern: str, intent: str, cities: List[str], voices: List[str], times: List[str] = None, dates: List[str] = None, transports: List[str] = None) -> Dict:
+def _generate_example_with_intent(pattern: str, intent: str, cities: List[str], voices: List[str], times: List[str] = None, dates: List[str] = None, transports: List[str] = None, departure_times: List[str] = None, arrival_times: List[str] = None) -> Dict:
     """
     Helper function for parallel generation.
     Generates a single example from template with intent.
     """
-    example = generate_from_template(pattern, cities, voices, times, dates, transports)
+    example = generate_from_template(pattern, cities, voices, times, dates, transports, departure_times, arrival_times)
     example["intent"] = intent
     return example
 
@@ -175,6 +189,8 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     times = templates_data.get("times", [])
     dates = templates_data.get("dates", [])
     transports = templates_data.get("transports", [])
+    departure_times = templates_data.get("departure_times", [])
+    arrival_times = templates_data.get("arrival_times", [])
 
     print("="*70)
     print("GENERATION DE DATASET A PARTIR DE TEMPLATES")
@@ -199,6 +215,12 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     print(f"\nChargement de la liste des transports...")
     print(f"  {len(transports)} transports charges")
 
+    print(f"\nChargement de la liste des heures de départ...")
+    print(f"  {len(departure_times)} heures de départ chargees")
+
+    print(f"\nChargement de la liste des heures d'arrivée...")
+    print(f"  {len(arrival_times)} heures d'arrivée chargees")
+
     print("\n" + "="*70)
 
     # Exemples positifs (trajet) - PARALLELIZED for 4-6x speedup
@@ -208,7 +230,7 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     positive_tasks = []
     for template in templates_data["templates"]:
         for _ in range(num_samples_per_template):
-            positive_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports))
+            positive_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports, departure_times, arrival_times))
 
     # Use multiprocessing Pool for parallel generation
     num_workers = min(6, cpu_count())
@@ -226,7 +248,7 @@ def generate_dataset(templates_data: Dict, cities: List[str],
     negative_tasks = []
     for template in templates_data["negative_examples"]:
         for _ in range(per_template):
-            negative_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports))
+            negative_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports, departure_times, arrival_times))
 
     negative_count_start = len(dataset)
     with Pool(processes=num_workers) as pool:
