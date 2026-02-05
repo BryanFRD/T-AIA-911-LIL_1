@@ -11,13 +11,6 @@
         "file": "27122025-fix-column-type.json",
         "relativeToChangelogFile": true
       }
-
-    },
-    {
-      "include": {
-        "file": "05022026-add-stop-times-sequence.json",
-        "relativeToChangelogFile": true
-      }
     }
   ]
 }
