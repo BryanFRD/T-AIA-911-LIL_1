@@ -13,6 +13,15 @@ export function useVoiceRecorder() {
 
   const startRecording = async () => {
     try {
+      if (recordingRef.current) {
+        try {
+          await recordingRef.current.stopAndUnloadAsync();
+        } catch (e) {
+          console.log("Nettoyage de l'ancien enregistrement");
+        }
+        recordingRef.current = null;
+      }
+
       const { granted } = await Audio.requestPermissionsAsync();
       if (!granted) return;
 
@@ -27,6 +36,29 @@ export function useVoiceRecorder() {
       setIsRecording(true);
     } catch (err) {
       console.error("Erreur au démarrage:", err);
+    }
+  };
+
+  const stopAndDeleteRecording = async () => {
+    try {
+      setRecordingUri(null);
+      setIsRecording(false);
+
+      if (recordingRef.current) {
+        await recordingRef.current.stopAndUnloadAsync();
+        recordingRef.current = null;
+      }
+
+      if (soundRef.current) {
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+    } catch (err) {
+      console.error("Erreur à l'arrêt et suppression:", err);
     }
   };
 
@@ -127,8 +159,11 @@ export function useVoiceRecorder() {
 
   useEffect(() => {
     return () => {
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync().catch(() => {});
+      }
       if (soundRef.current) {
-        soundRef.current.unloadAsync();
+        soundRef.current.unloadAsync().catch(() => {});
       }
     };
   }, []);
@@ -145,5 +180,6 @@ export function useVoiceRecorder() {
     toggleRecording,
     togglePlayback,
     deleteRecording,
+    stopAndDeleteRecording,
   };
 }

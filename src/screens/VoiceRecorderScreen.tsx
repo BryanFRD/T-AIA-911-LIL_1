@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, Text, TouchableOpacity, Animated, Dimensions } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { Mic, ArrowUpFromDot, Navigation, MapPin, X, Play, Pause } from "lucide-react-native";
+import { Mic, ArrowUpFromDot, Navigation, MapPin, X, Play, Pause, Ban } from "lucide-react-native";
 import WaveBars from "../components/audio/AudioWave";
 import Spinner from "../components/loading/LoadingSpinner";
 import LocationPermissionModal from "../components/modal/LocationPermissionModal";
@@ -11,9 +11,9 @@ import { formatTime } from "../utils/timeHelper";
 
 export default function VoiceRecorderScreen() {
   const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [loadin, isLoading] = useState(false);
 
-  const { isRecording, recordingUri, isPlaying, timer, toggleRecording, togglePlayback } = useVoiceRecorder();
-
+  const { isRecording, recordingUri, isPlaying, timer, toggleRecording, togglePlayback, stopAndDeleteRecording } = useVoiceRecorder();
   const { address, loadingLocation, permissionDenied, fadeAnim, slideAnim, requestLocation } = useLocation();
 
   const modalAnim = useRef(new Animated.Value(0)).current;
@@ -40,9 +40,7 @@ export default function VoiceRecorderScreen() {
   return (
     <View className="flex-1 pt-24 bg-white">
       <StatusBar style="light" />
-
       <LocationPermissionModal visible={showPermissionModal} onClose={() => setShowPermissionModal(false)} />
-
       <View className="flex-1 justify-center items-center px-4 gap-2">
         <Text className="text-black font-bold text-2xl">Travel Order Resolver</Text>
         <Text className="text-black text-2xl">Voice Recorder</Text>
@@ -94,18 +92,24 @@ export default function VoiceRecorderScreen() {
         </View>
       )}
 
-      <View className="pb-8 items-center">
+      <View className="pb-8 flex items-center">
         <Animated.View
-          className={`py-2 rounded-full flex-row items-center justify-center overflow-hidden ${isRecording ? "bg-blue-500" : "border-2 border-black"}`}
+          className={`rounded-full flex-row items-center justify-center overflow-hidden ${isRecording ? "bg-gray-200" : "border-2 border-black"}`}
           style={{ width: modalWidth }}
         >
           {isRecording && <WaveBars isRecording={isRecording} />}
 
-          <TouchableOpacity onPress={toggleRecording} activeOpacity={0.7} className={`p-4 rounded-full ${isRecording ? "bg-white/20 mx-2" : ""}`}>
+          <TouchableOpacity onPress={toggleRecording} activeOpacity={0.7} className={`p-4 rounded-full ${isRecording ? "bg-gray-300 mx-2" : ""}`}>
             {isRecording ?
               <ArrowUpFromDot size={iconSize} color="white" />
             : <Mic size={iconSize} color="black" />}
           </TouchableOpacity>
+
+          {isRecording && (
+            <TouchableOpacity onPress={stopAndDeleteRecording} className="flex-row items-center p-4 my-2 mr-2 rounded-full bg-red-400">
+              <Ban size={iconSize} color="white" />
+            </TouchableOpacity>
+          )}
         </Animated.View>
       </View>
     </View>
