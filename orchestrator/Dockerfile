@@ -31,6 +31,8 @@ RUN apt-get update && \
     python3-pip \
     python-is-python3 \
     locales \
+    curl \
+    unzip \
     && locale-gen en_US.UTF-8 \
     && update-locale LANG=en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
@@ -50,7 +52,10 @@ ENV JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Djna.encoding=UTF-8"
 
 COPY --from=builder /app/orchestrator/target/orchestrator-*.jar app.jar
 
-COPY audiomodels/ audiomodels/
+RUN curl -L -o /tmp/vosk-model.zip https://alphacephei.com/vosk/models/vosk-model-fr-0.22.zip \
+    && mkdir -p audiomodels \
+    && unzip /tmp/vosk-model.zip -d audiomodels/ \
+    && rm /tmp/vosk-model.zip
 
 EXPOSE 8080
 

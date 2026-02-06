@@ -1,6 +1,7 @@
 package com.epitech.travelorder.orchestrator.config;
 
 import com.epitech.travelorder.audio.AudioService;
+import com.epitech.travelorder.audio.util.VoskModelDownloader;
 import com.epitech.travelorder.common.nlu.ModelLoader;
 import com.epitech.travelorder.common.nlu.mlflow.MlFlowConfig;
 import com.epitech.travelorder.nlu.service.NluService;
@@ -11,6 +12,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.vosk.Model;
+
+import java.io.IOException;
 
 @Slf4j
 @Configuration
@@ -27,10 +30,16 @@ public class BeanConfig {
 
     private String voskResourcePath;
 
+    private String voskModelUrl;
+
     @Bean
     public Model voskModel() {
         try {
+            VoskModelDownloader.ensureModelAvailable(voskResourcePath, voskModelUrl);
+            log.info("Loading Vosk model from {}", voskResourcePath);
             return new Model(voskResourcePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to download Vosk model from: " + voskModelUrl, e);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load Vosk model from path: " + voskResourcePath, e);
         }

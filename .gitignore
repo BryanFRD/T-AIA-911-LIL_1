@@ -43,3 +43,6 @@ target/
 data/
 *.mv.db
 *.trace.db
+
+### Vosk Audio Models ###
+audiomodels/

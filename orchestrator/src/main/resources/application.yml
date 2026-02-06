@@ -34,7 +34,8 @@ bean-config:
   tracking-uri: https://mlflow.bryan-ferrando.fr
   model-alias: champion
   model-cache-dir: /tmp/djl-models
-  vosk-resource-path: audiomodels/vosk-model-small-fr-0.22
+  vosk-resource-path: audiomodels/vosk-model-fr-0.22
+  vosk-model-url: https://alphacephei.com/vosk/models/vosk-model-fr-0.22.zip
 cors:
   allowed-origins: "*"
   allowed-methods:
