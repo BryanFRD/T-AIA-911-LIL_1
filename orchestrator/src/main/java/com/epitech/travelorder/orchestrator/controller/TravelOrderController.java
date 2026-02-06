@@ -27,8 +27,8 @@ public class TravelOrderController {
 
     @PostMapping(value = "/transcribe", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TranscribeResponse> transcribeAudio(@Valid @ModelAttribute TranscribeRequest request) throws IOException {
-        String transcribedText = orchestratorService.transcribeAudio(request.audio().getBytes());
-        return ResponseEntity.ok(new TranscribeResponse(transcribedText));
+        byte[] audioData = request.audio().getBytes();
+        return ResponseEntity.ok(orchestratorService.transcribeAudio(audioData));
     }
 
     @PostMapping("/find-solution")

@@ -1,7 +1,6 @@
 package com.epitech.travelorder.audio;
 
-import com.epitech.travelorder.audio.util.AudioExtractorUtils;
-import com.epitech.travelorder.audio.util.PcmUtils;
+import com.epitech.travelorder.audio.bo.TranscriptionBo;
 import com.epitech.travelorder.common.util.LogUtils;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +12,8 @@ import org.vosk.Recognizer;
 import java.io.IOException;
 import java.util.Locale;
 
+import static com.epitech.travelorder.audio.util.AudioExtractorUtils.extractTranscriptionBoFromModelResponse;
+import static com.epitech.travelorder.audio.util.PcmUtils.convertAudioToPcm;
 import static com.epitech.travelorder.common.util.LogUtils.AUDIO;
 import static java.util.Locale.US;
 import static java.util.Locale.getDefault;
@@ -24,6 +25,7 @@ import static java.util.Locale.setDefault;
 public class AudioService {
 
     private static final LogUtils LOG_CONTEXT = LogUtils.of(AUDIO, "AudioService");
+
     private final Model voskModel;
 
     @PreDestroy
@@ -33,16 +35,15 @@ public class AudioService {
         }
     }
 
-    public String speechToText(byte[] audioData) {
+    public TranscriptionBo speechToText(byte[] audioData) {
         if (voskModel == null) {
             throw new IllegalStateException("Vosk model is not initialized");
         }
 
         try {
-            byte[] pcmData = PcmUtils.convertAudioToPcm(audioData);
+            byte[] pcmData = convertAudioToPcm(audioData);
             String jsonResponse = runInference(pcmData);
-            return AudioExtractorUtils.extractTextFromModelResponse(jsonResponse);
-
+            return extractTranscriptionBoFromModelResponse(jsonResponse);
         } catch (IOException e) {
             log.error(LOG_CONTEXT.format("Failed to process audio transcription"), e);
             throw new RuntimeException("Failed to process audio transcription", e);
@@ -64,7 +65,8 @@ public class AudioService {
                     return recognizer.getFinalResult();
                 }
             }
-        } finally {
+        }
+        finally {
             // Restore original locale
             setDefault(originalLocale);
         }

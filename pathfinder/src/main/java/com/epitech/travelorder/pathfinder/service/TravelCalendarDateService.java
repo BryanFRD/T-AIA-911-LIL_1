@@ -35,7 +35,7 @@ public class TravelCalendarDateService {
         );
 
         if (calendarDateOpt.isEmpty()) {
-            log.warn(LOG_CTX.format("No calendar date found for service ID %s on date %s", serviceId, gtfsDate));
+            log.debug(LOG_CTX.format("No calendar date found for service ID %s on date %s", serviceId, gtfsDate));
             return false;
         }
 

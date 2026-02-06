@@ -1,9 +1,12 @@
 package com.epitech.travelorder.orchestrator.service;
 
+import com.epitech.travelorder.audio.bo.TranscriptionBo;
 import com.epitech.travelorder.nlu.model.Nlu;
 import com.epitech.travelorder.common.dto.CustomerTravelSolution;
 import com.epitech.travelorder.common.dto.RouteQuery;
 import com.epitech.travelorder.orchestrator.controller.dto.CustomerPathRequest;
+import com.epitech.travelorder.orchestrator.controller.dto.TranscribeResponse;
+import com.epitech.travelorder.orchestrator.mapper.TravelOrderResponseMapper;
 import com.epitech.travelorder.orchestrator.mapper.TravelRequestMapper;
 import com.epitech.travelorder.orchestrator.service.module.OrchestratorAudioService;
 import com.epitech.travelorder.orchestrator.service.module.OrchestratorNluService;
@@ -19,8 +22,9 @@ public class OrchestratorService {
     private final OrchestratorNluService orchestratorNluService;
     private final OrchestratorPathfindingService orchestratorPathfindingService;
 
-    public String transcribeAudio(byte[] audioData) {
-        return orchestratorAudioService.transcribe(audioData);
+    public TranscribeResponse transcribeAudio(byte[] audioData) {
+        TranscriptionBo transcription = orchestratorAudioService.transcribe(audioData);
+        return TravelOrderResponseMapper.INSTANCE.convert(transcription);
     }
 
     public CustomerTravelSolution findCustomerSolution(CustomerPathRequest customerRequest) {

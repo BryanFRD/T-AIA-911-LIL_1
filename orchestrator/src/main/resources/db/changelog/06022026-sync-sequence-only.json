@@ -5,6 +5,14 @@
         "id": "create-sequence-for-h2-only",
         "author": "Arthur",
         "dbms": "h2",
+        "preConditions": {
+          "onFail": "MARK_RAN",
+          "not": {
+            "sequenceExists": {
+              "sequenceName": "stop_times_id_seq"
+            }
+          }
+        },
         "changes": [
           {
             "createSequence": {
@@ -14,7 +22,7 @@
             }
           }
         ],
-        "comment": "Create sequence for H2 database only"
+        "comment": "Create sequence for H2 database only if it doesn't exist"
       }
     },
     {
