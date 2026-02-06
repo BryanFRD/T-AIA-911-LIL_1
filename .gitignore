@@ -4,6 +4,7 @@ checkpoints
 
 # Generated datas
 train_generated.json
+cities_generated.json
 
 # Local configuration (not versioned)
 config.local.json
