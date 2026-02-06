@@ -57,7 +57,7 @@ export default function VoiceRecorderScreen() {
         }
       >
         <View className="flex-1 justify-center items-center px-4 gap-2">
-          <Header title="Travel Order Resolver App" subtitle="Voice Recorder " />
+          <Header title="Travel Order Resolver App" subtitle="Assistant vocal" />
 
           {transcribedText ?
             <>

@@ -56,14 +56,14 @@ export default function RecordButton({ isRecording, onSend, onCancel }: RecordBu
       >
         {isRecording && <WaveBars isRecording={isRecording} />}
 
-        <TouchableOpacity onPress={onSend} activeOpacity={0.7} className={`p-4 rounded-full ${isRecording ? "bg-gray-300 mx-2" : ""}`}>
+        <TouchableOpacity onPress={onSend} activeOpacity={0.7} className={`p-4 rounded-full ${isRecording ? "bg-blue-500 mx-2" : ""}`}>
           {isRecording ?
             <ArrowUpFromDot size={iconSize} color="white" />
           : <Mic size={iconSize} color="black" />}
         </TouchableOpacity>
 
         {isRecording && (
-          <TouchableOpacity onPress={onCancel} className="flex-row items-center p-4 my-2 mr-2 rounded-full bg-red-400">
+          <TouchableOpacity onPress={onCancel} className="flex-row items-center p-4 my-2 mr-2 rounded-full bg-red-500">
             <Ban size={iconSize} color="white" />
           </TouchableOpacity>
         )}
