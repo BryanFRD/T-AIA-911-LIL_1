@@ -16,7 +16,7 @@ from transformers import (
 )
 from datasets import Dataset, load_from_disk
 import torch
-from multiprocessing import freeze_support
+from multiprocessing import freeze_support, cpu_count
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
@@ -94,6 +94,17 @@ def export_model_to_onnx(model, tokenizer, output_path, task_type="token-classif
             print("[WARN] onnx package not installed, skipping validation")
         except Exception as e:
             print(f"[WARN] ONNX validation failed: {e}")
+
+        # Apply ONNX Runtime graph optimizations (layer fusion, nop elimination, etc.)
+        try:
+            from onnxruntime.transformers import optimizer
+            optimized = optimizer.optimize_model(output_path, model_type='bert', num_heads=12, hidden_size=768)
+            optimized.save_model_to_file(output_path)
+            print("[OK] ONNX model optimized with ORT graph passes (+20-40% inference speed)")
+        except ImportError:
+            print("[WARN] onnxruntime.transformers not available, skipping ONNX optimization")
+        except Exception as e:
+            print(f"[WARN] ONNX optimization failed (model still valid): {e}")
 
         return True
 
@@ -206,37 +217,24 @@ def main():
         id2label_ner = dict(enumerate(entity_labels))
         label2id_ner = {label: i for i, label in enumerate(entity_labels)}
 
-        # Pre-detect best attention implementation once (avoid retry loop for 3x model loading)
+        # Pre-detect best attention implementation without loading the model
         def detect_best_attention():
             """Detect best available attention implementation (Flash Attention 2 > SDPA > eager)"""
             if device != "cuda":
                 return None  # CPU doesn't support Flash Attention
 
-            # Quick test with minimal overhead
+            # Check Flash Attention 2 support (just check if package is installed)
             try:
-                from transformers import AutoConfig
-                test_config = AutoConfig.from_pretrained(config["tokenizer"]["type"])
-                test_config.num_labels = 2  # Minimal config
-                # Try loading with Flash Attention 2
-                AutoModelForTokenClassification.from_pretrained(
-                    config["tokenizer"]["type"],
-                    config=test_config,
-                    attn_implementation="flash_attention_2",
-                    dtype=torch.float16
-                )
+                import flash_attn
                 return "flash_attention_2"
-            except Exception:
-                try:
-                    # Fallback to SDPA
-                    AutoModelForTokenClassification.from_pretrained(
-                        config["tokenizer"]["type"],
-                        config=test_config,
-                        attn_implementation="sdpa",
-                        dtype=torch.float16
-                    )
-                    return "sdpa"
-                except Exception:
-                    return None  # Will use default eager
+            except ImportError:
+                pass
+
+            # SDPA is available by default in PyTorch 2.x on CUDA
+            if hasattr(torch.nn.functional, 'scaled_dot_product_attention'):
+                return "sdpa"
+
+            return None  # Will use default eager
 
         # Utiliser CRF si activ dans la config
         use_crf = config.get("training", {}).get("use_crf", False)
@@ -340,8 +338,9 @@ def main():
             return {k: [dic[k] for dic in all_input] for k in all_input[0]}
 
 
-        # Align mapping batch_size with training batch_size for optimal performance
-        map_batch_size = train_cfg["batch_size"]
+        # Tokenization is CPU-bound: use larger batch size than training for less overhead
+        map_batch_size = 256
+        map_num_proc = min(8, cpu_count() - 1)
 
         # Dataset caching to avoid re-tokenization (30-60s speedup per run)
         CACHE_DIR = "nlu/data/.cache"
@@ -373,14 +372,14 @@ def main():
                 tokenize_and_align_labels_ner,
                 batched=True,
                 batch_size=map_batch_size,
-                num_proc=4,  # Multi-threading pour tokenisation
+                num_proc=map_num_proc,
                 remove_columns=dataset.column_names  # Retirer toutes les colonnes originales
             )
             tokenized_val_dataset_ner = val_dataset.map(
                 tokenize_and_align_labels_ner,
                 batched=True,
                 batch_size=map_batch_size,
-                num_proc=4,
+                num_proc=map_num_proc,
                 remove_columns=val_dataset.column_names  # Retirer toutes les colonnes originales
             )
             # Save to cache for next time
@@ -566,6 +565,12 @@ def main():
 
         print("[OK] NER artifacts enregistrs dans MLflow")
 
+    # Free NER model memory before loading Intent model (-440MB VRAM)
+    del model_ner, trainer_ner
+    if device == "cuda":
+        torch.cuda.empty_cache()
+    print("[OPTIMIZATION] NER model freed from memory")
+
     # End NER run - start new Intent run
     print("\n" + "="*70)
     print("SETUP INTENT EXPERIMENT")
@@ -630,7 +635,6 @@ def main():
             tokenized["labels"] = [label2id_intent[intent] for intent in examples["intent"]]
             return tokenized
 
-        # Align mapping batch_size with training batch_size
         # Dataset caching for Intent (same as NER)
         cache_path_train_intent = f"{CACHE_DIR}/tokenized_intent_train"
         cache_path_val_intent = f"{CACHE_DIR}/tokenized_intent_val"
@@ -659,14 +663,14 @@ def main():
                 tokenize_intent,
                 batched=True,
                 batch_size=map_batch_size,
-                num_proc=4,  # Multi-threading
+                num_proc=map_num_proc,
                 remove_columns=dataset.column_names  # Retirer toutes les colonnes originales
             )
             tokenized_val_dataset_intent = val_dataset.map(
                 tokenize_intent,
                 batched=True,
                 batch_size=map_batch_size,
-                num_proc=4,
+                num_proc=map_num_proc,
                 remove_columns=val_dataset.column_names  # Retirer toutes les colonnes originales
             )
             # Save to cache

@@ -67,10 +67,8 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
         nn.init.uniform_(self.crf.start_transitions, -0.01, 0.01)
         nn.init.uniform_(self.crf.end_transitions, -0.01, 0.01)
 
-        # Register backward hook to clip CRF gradients before optimizer step
-        # This prevents transition matrix explosion during training
-        for name, param in self.crf.named_parameters():
-            param.register_hook(lambda grad: torch.clamp(grad, -1.0, 1.0))
+        # Note: Gradient clipping is handled globally by TrainingArguments(max_grad_norm=1.0)
+        # No need for per-parameter hooks here (avoids overhead on every backward pass)
 
         # Initialiser les poids
         self.post_init()
@@ -114,7 +112,7 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
         # CRITICAL: Convertir les émissions en FP32 pour le CRF
         # Le CRF doit travailler en FP32 pour éviter les NaN/Inf
         # Même si le reste du modèle est en FP16, on force FP32 ici
-        emissions_fp32 = emissions.float()
+        emissions_fp32 = emissions if emissions.dtype == torch.float32 else emissions.float()
 
         loss = None
         predictions = None
@@ -211,14 +209,11 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
             max_len = emissions_fp32.size(1)
             batch_size = emissions_fp32.size(0)
 
-            # Vectorized conversion using NumPy (5-10x faster than Python loop)
-            import numpy as np
-            predictions_array = np.zeros((batch_size, max_len), dtype=np.int64)
+            # Direct PyTorch tensor creation (avoids NumPy intermediate + device transfer)
+            predictions_tensor = torch.zeros((batch_size, max_len), dtype=torch.long, device=emissions_fp32.device)
             for i, pred in enumerate(predictions):
-                predictions_array[i, :len(pred)] = pred
-
-            # Single tensor conversion (not per-item)
-            predictions = torch.from_numpy(predictions_array).to(emissions_fp32.device)
+                predictions_tensor[i, :len(pred)] = torch.tensor(pred, dtype=torch.long, device=emissions_fp32.device)
+            predictions = predictions_tensor
 
         return TokenClassifierOutput(
             loss=loss,

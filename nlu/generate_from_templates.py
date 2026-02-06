@@ -43,20 +43,23 @@ def expand_cities(cities_list: List[str], abbrev_config: Dict) -> List[str]:
     """
     expanded_cities = set(cities_list)  # Garder les originaux
     
-    # Apply regex rules
+    # Pre-compile regex rules once (avoids recompilation per city)
     rules = abbrev_config.get('rules', {})
+    compiled_rules = []
     for rule_name, rule_config in rules.items():
         pattern = rule_config.get('pattern')
         replacement = rule_config.get('replacement')
-        
-        if not pattern or not replacement:
-            continue
-        
+        if pattern and replacement:
+            try:
+                compiled_rules.append((re.compile(pattern), replacement))
+            except re.error:
+                pass
+
+    for compiled_pattern, replacement in compiled_rules:
         for city in list(cities_list):
             try:
-                match = re.match(pattern, city)
-                if match:
-                    variant = re.sub(pattern, replacement, city)
+                if compiled_pattern.match(city):
+                    variant = compiled_pattern.sub(replacement, city)
                     if variant != city:
                         expanded_cities.add(variant)
             except Exception:
@@ -139,6 +142,7 @@ def generate_from_template(pattern: str, cities: List[str], voices: List[str], t
 
     format_dict = {}
     used_cities = set()
+    cities_set = set(cities)
 
     for placeholder in placeholders:
         if placeholder == "from_city":
@@ -146,12 +150,12 @@ def generate_from_template(pattern: str, cities: List[str], voices: List[str], t
             format_dict["from_city"] = from_city
             used_cities.add(from_city)
         elif placeholder == "to_city":
-            available = [c for c in cities if c not in used_cities]
+            available = list(cities_set - used_cities)
             to_city = random.choice(available)
             format_dict["to_city"] = to_city
             used_cities.add(to_city)
         elif placeholder.startswith("via_city"):
-            available = [c for c in cities if c not in used_cities]
+            available = list(cities_set - used_cities)
             via_city = random.choice(available)
             format_dict[placeholder] = via_city
             via_cities.append(via_city)
@@ -357,23 +361,11 @@ def generate_dataset(templates_data: Dict, cities: List[str],
         for _ in range(scaled_samples):
             positive_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports, departure_times, arrival_times))
 
-    # Use multiprocessing Pool for parallel generation
-    num_workers = min(6, cpu_count())
-    with Pool(processes=num_workers) as pool:
-        positive_examples = pool.starmap(_generate_example_with_intent, positive_tasks)
-
-    dataset.extend(positive_examples)
-    
-    # Print complexity statistics
-    avg_complexity = sum(template_complexities) / len(template_complexities) if template_complexities else 0
-    print(f"  {len(positive_examples)} exemples positifs generes (using {num_workers} workers)")
-    print(f"    Complexité moyenne: {avg_complexity:.1f}")
-    print(f"    Complexité min/max: {min(template_complexities)}/{max(template_complexities)}")
-    print(f"    Samples par template: {num_samples_per_template} base -> scaled {len(positive_tasks)//len(templates_data['templates']):.0f} avg")
-
-    # Exemples négatifs (other) - PARALLELIZED
+    # Prepare negative tasks before opening pool (so we can reuse the same pool)
+    # Exemples négatifs (other)
     print("\nGeneration des exemples negatifs (parallel)...")
-    num_negative_samples = max(50, len(dataset) // 3)  # Environ 1/3 du dataset
+    # Estimate negative count from positive tasks
+    num_negative_samples = max(50, len(positive_tasks) // 3)  # Environ 1/3 du dataset
     per_template = max(1, num_negative_samples // len(templates_data["negative_examples"]))
 
     negative_tasks = []
@@ -381,10 +373,22 @@ def generate_dataset(templates_data: Dict, cities: List[str],
         for _ in range(per_template):
             negative_tasks.append((template["pattern"], template["intent"], cities, voices, times, dates, transports, departure_times, arrival_times))
 
-    negative_count_start = len(dataset)
+    # Single Pool reused for both positive and negative generation (avoids fork overhead)
+    num_workers = min(cpu_count() - 1, 8)
     with Pool(processes=num_workers) as pool:
+        positive_examples = pool.starmap(_generate_example_with_intent, positive_tasks)
         negative_examples = pool.starmap(_generate_example_with_intent, negative_tasks)
 
+    dataset.extend(positive_examples)
+
+    # Print complexity statistics
+    avg_complexity = sum(template_complexities) / len(template_complexities) if template_complexities else 0
+    print(f"  {len(positive_examples)} exemples positifs generes (using {num_workers} workers)")
+    print(f"    Complexité moyenne: {avg_complexity:.1f}")
+    print(f"    Complexité min/max: {min(template_complexities)}/{max(template_complexities)}")
+    print(f"    Samples par template: {num_samples_per_template} base -> scaled {len(positive_tasks)//len(templates_data['templates']):.0f} avg")
+
+    negative_count_start = len(dataset)
     dataset.extend(negative_examples)
 
     print(f"  {len(dataset) - negative_count_start} exemples negatifs generes")

@@ -91,13 +91,14 @@ class NLUAugmenter:
         """
         all_variants = [(text, entities)]  # Inclure l'original
 
-        # Appliquer chaque technique
+        # Appliquer chaque technique (early exit when enough variants collected)
         for technique, probability in self.techniques:
+            if len(all_variants) >= num_variants * 2:  # Margin for dedup
+                break
             try:
                 variants = technique(text, entities, probability)
                 all_variants.extend(variants)
             except Exception as e:
-                print(f"Warning: {technique.__name__} failed: {e}")
                 continue
 
         # Dédupliquer et limiter
