@@ -5,6 +5,7 @@ import com.epitech.travelorder.common.dto.CustomerTravelSolution;
 import com.epitech.travelorder.common.dto.RouteQuery;
 import com.epitech.travelorder.common.dto.sub.TravelLeg;
 import com.epitech.travelorder.common.dto.sub.TravelProposal;
+import com.epitech.travelorder.common.dto.sub.TravelTime;
 import com.epitech.travelorder.common.util.LogUtils;
 import com.epitech.travelorder.pathfinder.config.PathfinderSearchProperties;
 import com.epitech.travelorder.pathfinder.mapper.TravelLegMapper;
@@ -153,7 +154,7 @@ public class MultiStopJourneyExecutor implements RuleExecutor {
         TravelProposal proposal = new TravelProposal(
                 finalDeparture,
                 finalArrival,
-                new com.epitech.travelorder.common.dto.sub.TravelTime(hours, minutes),
+                new TravelTime(hours, minutes),
                 allLegs
         );
 

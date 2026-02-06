@@ -35,8 +35,7 @@ import static java.util.stream.Collectors.toSet;
 public class DijkstraPathfinderService {
 
     private static final int TRANSFER_BUFFER_MINUTES = 10;
-    private static final int MAX_SEARCH_HOURS = 24;
-    private static final int MAX_ITERATIONS = 100000;
+    private static final int MAX_ITERATIONS = 200000;
     private static final int MAX_DEPARTURES_PER_STOP = 50;
 
     private final PathfinderSearchProperties searchProperties;
@@ -54,7 +53,9 @@ public class DijkstraPathfinderService {
                 .collect(toSet());
 
         LocalDateTime queryBaseTime = toLocalDateTime(gtfsStartTime, date);
-        LocalDateTime maxSearchTime = queryBaseTime.plusHours(MAX_SEARCH_HOURS);
+
+        int maxSearchHours = searchProperties.getSearchHorizonDays() * 24;
+        LocalDateTime maxSearchTime = queryBaseTime.plusHours(maxSearchHours);
 
         // Initialize with all origin stops
         for (Stop origin : origins) {
@@ -68,7 +69,8 @@ public class DijkstraPathfinderService {
         }
 
         int iterations = 0;
-        log.info("Starting pathfinding from {} origins to {} destinations", origins.size(), destinations.size());
+        log.info("Starting pathfinding from {} origins to {} destinations (max search: {} hours)",
+                origins.size(), destinations.size(), maxSearchHours);
 
         while (!openSet.isEmpty() && iterations < MAX_ITERATIONS) {
             iterations++;

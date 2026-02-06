@@ -43,6 +43,7 @@
         <junit-platform.version>1.14.0</junit-platform.version>
         <junit-jupiter.version>5.14.0</junit-jupiter.version>
         <testcontainers.version>1.21.4</testcontainers.version>
+        <spring-cloud-wiremock.version>4.3.0</spring-cloud-wiremock.version>
 
         <!-- sonarqube properties -->
         <sonar.version>4.0.0.4121</sonar.version>
