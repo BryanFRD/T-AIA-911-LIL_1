@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { Route, Bookmark, RotateCcw} from "lucide-react-native";
+import { Route, Bookmark, RotateCcw } from "lucide-react-native";
 import { SolutionResponse, Proposal } from "@/interfaces/solution.interface";
 import TravelProposalCard from "./TravelProposalCard";
 import ProposalDetail from "./ProposalDetail";

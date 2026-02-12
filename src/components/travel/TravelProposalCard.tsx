@@ -14,6 +14,11 @@ const formatTime = (isoString: string): string => {
   return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 };
 
+const formatDate = (isoString: string): string => {
+  const date = new Date(isoString);
+  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+};
+
 const formatTravelTime = (hours: number, minutes: number): string => {
   if (hours > 0 && minutes > 0) return `${hours}h${String(minutes).padStart(2, "0")}`;
   if (hours > 0) return `${hours}h`;
@@ -43,6 +48,7 @@ export default function TravelProposalCard({ proposal, index, onPress }: TravelP
           <View className="items-start">
             <Text className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Départ</Text>
             <Text className="text-[22px] font-bold text-black tracking-tight">{formatTime(proposal.departureTime)}</Text>
+            <Text className="text-[11px] text-gray-400 mt-1.5">{formatDate(proposal.departureTime)}</Text>
           </View>
 
           {/* Ligne de trajet */}
@@ -70,6 +76,7 @@ export default function TravelProposalCard({ proposal, index, onPress }: TravelP
           <View className="items-end">
             <Text className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Arrivée</Text>
             <Text className="text-[22px] font-bold text-black tracking-tight">{formatTime(proposal.arrivalTime)}</Text>
+            <Text className="text-[11px] text-gray-400 mt-1.5">{formatDate(proposal.arrivalTime)}</Text>
           </View>
         </View>
 
