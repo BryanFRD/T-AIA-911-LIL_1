@@ -9,6 +9,7 @@ export interface Address {
 
 export function useLocation() {
   const [address, setAddress] = useState<Address | null>(null);
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
@@ -29,6 +30,10 @@ export function useLocation() {
       }
 
       const location = await Location.getCurrentPositionAsync({});
+      setCoordinates({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
 
       const [reverseGeocode] = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
@@ -74,6 +79,7 @@ export function useLocation() {
 
   return {
     address,
+    coordinates,
     loadingLocation,
     permissionDenied,
     fadeAnim,

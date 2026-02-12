@@ -49,21 +49,38 @@ export default function RecordButton({ isRecording, onSend, onCancel }: RecordBu
   });
 
   return (
-    <View className="pb-8 flex items-center">
+    <View className="flex items-center">
       <Animated.View
-        className={`rounded-full flex-row items-center justify-center overflow-hidden ${isRecording ? "bg-gray-200" : "border-2 border-black"}`}
-        style={{ width: modalWidth }}
+        className={`rounded-full flex-row items-center justify-center overflow-hidden ${isRecording ? "bg-white" : ""}`}
+        style={[
+          { width: modalWidth },
+          !isRecording && {
+            backgroundColor: "#007AFF",
+            shadowColor: "#007AFF",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 12,
+            elevation: 8,
+          },
+          isRecording && {
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            elevation: 4,
+          },
+        ]}
       >
         {isRecording && <WaveBars isRecording={isRecording} />}
 
-        <TouchableOpacity onPress={onSend} activeOpacity={0.7} className={`p-4 rounded-full ${isRecording ? "bg-blue-500 mx-2" : ""}`}>
+        <TouchableOpacity onPress={onSend} activeOpacity={0.7} className={`p-4 rounded-full ${isRecording ? "bg-[#007AFF] mx-2" : ""}`}>
           {isRecording ?
             <ArrowUpFromDot size={iconSize} color="white" />
-          : <Mic size={iconSize} color="black" />}
+          : <Mic size={iconSize + 4} color="white" />}
         </TouchableOpacity>
 
         {isRecording && (
-          <TouchableOpacity onPress={onCancel} className="flex-row items-center p-4 my-2 mr-2 rounded-full bg-red-500">
+          <TouchableOpacity onPress={onCancel} className="flex-row items-center p-4 my-2 mr-2 rounded-full bg-[#FF3B30]">
             <Ban size={iconSize} color="white" />
           </TouchableOpacity>
         )}

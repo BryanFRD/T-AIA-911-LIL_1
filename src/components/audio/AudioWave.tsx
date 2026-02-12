@@ -40,7 +40,7 @@ const WaveBars = ({ isRecording }: { isRecording: boolean }) => {
   return (
     <View className="flex-row items-center justify-between h-8 flex-1 ml-4 mr-3">
       {animations.map((anim, index) => (
-        <Animated.View key={index} className="w-[3px] bg-black/80 rounded-sm h-7" style={{ transform: [{ scaleY: anim }] }} />
+        <Animated.View key={index} className="w-[3px] bg-[#007AFF]/70 rounded-full h-7" style={{ transform: [{ scaleY: anim }] }} />
       ))}
     </View>
   );

@@ -1,3 +1,8 @@
 export interface TranscriptionResponse {
-  transcribedText: string;
+  transcription: {
+    transcribedText: string;
+    confidence: number
+    isReliable: boolean
+  }
+  canSkipUserConfirmation: boolean
 }

@@ -35,7 +35,7 @@ export default function RecordingTimer({ timer }: RecordingTimerProps) {
       }}
     >
       <View>
-        <Text className="text-black text-center font-bold py-2 text-2xl">{formatTime(timer)}</Text>
+        <Text className="text-[#007AFF] text-center font-semibold py-2 text-xl tracking-wider">{formatTime(timer)}</Text>
       </View>
     </Animated.View>
   );

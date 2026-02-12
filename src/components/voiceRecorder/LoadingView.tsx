@@ -37,9 +37,9 @@ export default function LoadingView({ message = "Chargement en cours" }: Loading
   }, []);
 
   return (
-    <View className="flex-1 justify-center items-center bg-white">
+    <View className="flex-1 justify-center items-center bg-[#F2F2F7]">
       <View className="items-center">
-        <View className="flex-row items-center gap-3 mb-6">
+        <View className="flex-row items-center gap-2.5 mb-6">
           {dots.map((dot, i) => {
             const scale = dot.interpolate({
               inputRange: [0, 1],
@@ -49,11 +49,11 @@ export default function LoadingView({ message = "Chargement en cours" }: Loading
               inputRange: [0, 1],
               outputRange: [0.3, 1],
             });
-            return <Animated.View key={i} style={{ transform: [{ scale }], opacity }} className={`w-2 h-2 rounded-full bg-black`} />;
+            return <Animated.View key={i} style={{ transform: [{ scale }], opacity }} className={`w-2 h-2 rounded-full bg-[#007AFF]`} />;
           })}
         </View>
 
-        {message && <Text className="text-gray-700 font-bold text-xl tracking-tight">{message}</Text>}
+        {message && <Text className="text-gray-500 font-semibold text-lg">{message}</Text>}
       </View>
     </View>
   );
