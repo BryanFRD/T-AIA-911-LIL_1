@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Clock, ArrowRight, Repeat, ChevronRight, MoonStar } from "lucide-react-native";
+import { Navigation, ArrowRight, Repeat, ChevronRight, MoonStar } from "lucide-react-native";
 import { Proposal } from "@/interfaces/solution.interface";
 
 interface TravelProposalCardProps {
@@ -73,35 +73,27 @@ export default function TravelProposalCard({ proposal, index, onPress }: TravelP
           </View>
         </View>
 
-        {/* Ligne de routes colorées */}
-        <View className="flex-row rounded-full overflow-hidden h-[5px] mb-3">
-          {proposal.legs.map((leg, i) => (
-            <View
-              key={i}
-              className="h-full"
-              style={{
-                flex: 1,
-                backgroundColor: leg.routeColor ? `#${leg.routeColor}` : "#007AFF",
-                marginRight: i < proposal.legs.length - 1 ? 2 : 0,
-                borderRadius: 8,
-              }}
-            />
-          ))}
-        </View>
-
         {/* Badges infos */}
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-3">
-            {/* Noms des lignes */}
-            <View className="flex-row items-center gap-1.5">
-              {proposal.legs.map((leg, i) => (
-                <React.Fragment key={i}>
-                  <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: leg.routeColor ? `#${leg.routeColor}` : "#007AFF" }}>
-                    <Text className="text-white text-[11px] font-bold">{leg.routeShortName || leg.routeLongName}</Text>
-                  </View>
-                  {i < proposal.legs.length - 1 && <ArrowRight size={10} color="#C7C7CC" />}
-                </React.Fragment>
-              ))}
+            {/* Nombre de trajets */}
+            <View className="flex-row items-center gap-1.5 bg-gray-200 rounded-full px-2 py-0.5">
+              <Navigation size={14} color="#007AFF" />
+              <Text> {proposal.legs.length} Trajets</Text>
+            </View>
+
+            <View className="flex-row items-center gap-3">
+              {/* Noms des lignes */}
+              <View className="flex-row items-center gap-1.5">
+                {proposal.legs.map((leg, i) => (
+                  <React.Fragment key={i}>
+                    <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: leg.routeColor ? `#${leg.routeColor}` : "#007AFF" }}>
+                      <Text className="text-white text-[11px] font-bold">{leg.routeShortName || leg.routeLongName}</Text>
+                    </View>
+                    {i < proposal.legs.length - 1 && <ArrowRight size={10} color="#C7C7CC" />}
+                  </React.Fragment>
+                ))}
+              </View>
             </View>
           </View>
 
