@@ -17,7 +17,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class CachedDataService {
+public class CaffeineCacheService {
 
     private final StopTimeRepository stopTimeRepository;
 

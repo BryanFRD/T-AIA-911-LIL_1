@@ -23,7 +23,7 @@ public class CacheConfig {
                 "calendarDates"
         );
         cacheManager.setCaffeine(Caffeine.newBuilder()
-                .maximumSize(10000)
+                .maximumSize(100000)
                 .expireAfterWrite(24, TimeUnit.HOURS)
                 .recordStats());
         return cacheManager;

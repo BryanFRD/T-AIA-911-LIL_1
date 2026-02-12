@@ -17,6 +17,12 @@
         "file": "06022026-sync-sequence-only.json",
         "relativeToChangelogFile": true
       }
+    },
+    {
+      "include": {
+        "file": "12022026-performance-indexes.json",
+        "relativeToChangelogFile": true
+      }
     }
   ]
 }

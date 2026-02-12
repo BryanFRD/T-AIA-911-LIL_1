@@ -10,7 +10,7 @@ import com.epitech.travelorder.common.dto.sub.TravelProposal;
 import com.epitech.travelorder.common.util.LogUtils;
 import com.epitech.travelorder.pathfinder.config.PathfinderSearchProperties;
 import com.epitech.travelorder.pathfinder.mapper.TravelProposalMapper;
-import com.epitech.travelorder.pathfinder.service.CachedDataService;
+import com.epitech.travelorder.pathfinder.service.CaffeineCacheService;
 import com.epitech.travelorder.pathfinder.service.TravelCalendarDateService;
 import com.epitech.travelorder.pathfinder.service.algorithm.bo.DirectTravelSolution;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class DirectJourneyExecutor implements RuleExecutor {
     private final LogUtils LOG_CTX = LogUtils.of("PATHFINDER", "DirectJourneyExecutor");
     private final PathfinderSearchProperties searchProperties;
     private final TravelCalendarDateService travelCalendarDateService;
-    private final CachedDataService cachedDataService;
+    private final CaffeineCacheService caffeineCacheService;
 
     @Override
     public boolean canExecute(final RouteQuery routeQuery) {
@@ -46,8 +46,8 @@ public class DirectJourneyExecutor implements RuleExecutor {
         log.info(LOG_CTX.format("Searching direct journey from %s to %s (multi-day horizon: %d days)",
                 routeQuery.origin(), routeQuery.destination(), searchProperties.getSearchHorizonDays()));
 
-        Set<Stop> stopsOrigin = cachedDataService.findStopsByName(routeQuery.origin());
-        Set<Stop> stopsDestination = cachedDataService.findStopsByName(routeQuery.destination());
+        Set<Stop> stopsOrigin = caffeineCacheService.findStopsByName(routeQuery.origin());
+        Set<Stop> stopsDestination = caffeineCacheService.findStopsByName(routeQuery.destination());
 
         if (stopsOrigin.isEmpty() || stopsDestination.isEmpty()) {
             log.warn(LOG_CTX.format("No stops found for origin %s or destination %s", routeQuery.origin(), routeQuery.destination()));
@@ -98,7 +98,7 @@ public class DirectJourneyExecutor implements RuleExecutor {
         List<TravelProposal> proposals = new ArrayList<>();
 
         for (Stop stopOrigin : stopsOrigin) {
-            Set<StopTime> starts = cachedDataService.findDeparturesByStopAndTime(stopOrigin.getStopId(), gtfsTime);
+            Set<StopTime> starts = caffeineCacheService.findDeparturesByStopAndTime(stopOrigin.getStopId(), gtfsTime);
 
             if (starts.isEmpty()) {
                 continue;
@@ -108,7 +108,7 @@ public class DirectJourneyExecutor implements RuleExecutor {
                 String currentTripId = startNode.getTripId();
 
                 for (Stop destination : stopsDestination) {
-                    Optional<StopTime> endNodeOpt = cachedDataService.findStopTimeByTripAndStop(currentTripId, destination.getStopId());
+                    Optional<StopTime> endNodeOpt = caffeineCacheService.findStopTimeByTripAndStop(currentTripId, destination.getStopId());
 
                     if (endNodeOpt.isEmpty()) {
                         continue;
@@ -120,7 +120,7 @@ public class DirectJourneyExecutor implements RuleExecutor {
                         continue;
                     }
 
-                    Trip trip = cachedDataService.findTripById(currentTripId).orElse(null);
+                    Trip trip = caffeineCacheService.findTripById(currentTripId).orElse(null);
 
                     if (trip == null) {
                         continue;
@@ -130,7 +130,7 @@ public class DirectJourneyExecutor implements RuleExecutor {
                         continue;
                     }
 
-                    Route route = cachedDataService.findRouteById(trip.getRouteId())
+                    Route route = caffeineCacheService.findRouteById(trip.getRouteId())
                             .orElse(null);
 
                     if (route == null) {

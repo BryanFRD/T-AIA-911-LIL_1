@@ -4,7 +4,7 @@ import com.epitech.travelorder.common.db.Stop;
 import com.epitech.travelorder.common.db.StopTime;
 import com.epitech.travelorder.common.db.Trip;
 import com.epitech.travelorder.pathfinder.config.PathfinderSearchProperties;
-import com.epitech.travelorder.pathfinder.service.CachedDataService;
+import com.epitech.travelorder.pathfinder.service.CaffeineCacheService;
 import com.epitech.travelorder.pathfinder.service.TravelCalendarDateService;
 import com.epitech.travelorder.pathfinder.service.algorithm.bo.GraphSegmentBo;
 import com.epitech.travelorder.pathfinder.service.algorithm.bo.PathNode;
@@ -39,7 +39,7 @@ public class DijkstraPathfinderService {
     private static final int MAX_DEPARTURES_PER_STOP = 50;
 
     private final PathfinderSearchProperties searchProperties;
-    private final CachedDataService cachedDataService;
+    private final CaffeineCacheService caffeineCacheService;
     private final TravelCalendarDateService calendarService;
 
     public List<TravelPathBo> findPaths(Set<Stop> origins, Set<Stop> destinations, String gtfsStartTime, LocalDate date) {
@@ -129,7 +129,7 @@ public class DijkstraPathfinderService {
             String searchTime = toGtfsTime(currentNodeTime);
 
             // Get departures from current stop (with limit)
-            Set<StopTime> departures = cachedDataService.findDeparturesByStopAndTime(
+            Set<StopTime> departures = caffeineCacheService.findDeparturesByStopAndTime(
                     current.stop().getStopId(), searchTime
             );
 
@@ -139,7 +139,7 @@ public class DijkstraPathfinderService {
                     break;
                 }
 
-                Trip trip = cachedDataService.findTripById(departure.getTripId()).orElse(null);
+                Trip trip = caffeineCacheService.findTripById(departure.getTripId()).orElse(null);
 
                 if (trip == null || !calendarService.canTravelForThisDate(trip.getServiceId(), date)) {
                     continue;
@@ -150,7 +150,7 @@ public class DijkstraPathfinderService {
                                    !current.stopTime().getTripId().equals(trip.getTripId());
 
                 // Get all next stops on this trip
-                Set<StopTime> nextStops = cachedDataService.findNextStopsByTripAndSequence(
+                Set<StopTime> nextStops = caffeineCacheService.findNextStopsByTripAndSequence(
                         trip.getTripId(), departure.getStopSequence()
                 );
 
@@ -172,7 +172,7 @@ public class DijkstraPathfinderService {
                     // Only add to queue if it's a better path
                     if (!bestTimes.containsKey(arrival.getStopId()) || newCost < bestTimes.get(arrival.getStopId())) {
                         bestTimes.put(arrival.getStopId(), newCost);
-                        Stop nextStopObj = cachedDataService.findStopById(arrival.getStopId()).orElse(null);
+                        Stop nextStopObj = caffeineCacheService.findStopById(arrival.getStopId()).orElse(null);
 
                         if (nextStopObj == null) {
                             continue;
@@ -216,10 +216,10 @@ public class DijkstraPathfinderService {
             StopTime arrivalTimeInfo = current.stopTime();
             String tripId = arrivalTimeInfo.getTripId();
 
-            StopTime departureTimeInfo = cachedDataService.findStopTimeByTripAndStop(tripId, previous.stop().getStopId())
+            StopTime departureTimeInfo = caffeineCacheService.findStopTimeByTripAndStop(tripId, previous.stop().getStopId())
                     .orElseThrow(() -> new IllegalStateException("Missing departure StopTime"));
 
-            Trip trip = cachedDataService.findTripById(tripId).orElseThrow();
+            Trip trip = caffeineCacheService.findTripById(tripId).orElseThrow();
 
             segments.addFirst(GraphSegmentBo.builder()
                     .startStop(previous.stop())
@@ -227,7 +227,7 @@ public class DijkstraPathfinderService {
                     .startStopTime(departureTimeInfo)
                     .endStopTime(arrivalTimeInfo)
                     .trip(trip)
-                    .route(cachedDataService.findRouteById(trip.getRouteId()).orElseThrow())
+                    .route(caffeineCacheService.findRouteById(trip.getRouteId()).orElseThrow())
                     .isTransfer(true)
                     .cost(current.costFromStart() - previous.costFromStart())
                     .build());

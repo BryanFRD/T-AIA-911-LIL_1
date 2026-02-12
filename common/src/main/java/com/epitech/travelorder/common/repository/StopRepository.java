@@ -22,6 +22,7 @@ public interface StopRepository extends JpaRepository<Stop, String> {
              OR s.stopId LIKE '%TGV INOUI%'
              OR s.stopId LIKE '%OUIGO%'
              OR s.stopId LIKE '%INTERCITES%')
+        ORDER BY LENGTH(s.stopName) ASC
         """)
     Set<Stop> findAllByStopNameContainingIgnoreCaseAndParentStationEmpty(@Param("stopName") String stopName);
 
@@ -34,6 +35,8 @@ public interface StopRepository extends JpaRepository<Stop, String> {
              OR stop_id LIKE '%TGV INOUI%'
              OR stop_id LIKE '%OUIGO%'
              OR stop_id LIKE '%INTERCITES%')
+        AND stop_lat BETWEEN :lat - 1 AND :lat + 1
+        AND stop_lon BETWEEN :lon - 1 AND :lon + 1
         ORDER BY (POWER(stop_lat - :lat, 2) + POWER(stop_lon - :lon, 2)) ASC
         LIMIT 1
     """, nativeQuery = true)

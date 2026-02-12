@@ -9,7 +9,7 @@ import com.epitech.travelorder.common.dto.sub.TravelTime;
 import com.epitech.travelorder.common.util.LogUtils;
 import com.epitech.travelorder.pathfinder.config.PathfinderSearchProperties;
 import com.epitech.travelorder.pathfinder.mapper.TravelLegMapper;
-import com.epitech.travelorder.pathfinder.service.CachedDataService;
+import com.epitech.travelorder.pathfinder.service.CaffeineCacheService;
 import com.epitech.travelorder.pathfinder.service.MultiDaySearchService;
 import com.epitech.travelorder.pathfinder.service.algorithm.bo.GraphSegmentBo;
 import com.epitech.travelorder.pathfinder.service.algorithm.bo.TravelPathBo;
@@ -32,7 +32,7 @@ public class MultiStopJourneyExecutor implements RuleExecutor {
 
     private final LogUtils LOG_CTX = LogUtils.of("PATHFINDER", "MultiStopJourneyExecutor");
     private final PathfinderSearchProperties searchProperties;
-    private final CachedDataService cachedDataService;
+    private final CaffeineCacheService caffeineCacheService;
     private final MultiDaySearchService multiDaySearchService;
 
     @Override
@@ -59,8 +59,8 @@ public class MultiStopJourneyExecutor implements RuleExecutor {
 
             log.debug(LOG_CTX.format("Searching segment %d/%d: %s -> %s", i + 1, waypoints.size() - 1, from, to));
 
-            Set<Stop> fromStops = cachedDataService.findStopsByName(from);
-            Set<Stop> toStops = cachedDataService.findStopsByName(to);
+            Set<Stop> fromStops = caffeineCacheService.findStopsByName(from);
+            Set<Stop> toStops = caffeineCacheService.findStopsByName(to);
 
             if (fromStops.isEmpty() || toStops.isEmpty()) {
                 log.warn(LOG_CTX.format("No stops found for segment %s -> %s", from, to));

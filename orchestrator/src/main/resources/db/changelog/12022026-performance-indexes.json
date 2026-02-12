@@ -1,0 +1,122 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "add-performance-indexes-stops",
+        "author": "Performance-Optimization",
+        "comments": "Add composite indexes for frequently queried stop columns to improve search performance",
+        "changes": [
+          {
+            "createIndex": {
+              "indexName": "idx_stop_search_composite",
+              "tableName": "stops",
+              "columns": [
+                {
+                  "column": {
+                    "name": "parent_station"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "location_type"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_name"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "indexName": "idx_stop_id_prefix",
+              "tableName": "stops",
+              "columns": [
+                {
+                  "column": {
+                    "name": "stop_id"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "indexName": "idx_stop_coords",
+              "tableName": "stops",
+              "columns": [
+                {
+                  "column": {
+                    "name": "stop_lat"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_lon"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "add-performance-indexes-stop-times",
+        "author": "Performance-Optimization",
+        "comments": "Add additional indexes on stop_times for faster pathfinding queries",
+        "changes": [
+          {
+            "createIndex": {
+              "indexName": "idx_st_trip_stop_lookup",
+              "tableName": "stop_times",
+              "columns": [
+                {
+                  "column": {
+                    "name": "trip_id"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stop_id"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "add-index-calendar-dates",
+        "author": "Performance-Optimization",
+        "comments": "Add index on calendar_dates for faster service availability checks",
+        "changes": [
+          {
+            "createIndex": {
+              "indexName": "idx_calendar_service_date",
+              "tableName": "calendar_dates",
+              "columns": [
+                {
+                  "column": {
+                    "name": "service_id"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "date"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+
