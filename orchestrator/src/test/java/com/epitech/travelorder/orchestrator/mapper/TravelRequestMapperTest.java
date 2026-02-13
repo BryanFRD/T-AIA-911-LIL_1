@@ -156,7 +156,7 @@ class TravelRequestMapperTest {
         void shouldConvertWithTimeOnly() {
             // Given
             LocalDate today = LocalDate.now();
-            String todayTimeStr = today + "T14:30:00";
+            String todayTimeStr = today.plusDays(1) + "T14:30:00";
 
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
@@ -170,9 +170,9 @@ class TravelRequestMapperTest {
             // Then
             assertThat(result.departureTime())
                     .isNotNull()
-                    .hasYear(today.getYear())
-                    .hasMonthValue(today.getMonthValue())
-                    .hasDayOfMonth(today.getDayOfMonth())
+                    .hasYear(today.plusDays(1).getYear())
+                    .hasMonthValue(today.plusDays(1).getMonthValue())
+                    .hasDayOfMonth(today.plusDays(1).getDayOfMonth())
                     .hasHour(14)
                     .hasMinute(30);
         }
@@ -459,14 +459,14 @@ class TravelRequestMapperTest {
         @Test
         @DisplayName("Should use today's date if only TIME is provided")
         void shouldUseTodayIfTimeOnly() {
-            // Given
-            LocalDate today = LocalDate.now();
-            String todayTimeStr = today + "T16:45:00";
+            // Given - Use tomorrow to avoid normalization to now()
+            LocalDate tomorrow = LocalDate.now().plusDays(1);
+            String tomorrowTimeStr = tomorrow + "T16:45:00";
 
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
                     entity("Lyon", B_TO, 1),
-                    entity(todayTimeStr, NerLabel.B_DEPARTURE_TIME, 2)
+                    entity(tomorrowTimeStr, NerLabel.B_DEPARTURE_TIME, 2)
             );
 
             // When
@@ -475,9 +475,9 @@ class TravelRequestMapperTest {
             // Then
             assertThat(result.departureTime())
                     .isNotNull()
-                    .hasYear(today.getYear())
-                    .hasMonthValue(today.getMonthValue())
-                    .hasDayOfMonth(today.getDayOfMonth())
+                    .hasYear(tomorrow.getYear())
+                    .hasMonthValue(tomorrow.getMonthValue())
+                    .hasDayOfMonth(tomorrow.getDayOfMonth())
                     .hasHour(16)
                     .hasMinute(45);
             assertThat(result.arrivalTime()).isNull();
