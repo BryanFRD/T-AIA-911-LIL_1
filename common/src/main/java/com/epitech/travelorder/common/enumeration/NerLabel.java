@@ -15,7 +15,11 @@ public enum NerLabel {
     B_DATE("B-DATE"),
     I_DATE("I-DATE"),
     B_TRANSPORT("B-TRANSPORT"),
-    I_TRANSPORT("I-TRANSPORT");
+    I_TRANSPORT("I-TRANSPORT"),
+    B_DEPARTURE_TIME("B-DEPARTURE_TIME"),
+    I_DEPARTURE_TIME("I-DEPARTURE_TIME"),
+    B_ARRIVAL_TIME("B-ARRIVAL_TIME"),
+    I_ARRIVAL_TIME("I-ARRIVAL_TIME");
 
     private final String label;
 

@@ -112,8 +112,7 @@ class TravelRequestMapperTest {
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
                     entity("Lyon", B_TO, 1),
-                    entity("2026-02-20", NerLabel.B_DATE, 2),
-                    entity("14:30:00", NerLabel.B_TIME, 3)
+                    entity("2026-02-20T14:30:00", NerLabel.B_DEPARTURE_TIME, 2)
             );
 
             // When
@@ -136,7 +135,7 @@ class TravelRequestMapperTest {
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
                     entity("Lyon", B_TO, 1),
-                    entity("2026-02-20", NerLabel.B_DATE, 2)
+                    entity("2026-02-20T00:00:00", NerLabel.B_DEPARTURE_TIME, 2)
             );
 
             // When
@@ -156,17 +155,19 @@ class TravelRequestMapperTest {
         @DisplayName("Should convert with only TIME (date par défaut aujourd'hui)")
         void shouldConvertWithTimeOnly() {
             // Given
+            LocalDate today = LocalDate.now();
+            String todayTimeStr = today + "T14:30:00";
+
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
                     entity("Lyon", B_TO, 1),
-                    entity("14:30:00", NerLabel.B_TIME, 2)
+                    entity(todayTimeStr, NerLabel.B_DEPARTURE_TIME, 2)
             );
 
             // When
             RouteQuery result = mapper.convert(nlu);
 
             // Then
-            LocalDate today = LocalDate.now();
             assertThat(result.departureTime())
                     .isNotNull()
                     .hasYear(today.getYear())
@@ -404,18 +405,17 @@ class TravelRequestMapperTest {
     }
 
     @Nested
-    @DisplayName("Date extraction and combination with time")
-    class DepartureTimeExtraction {
+    @DisplayName("Departure and Arrival Time extraction")
+    class DepartureAndArrivalTimeExtraction {
 
         @Test
-        @DisplayName("Should combine DATE and TIME into LocalDateTime")
+        @DisplayName("Should extract DEPARTURE_TIME into LocalDateTime")
         void shouldCombineDateAndTime() {
             // Given
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
                     entity("Lyon", B_TO, 1),
-                    entity("2026-03-15", NerLabel.B_DATE, 2),
-                    entity("10:30:00", NerLabel.B_TIME, 3)
+                    entity("2026-03-15T10:30:00", NerLabel.B_DEPARTURE_TIME, 2)
             );
 
             // When
@@ -429,6 +429,7 @@ class TravelRequestMapperTest {
                     .hasDayOfMonth(15)
                     .hasHour(10)
                     .hasMinute(30);
+            assertThat(result.arrivalTime()).isNull();
         }
 
         @Test
@@ -438,7 +439,7 @@ class TravelRequestMapperTest {
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
                     entity("Lyon", B_TO, 1),
-                    entity("2026-12-25", NerLabel.B_DATE, 2)
+                    entity("2026-12-25T00:00:00", NerLabel.B_DEPARTURE_TIME, 2)
             );
 
             // When
@@ -452,23 +453,26 @@ class TravelRequestMapperTest {
                     .hasDayOfMonth(25)
                     .hasHour(0)
                     .hasMinute(0);
+            assertThat(result.arrivalTime()).isNull();
         }
 
         @Test
         @DisplayName("Should use today's date if only TIME is provided")
         void shouldUseTodayIfTimeOnly() {
             // Given
+            LocalDate today = LocalDate.now();
+            String todayTimeStr = today + "T16:45:00";
+
             Nlu nlu = createNlu(
                     entity("Paris", B_FROM, 0),
                     entity("Lyon", B_TO, 1),
-                    entity("16:45:00", NerLabel.B_TIME, 2)
+                    entity(todayTimeStr, NerLabel.B_DEPARTURE_TIME, 2)
             );
 
             // When
             RouteQuery result = mapper.convert(nlu);
 
             // Then
-            LocalDate today = LocalDate.now();
             assertThat(result.departureTime())
                     .isNotNull()
                     .hasYear(today.getYear())
@@ -476,10 +480,11 @@ class TravelRequestMapperTest {
                     .hasDayOfMonth(today.getDayOfMonth())
                     .hasHour(16)
                     .hasMinute(45);
+            assertThat(result.arrivalTime()).isNull();
         }
 
         @Test
-        @DisplayName("Should return null if no DATE or TIME")
+        @DisplayName("Should return null if no DEPARTURE_TIME or ARRIVAL_TIME")
         void shouldReturnNullIfNoDateTime() {
             // Given
             Nlu nlu = createNlu(
@@ -491,8 +496,98 @@ class TravelRequestMapperTest {
             RouteQuery result = mapper.convert(nlu);
 
             // Then
-            // Le constructeur de RouteQuery initialise à now() si null
+            // Le constructeur de RouteQuery initialise departureTime à now() si null
             assertThat(result.departureTime()).isNotNull();
+            assertThat(result.arrivalTime()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should extract ARRIVAL_TIME into LocalDateTime")
+        void shouldExtractArrivalTime() {
+            // Given
+            Nlu nlu = createNlu(
+                    entity("Paris", B_FROM, 0),
+                    entity("Lyon", B_TO, 1),
+                    entity("2026-03-15T18:45:00", NerLabel.B_ARRIVAL_TIME, 2)
+            );
+
+            // When
+            RouteQuery result = mapper.convert(nlu);
+
+            // Then
+            assertThat(result.arrivalTime())
+                    .isNotNull()
+                    .hasYear(2026)
+                    .hasMonthValue(3)
+                    .hasDayOfMonth(15)
+                    .hasHour(18)
+                    .hasMinute(45);
+            // departureTime initialisé à now() par le constructeur
+            assertThat(result.departureTime()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should extract both DEPARTURE_TIME and ARRIVAL_TIME")
+        void shouldExtractBothDepartureAndArrivalTime() {
+            // Given
+            Nlu nlu = createNlu(
+                    entity("Paris", B_FROM, 0),
+                    entity("Lyon", B_TO, 1),
+                    entity("2026-03-15T10:30:00", NerLabel.B_DEPARTURE_TIME, 2),
+                    entity("2026-03-15T14:45:00", NerLabel.B_ARRIVAL_TIME, 3)
+            );
+
+            // When
+            RouteQuery result = mapper.convert(nlu);
+
+            // Then
+            assertThat(result.departureTime())
+                    .isNotNull()
+                    .hasYear(2026)
+                    .hasMonthValue(3)
+                    .hasDayOfMonth(15)
+                    .hasHour(10)
+                    .hasMinute(30);
+
+            assertThat(result.arrivalTime())
+                    .isNotNull()
+                    .hasYear(2026)
+                    .hasMonthValue(3)
+                    .hasDayOfMonth(15)
+                    .hasHour(14)
+                    .hasMinute(45);
+        }
+
+        @Test
+        @DisplayName("Should handle ARRIVAL_TIME on different day than DEPARTURE_TIME")
+        void shouldHandleMultiDayJourney() {
+            // Given
+            Nlu nlu = createNlu(
+                    entity("Paris", B_FROM, 0),
+                    entity("Tokyo", B_TO, 1),
+                    entity("2026-03-15T22:30:00", NerLabel.B_DEPARTURE_TIME, 2),
+                    entity("2026-03-16T16:45:00", NerLabel.B_ARRIVAL_TIME, 3)
+            );
+
+            // When
+            RouteQuery result = mapper.convert(nlu);
+
+            // Then
+            assertThat(result.departureTime())
+                    .isNotNull()
+                    .hasYear(2026)
+                    .hasMonthValue(3)
+                    .hasDayOfMonth(15)
+                    .hasHour(22)
+                    .hasMinute(30);
+
+            assertThat(result.arrivalTime())
+                    .isNotNull()
+                    .hasYear(2026)
+                    .hasMonthValue(3)
+                    .hasDayOfMonth(16)
+                    .hasHour(16)
+                    .hasMinute(45);
         }
     }
 
@@ -557,8 +652,8 @@ class TravelRequestMapperTest {
                     entity("Besançon", B_VIA, 4),
                     entity("Paris", B_TO, 5),
                     entity("Nord", NerLabel.I_TO, 6),
-                    entity("2026-06-01", NerLabel.B_DATE, 7),
-                    entity("08:15:00", NerLabel.B_TIME, 8),
+                    entity("2026-06-01T08:15:00", NerLabel.B_DEPARTURE_TIME, 7),
+                    entity("2026-06-01T14:30:00", NerLabel.B_ARRIVAL_TIME, 8),
                     entity("train", NerLabel.B_TRANSPORT, 9)
             );
 
@@ -575,6 +670,13 @@ class TravelRequestMapperTest {
                     .hasDayOfMonth(1)
                     .hasHour(8)
                     .hasMinute(15);
+            assertThat(result.arrivalTime())
+                    .isNotNull()
+                    .hasYear(2026)
+                    .hasMonthValue(6)
+                    .hasDayOfMonth(1)
+                    .hasHour(14)
+                    .hasMinute(30);
         }
     }
 }

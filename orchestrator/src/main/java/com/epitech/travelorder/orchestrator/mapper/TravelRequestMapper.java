@@ -12,7 +12,6 @@ import org.mapstruct.Named;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -25,8 +24,8 @@ public interface TravelRequestMapper {
     String FROM = "FROM";
     String TO = "TO";
     String VIA = "VIA";
-    String DATE = "DATE";
-    String TIME = "TIME";
+    String DEPARTURE_TIME = "DEPARTURE_TIME";
+    String ARRIVAL_TIME = "ARRIVAL_TIME";
 
     TravelRequestMapper INSTANCE = getMapper(TravelRequestMapper.class);
 
@@ -34,6 +33,7 @@ public interface TravelRequestMapper {
     @Mapping(target = "destination", source = ".", qualifiedByName = "extractDestination")
     @Mapping(target = "vias", source = ".", qualifiedByName = "extractVias")
     @Mapping(target = "departureTime", source = ".", qualifiedByName = "extractDepartureTime")
+    @Mapping(target = "arrivalTime", source = ".", qualifiedByName = "extractArrivalTime")
     RouteQuery convert(Nlu nlu);
 
     @Named("extractOrigin")
@@ -58,27 +58,20 @@ public interface TravelRequestMapper {
 
     @Named("extractDepartureTime")
     default LocalDateTime extractDepartureTime(Nlu nlu) {
-        Map<String, List<String>> entities = getEntities(nlu);
-
-        String dateStr = entities.getOrDefault(DATE, emptyList())
+        return getEntitiesList(nlu, DEPARTURE_TIME)
                 .stream()
                 .findFirst()
+                .map(NerUtils::extractDateTime)
                 .orElse(null);
+    }
 
-        String timeStr = entities.getOrDefault(TIME, emptyList())
+    @Named("extractArrivalTime")
+    default LocalDateTime extractArrivalTime(Nlu nlu) {
+        return getEntitiesList(nlu, ARRIVAL_TIME)
                 .stream()
                 .findFirst()
+                .map(NerUtils::extractDateTime)
                 .orElse(null);
-
-        if (dateStr != null && timeStr != null) {
-            return NerUtils.extractDateTime(dateStr + "T" + timeStr);
-        } else if (dateStr != null) {
-            return NerUtils.extractDateTime(dateStr + "T00:00:00");
-        } else if (timeStr != null) {
-            return NerUtils.extractDateTime(LocalDateTime.now().toLocalDate() + "T" + timeStr);
-        }
-
-        return null;
     }
 
     private Map<String, List<String>> getEntities(Nlu nlu) {

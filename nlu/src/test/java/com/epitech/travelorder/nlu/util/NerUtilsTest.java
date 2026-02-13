@@ -244,15 +244,12 @@ class NerUtilsTest {
         }
 
         @Test
-        @DisplayName("Should handle DATE and TIME separately")
+        @DisplayName("Should handle DEPARTURE_TIME and ARRIVAL_TIME separately")
         void shouldHandleDateAndTime() {
-            // Given: "demain à 10h30"
+            // Given: "départ demain à 10h30, arrivée à 14h45"
             List<NerEntity> entities = List.of(
-                entity("demain", NerLabel.B_DATE, 0),
-                entity("à", NerLabel.O, 1),
-                entity("10", NerLabel.B_TIME, 2),
-                entity("h", NerLabel.I_TIME, 3),
-                entity("30", NerLabel.I_TIME, 4)
+                entity("2026-02-14T10:30:00", NerLabel.B_DEPARTURE_TIME, 0),
+                entity("2026-02-14T14:45:00", NerLabel.B_ARRIVAL_TIME, 1)
             );
 
             // When
@@ -261,8 +258,8 @@ class NerUtilsTest {
             // Then
             assertThat(result)
                 .hasSize(2)
-                .containsEntry("DATE", List.of("demain"))
-                .containsEntry("TIME", List.of("10 h 30"));
+                .containsEntry("DEPARTURE_TIME", List.of("2026-02-14T10:30:00"))
+                .containsEntry("ARRIVAL_TIME", List.of("2026-02-14T14:45:00"));
         }
 
         @Test
@@ -273,9 +270,7 @@ class NerUtilsTest {
                 entity("Paris", NerLabel.B_FROM, 0),
                 entity("Lyon", NerLabel.B_TO, 1),
                 entity("train", NerLabel.B_TRANSPORT, 2),
-                entity("demain", NerLabel.B_DATE, 3),
-                entity("10", NerLabel.B_TIME, 4),
-                entity("h", NerLabel.I_TIME, 5)
+                entity("2026-02-15T10:00:00", NerLabel.B_DEPARTURE_TIME, 3)
             );
 
             // When
@@ -283,12 +278,11 @@ class NerUtilsTest {
 
             // Then
             assertThat(result)
-                .hasSize(5)
+                .hasSize(4)
                 .containsEntry("FROM", List.of("Paris"))
                 .containsEntry("TO", List.of("Lyon"))
                 .containsEntry("TRANSPORT", List.of("train"))
-                .containsEntry("DATE", List.of("demain"))
-                .containsEntry("TIME", List.of("10 h"));
+                .containsEntry("DEPARTURE_TIME", List.of("2026-02-15T10:00:00"));
         }
 
         @Test

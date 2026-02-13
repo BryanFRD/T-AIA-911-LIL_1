@@ -1,7 +1,6 @@
 package com.epitech.travelorder.common.dto;
 
 import lombok.With;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,7 +15,8 @@ public record RouteQuery(
         @With String origin,
         String destination,
         List<String> vias,
-        LocalDateTime departureTime
+        LocalDateTime departureTime,
+        LocalDateTime arrivalTime
 ) {
 
     public RouteQuery {
