@@ -21,11 +21,18 @@ public interface TravelProposalMapper {
     @Mapping(target = "travelTime", source = ".", qualifiedByName = "mapTravelTime")
     @Mapping(target = "legs", source = ".", qualifiedByName = "mapLegs")
     @Mapping(target = "transferCount", constant = "0")
-    @Mapping(target = "multiDay", constant = "false")
+    @Mapping(target = "multiDay", source = ".", qualifiedByName = "mapMultiDay")
     TravelProposal convert(DirectTravelSolution solution);
 
     @Named("mapLegs")
     default List<TravelLeg> mapLegs(DirectTravelSolution solution) {
         return List.of(TravelLegMapper.INSTANCE.convert(solution, solution.referenceDate()));
+    }
+
+    @Named("mapMultiDay")
+    default Boolean mapMultiDay(DirectTravelSolution solution) {
+        return TimeMapper.INSTANCE.mapDepartureTime(solution)
+                .toLocalDate()
+                .isBefore(TimeMapper.INSTANCE.mapArrivalTime(solution).toLocalDate());
     }
 }

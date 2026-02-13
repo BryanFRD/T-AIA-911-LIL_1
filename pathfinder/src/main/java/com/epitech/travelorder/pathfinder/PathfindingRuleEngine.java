@@ -3,7 +3,7 @@ package com.epitech.travelorder.pathfinder;
 import com.epitech.travelorder.common.dto.CustomerTravelSolution;
 import com.epitech.travelorder.common.dto.RouteQuery;
 import com.epitech.travelorder.common.util.LogUtils;
-import com.epitech.travelorder.pathfinder.rule.RuleExecutor;
+import com.epitech.travelorder.pathfinder.service.rule.RuleExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

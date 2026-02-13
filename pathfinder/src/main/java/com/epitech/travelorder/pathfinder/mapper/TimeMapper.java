@@ -42,7 +42,15 @@ public interface TimeMapper {
 
     @Named("mapArrivalTimeDirect")
     default LocalDateTime mapArrivalTime(DirectTravelSolution solution) {
-        return toLocalDateTime(solution.endStopTime().getArrivalTime(), solution.referenceDate());
+        LocalDateTime departure = toLocalDateTime(solution.startStopTime().getDepartureTime(), solution.referenceDate());
+        LocalDateTime arrival = toLocalDateTime(solution.endStopTime().getArrivalTime(), solution.referenceDate());
+
+        // If arrival is before departure, it means we cross midnight (overnight train)
+        if (arrival != null && departure != null && arrival.isBefore(departure)) {
+            arrival = toLocalDateTime(solution.endStopTime().getArrivalTime(), solution.referenceDate().plusDays(1));
+        }
+
+        return arrival;
     }
 
     @Named("mapTravelTime")
@@ -54,6 +62,44 @@ public interface TimeMapper {
     default String mapGtfsStringToString(String gtfsTime, @Context LocalDate date) {
         LocalDateTime dateTime = toLocalDateTime(gtfsTime, date);
         return dateTime != null ? dateTime.toString() : null;
+    }
+
+    @Named("mapDepartureTimeToString")
+    default String mapDepartureTimeToString(DirectTravelSolution solution, @Context LocalDate date) {
+        LocalDateTime departure = toLocalDateTime(solution.startStopTime().getDepartureTime(), date);
+        return departure != null ? departure.toString() : null;
+    }
+
+    @Named("mapArrivalTimeToString")
+    default String mapArrivalTimeToString(DirectTravelSolution solution, @Context LocalDate date) {
+        LocalDateTime departure = toLocalDateTime(solution.startStopTime().getDepartureTime(), date);
+        LocalDateTime arrival = toLocalDateTime(solution.endStopTime().getArrivalTime(), date);
+
+        // If arrival is before departure, we crossed midnight
+        if (arrival != null && departure != null && arrival.isBefore(departure)) {
+            arrival = toLocalDateTime(solution.endStopTime().getArrivalTime(), date.plusDays(1));
+        }
+
+        return arrival != null ? arrival.toString() : null;
+    }
+
+    @Named("mapDepartureTimeToStringSegment")
+    default String mapDepartureTimeToStringSegment(GraphSegmentBo segment, @Context LocalDate date) {
+        LocalDateTime departure = toLocalDateTime(segment.startStopTime().getDepartureTime(), date);
+        return departure != null ? departure.toString() : null;
+    }
+
+    @Named("mapArrivalTimeToStringSegment")
+    default String mapArrivalTimeToStringSegment(GraphSegmentBo segment, @Context LocalDate date) {
+        LocalDateTime departure = toLocalDateTime(segment.startStopTime().getDepartureTime(), date);
+        LocalDateTime arrival = toLocalDateTime(segment.endStopTime().getArrivalTime(), date);
+
+        // If arrival is before departure, we crossed midnight
+        if (arrival != null && departure != null && arrival.isBefore(departure)) {
+            arrival = toLocalDateTime(segment.endStopTime().getArrivalTime(), date.plusDays(1));
+        }
+
+        return arrival != null ? arrival.toString() : null;
     }
 
     @Named("mapTravelTimeFromStopTimes")

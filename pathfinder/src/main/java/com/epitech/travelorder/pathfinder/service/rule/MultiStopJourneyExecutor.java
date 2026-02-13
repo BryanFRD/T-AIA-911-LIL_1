@@ -1,4 +1,4 @@
-package com.epitech.travelorder.pathfinder.rule;
+package com.epitech.travelorder.pathfinder.service.rule;
 
 import com.epitech.travelorder.common.db.Stop;
 import com.epitech.travelorder.common.dto.CustomerTravelSolution;
