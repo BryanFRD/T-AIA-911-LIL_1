@@ -25,7 +25,8 @@ public interface TravelRequestMapper {
     String FROM = "FROM";
     String TO = "TO";
     String VIA = "VIA";
-    String DATETIME = "DATETIME";
+    String DATE = "DATE";
+    String TIME = "TIME";
 
     TravelRequestMapper INSTANCE = getMapper(TravelRequestMapper.class);
 
@@ -33,31 +34,51 @@ public interface TravelRequestMapper {
     @Mapping(target = "destination", source = ".", qualifiedByName = "extractDestination")
     @Mapping(target = "vias", source = ".", qualifiedByName = "extractVias")
     @Mapping(target = "departureTime", source = ".", qualifiedByName = "extractDepartureTime")
-    public RouteQuery convert(Nlu nlu);
+    RouteQuery convert(Nlu nlu);
 
     @Named("extractOrigin")
     default String extractOrigin(Nlu nlu) {
-        return findEntity(nlu, FROM)
-                .orElse(null);
+        List<String> fromEntities = getEntitiesList(nlu, FROM);
+        return fromEntities.isEmpty() ? null : fromEntities.getFirst();
     }
 
     @Named("extractDestination")
     default String extractDestination(Nlu nlu) {
-        return findEntity(nlu, TO)
-                .orElseThrow(() -> new IncompleteTravelRequestException("Cannot extract destination from customer request"));
+        List<String> toEntities = getEntitiesList(nlu, TO);
+        if (toEntities.isEmpty()) {
+            throw new IncompleteTravelRequestException("Cannot extract destination from customer request");
+        }
+        return toEntities.getFirst();
     }
 
     @Named("extractVias")
     default List<String> extractVias(Nlu nlu) {
-        return getEntities(nlu)
-                .getOrDefault(VIA, emptyList());
+        return getEntitiesList(nlu, VIA);
     }
 
     @Named("extractDepartureTime")
     default LocalDateTime extractDepartureTime(Nlu nlu) {
-        return findEntity(nlu, DATETIME)
-                .map(NerUtils::extractDateTime)
+        Map<String, List<String>> entities = getEntities(nlu);
+
+        String dateStr = entities.getOrDefault(DATE, emptyList())
+                .stream()
+                .findFirst()
                 .orElse(null);
+
+        String timeStr = entities.getOrDefault(TIME, emptyList())
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        if (dateStr != null && timeStr != null) {
+            return NerUtils.extractDateTime(dateStr + "T" + timeStr);
+        } else if (dateStr != null) {
+            return NerUtils.extractDateTime(dateStr + "T00:00:00");
+        } else if (timeStr != null) {
+            return NerUtils.extractDateTime(LocalDateTime.now().toLocalDate() + "T" + timeStr);
+        }
+
+        return null;
     }
 
     private Map<String, List<String>> getEntities(Nlu nlu) {
@@ -68,10 +89,7 @@ public interface TravelRequestMapper {
                 .orElse(emptyMap());
     }
 
-    private Optional<String> findEntity(Nlu nlu, String type) {
-        return getEntities(nlu)
-                .getOrDefault(type, emptyList())
-                .stream()
-                .findFirst();
+    private List<String> getEntitiesList(Nlu nlu, String type) {
+        return getEntities(nlu).getOrDefault(type, emptyList());
     }
 }

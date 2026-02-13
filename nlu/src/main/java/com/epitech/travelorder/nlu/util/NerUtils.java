@@ -39,14 +39,12 @@ public class NerUtils {
 
             String entityType = label.entityType();
 
-            boolean isContinuation = currentEntityType != null && currentEntityType.equals(entityType);
+            boolean canContinueEntity = label.isInside()
+                                       && currentEntityType != null
+                                       && currentEntityType.equals(entityType);
 
-            if (isContinuation) {
-                if (shouldAppendWithoutSpace(previousText, text)) {
-                    currentBuffer.append(text);
-                } else {
-                    currentBuffer.append(" ").append(text);
-                }
+            if (canContinueEntity) {
+                appendToBuffer(currentBuffer, previousText, text);
             } else {
                 flushEntity(extractedData, currentEntityType, currentBuffer);
                 currentEntityType = entityType;
@@ -71,14 +69,25 @@ public class NerUtils {
 
     private static void flushEntity(Map<String, List<String>> map, String type, StringBuilder buffer) {
         if (type != null && !buffer.isEmpty()) {
-            String value = buffer.toString();
+            String value = buffer.toString().trim();
             log.debug("Extracted entity: type={}, value='{}'", type, value);
             map.computeIfAbsent(type, k -> new ArrayList<>()).add(value);
             buffer.setLength(0);
         }
     }
 
+    private static void appendToBuffer(StringBuilder buffer, String previousText, String currentText) {
+        if (shouldAppendWithoutSpace(previousText, currentText)) {
+            buffer.append(currentText);
+        } else {
+            buffer.append(" ").append(currentText);
+        }
+    }
+
     private static boolean shouldAppendWithoutSpace(String previous, String current) {
-        return previous.endsWith("-") || current.startsWith("-");
+        return previous.endsWith("-")
+            || current.startsWith("-")
+            || current.equals("'")
+            || previous.endsWith("'");
     }
 }

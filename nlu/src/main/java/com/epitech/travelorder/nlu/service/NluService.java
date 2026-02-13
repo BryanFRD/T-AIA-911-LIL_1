@@ -114,41 +114,5 @@ public class NluService {
             return null;
         }
     }
-
-    public NluStatus healthStatus() {
-        List<NluModelInfo> models = new ArrayList<>();
-
-        ModelMetadata intentMetadata = modelLoader.getModelMetadata(ModelType.NLU_INTENT);
-        if (intentMetadata != null) {
-            models.add(new NluModelInfo(
-                    intentMetadata.modelName(),
-                    "intentLabel-classification",
-                    intentMetadata.version(),
-                    intentMetadata.runId(),
-                    intentPredictor != null
-            ));
-        }
-
-        ModelMetadata nerMetadata = modelLoader.getModelMetadata(ModelType.NLU_NER);
-        if (nerMetadata != null) {
-            models.add(new NluModelInfo(
-                    nerMetadata.modelName(),
-                    "named-entity-recognition",
-                    nerMetadata.version(),
-                    nerMetadata.runId(),
-                    nerPredictor != null
-            ));
-        }
-
-        String status = (intentPredictor != null && nerPredictor != null) ? "healthy" : "degraded";
-        log.debug(LOG_CTX_HEALTH.format("Health check: %s (%s models)", status, models.size()));
-
-        return new NluStatus(status, models);
-    }
-
-    public void close() {
-        log.info(LOG_CTX_INIT.format("Closing service and clearing model cache"));
-        modelLoader.clearCache();
-    }
 }
 
