@@ -4,6 +4,7 @@ import { Route, Bookmark, RotateCcw } from "lucide-react-native";
 import { SolutionResponse, Proposal } from "@/interfaces/solution.interface";
 import TravelProposalCard from "./TravelProposalCard";
 import ProposalDetail from "./ProposalDetail";
+import { useSavedProposals } from "@/hooks/useSavedProposals";
 
 interface TravelResultsProps {
   solution: SolutionResponse;
@@ -13,9 +14,17 @@ interface TravelResultsProps {
 
 export default function TravelResults({ solution, onSave, onNewRequest }: TravelResultsProps) {
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const { isSaved, toggleSave } = useSavedProposals();
 
   if (selectedProposal) {
-    return <ProposalDetail proposal={selectedProposal} onBack={() => setSelectedProposal(null)} />;
+    return (
+      <ProposalDetail
+        proposal={selectedProposal}
+        onBack={() => setSelectedProposal(null)}
+        isSaved={isSaved(selectedProposal)}
+        onToggleSave={() => toggleSave(selectedProposal)}
+      />
+    );
   }
 
   return (
@@ -80,22 +89,6 @@ export default function TravelResults({ solution, onSave, onNewRequest }: Travel
 
       {/* Bottom actions */}
       <View className="flex-row gap-3 pt-3 pb-10">
-        <TouchableOpacity
-          onPress={onSave}
-          activeOpacity={0.7}
-          className="flex-1 flex-row items-center justify-center py-3 bg-white rounded-xl"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.06,
-            shadowRadius: 10,
-            elevation: 2,
-          }}
-        >
-          <Bookmark size={16} color="#007AFF" />
-          <Text className="text-[#007AFF] font-semibold ml-1.5 text-[15px]">Sauvegarder</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity onPress={onNewRequest} activeOpacity={0.7} className="flex-1 flex-row items-center justify-center py-3 bg-[#007AFF] rounded-xl">
           <RotateCcw size={16} color="white" />
           <Text className="text-white font-semibold ml-1.5 text-[15px]">Nouvelle recherche</Text>

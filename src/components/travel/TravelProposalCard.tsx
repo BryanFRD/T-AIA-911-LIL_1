@@ -86,7 +86,7 @@ export default function TravelProposalCard({ proposal, index, onPress }: TravelP
             {/* Nombre de trajets */}
             <View className="flex-row items-center gap-1.5 bg-gray-200 rounded-full px-2 py-0.5">
               <Navigation size={14} color="#007AFF" />
-              <Text> {proposal.legs.length} Trajets</Text>
+              <Text> {proposal.legs.length} étapes</Text>
             </View>
 
             <View className="flex-row items-center gap-3">
