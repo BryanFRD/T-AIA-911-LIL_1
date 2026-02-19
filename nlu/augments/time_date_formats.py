@@ -74,6 +74,46 @@ DATE_VARIATIONS = {
     r'\bvendredi prochain\b': ['vendredi prochain', 'le vendredi suivant'],
 }
 
+# Mapping des transformations de heures de départ (departure_time)
+DEPARTURE_TIME_VARIATIONS = {
+    r'\btôt le matin\b': ['tôt le matin', 'très tôt le matin', 'en début de journée'],
+    r'\ben fin de journée\b': ['en fin de journée', 'tard le soir', 'en fin d\'après-midi'],
+    r'\bce soir\b': ['ce soir', 'en soirée', 'dans la soirée'],
+    r'\bde nuit\b': ['de nuit', 'en pleine nuit', 'tard dans la nuit'],
+    r'\bdans 1h\b': ['dans une heure', 'd\'ici une heure', 'd\'ici 1h'],
+    r'\bdans 2h\b': ['dans deux heures', 'd\'ici deux heures', 'd\'ici 2h'],
+    r'\bdans 3h\b': ['dans trois heures', 'd\'ici trois heures', 'd\'ici 3h'],
+    r'\bdans 15 minutes\b': ['dans un quart d\'heure', 'd\'ici 15 minutes'],
+    r'\bdans 30 minutes\b': ['dans une demi-heure', 'd\'ici 30 minutes'],
+    r'\bdans 3 jours\b': ['dans trois jours', 'd\'ici trois jours'],
+    r'\bdans 5 jours\b': ['dans cinq jours', 'd\'ici cinq jours'],
+    r'\bdans une semaine\b': ['dans une semaine', 'd\'ici une semaine'],
+    r'\bdans 10 jours\b': ['dans dix jours', 'd\'ici dix jours'],
+    r'\bdans 2 semaines\b': ['dans deux semaines', 'd\'ici deux semaines'],
+}
+
+# Mapping des transformations de heures d'arrivée (arrival_time)
+ARRIVAL_TIME_VARIATIONS = {
+    r'\bavant 10h\b': ['avant 10h', 'avant dix heures', 'pas après 10h'],
+    r'\bavant 12h\b': ['avant 12h', 'avant midi', 'pas après midi'],
+    r'\bavant 15h\b': ['avant 15h', 'avant quinze heures', 'pas après 15h'],
+    r'\bavant 18h\b': ['avant 18h', 'avant dix-huit heures'],
+    r'\bavant 20h\b': ['avant 20h', 'avant vingt heures'],
+    r'\bvers 10h\b': ['vers 10h', 'vers dix heures', 'autour de 10h'],
+    r'\bvers 12h\b': ['vers 12h', 'vers midi'],
+    r'\bvers 15h\b': ['vers 15h', 'vers quinze heures'],
+    r'\bvers 18h\b': ['vers 18h', 'vers dix-huit heures'],
+    r'\bvers 20h\b': ['vers 20h', 'vers vingt heures'],
+    r'\baprès 10h\b': ['après 10h', 'après dix heures', 'pas avant 10h'],
+    r'\baprès 12h\b': ['après 12h', 'après midi', 'pas avant midi'],
+    r'\baprès 15h\b': ['après 15h', 'après quinze heures'],
+    r'\baprès 18h\b': ['après 18h', 'après dix-huit heures'],
+    r'\baprès 20h\b': ['après 20h', 'après vingt heures'],
+    r'\bau plus tard à 10h\b': ['au plus tard à 10h', 'pas plus tard que 10h', 'maximum à 10h'],
+    r'\bau plus tard à 15h\b': ['au plus tard à 15h', 'pas plus tard que 15h'],
+    r'\ben début d\'après-midi\b': ['en début d\'après-midi', 'tôt l\'après-midi'],
+}
+
 
 def augment_time_date_formats(text: str, entities: Dict, probability: float = 0.5) -> List[Tuple[str, Dict]]:
     """
@@ -90,11 +130,13 @@ def augment_time_date_formats(text: str, entities: Dict, probability: float = 0.
     if random.random() > probability:
         return []
 
-    # Check if text contains time or date entities
+    # Check if text contains time/date entities
     has_time = entities.get("time", "")
     has_date = entities.get("date", "")
+    has_departure_time = entities.get("departure_time", "")
+    has_arrival_time = entities.get("arrival_time", "")
 
-    if not has_time and not has_date:
+    if not any([has_time, has_date, has_departure_time, has_arrival_time]):
         return []
 
     variants = []
@@ -103,15 +145,11 @@ def augment_time_date_formats(text: str, entities: Dict, probability: float = 0.
     if has_time:
         for pattern, replacements in TIME_VARIATIONS.items():
             if re.search(pattern, text, re.IGNORECASE):
-                # Try 1-2 random variations
                 for _ in range(random.randint(1, 2)):
                     replacement = random.choice(replacements)
                     new_text = re.sub(pattern, replacement, text, count=1, flags=re.IGNORECASE)
-
-                    # Update time entity to match new format
                     new_entities = entities.copy()
                     new_entities["time"] = replacement
-
                     if new_text != text:
                         variants.append((new_text, new_entities))
 
@@ -119,27 +157,49 @@ def augment_time_date_formats(text: str, entities: Dict, probability: float = 0.
     if has_date:
         for pattern, replacements in DATE_VARIATIONS.items():
             if re.search(pattern, text, re.IGNORECASE):
-                # Try 1-2 random variations
                 for _ in range(random.randint(1, 2)):
                     replacement = random.choice(replacements)
                     new_text = re.sub(pattern, replacement, text, count=1, flags=re.IGNORECASE)
-
-                    # Update date entity to match new format
                     new_entities = entities.copy()
                     new_entities["date"] = replacement
-
                     if new_text != text:
                         variants.append((new_text, new_entities))
 
-    return variants[:3]  # Limit to 3 variants per example
+    # Apply departure_time variations
+    if has_departure_time:
+        for pattern, replacements in DEPARTURE_TIME_VARIATIONS.items():
+            if re.search(pattern, text, re.IGNORECASE):
+                for _ in range(random.randint(1, 2)):
+                    replacement = random.choice(replacements)
+                    new_text = re.sub(pattern, replacement, text, count=1, flags=re.IGNORECASE)
+                    new_entities = entities.copy()
+                    new_entities["departure_time"] = replacement
+                    if new_text != text:
+                        variants.append((new_text, new_entities))
+
+    # Apply arrival_time variations
+    if has_arrival_time:
+        for pattern, replacements in ARRIVAL_TIME_VARIATIONS.items():
+            if re.search(pattern, text, re.IGNORECASE):
+                for _ in range(random.randint(1, 2)):
+                    replacement = random.choice(replacements)
+                    new_text = re.sub(pattern, replacement, text, count=1, flags=re.IGNORECASE)
+                    new_entities = entities.copy()
+                    new_entities["arrival_time"] = replacement
+                    if new_text != text:
+                        variants.append((new_text, new_entities))
+
+    return variants[:3]
 
 
 if __name__ == "__main__":
     # Test
     test_examples = [
-        ("Je veux un train demain à 14h30", {"time": "14h30", "date": "demain", "from": "Paris", "to": "Lyon"}),
-        ("Train dans 2h pour Lyon", {"time": "dans 2h", "date": "", "from": "", "to": "Lyon"}),
-        ("Départ ce matin à 9h15", {"time": "9h15", "date": "ce matin", "from": "Paris", "to": "Lyon"}),
+        ("Je veux un train demain à 14h30", {"time": "14h30", "date": "demain", "from": "Paris", "to": "Lyon", "departure_time": "", "arrival_time": ""}),
+        ("Train dans 2h pour Lyon", {"time": "dans 2h", "date": "", "from": "", "to": "Lyon", "departure_time": "", "arrival_time": ""}),
+        ("Départ ce matin à 9h15", {"time": "9h15", "date": "ce matin", "from": "Paris", "to": "Lyon", "departure_time": "", "arrival_time": ""}),
+        ("Je dois partir dans 3 jours", {"time": "", "date": "", "from": "", "to": "", "departure_time": "dans 3 jours", "arrival_time": ""}),
+        ("Arriver avant 15h à Paris", {"time": "", "date": "", "from": "", "to": "Paris", "departure_time": "", "arrival_time": "avant 15h"}),
     ]
 
     for text, entities in test_examples:
@@ -151,3 +211,7 @@ if __name__ == "__main__":
                 print(f"    TIME: {entities.get('time')} → {variant_entities.get('time')}")
             if variant_entities.get("date") != entities.get("date"):
                 print(f"    DATE: {entities.get('date')} → {variant_entities.get('date')}")
+            if variant_entities.get("departure_time") != entities.get("departure_time"):
+                print(f"    DEPARTURE: {entities.get('departure_time')} → {variant_entities.get('departure_time')}")
+            if variant_entities.get("arrival_time") != entities.get("arrival_time"):
+                print(f"    ARRIVAL: {entities.get('arrival_time')} → {variant_entities.get('arrival_time')}")

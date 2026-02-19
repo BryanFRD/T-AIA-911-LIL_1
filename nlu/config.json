@@ -17,14 +17,15 @@
     "save_strategy": "no"
   },
   "optimization": {
-    "use_bf16": true,
+    "use_bf16": false,
+    "use_fp16": true,
     "use_tf32": true,
     "cudnn_benchmark": true,
-    "dataloader_num_workers": 4,
-    "dataloader_prefetch_factor": 4,
+    "dataloader_num_workers": 8,
+    "dataloader_prefetch_factor": 2,
     "dataloader_pin_memory": true,
     "use_fused_optimizer": true,
-    "pytorch_compile": false
+    "pytorch_compile": true
   },
   "export": {
     "formats": ["pytorch", "onnx"],
@@ -45,7 +46,11 @@
     "B-DATE",
     "I-DATE",
     "B-TRANSPORT",
-    "I-TRANSPORT"
+    "I-TRANSPORT",
+    "B-DEPARTURE_TIME",
+    "I-DEPARTURE_TIME",
+    "B-ARRIVAL_TIME",
+    "I-ARRIVAL_TIME"
   ],
   "intent_labels": ["trajet", "other"]
 }

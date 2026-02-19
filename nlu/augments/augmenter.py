@@ -24,6 +24,7 @@ from .time_date_formats import augment_time_date_formats
 from .politeness_variations import augment_politeness_variations
 from .implicit_questions import augment_implicit_questions
 from .context_awareness import should_skip_entity_swap_for_beverage
+from .city_variants import augment_city_variants
 
 
 class NLUAugmenter:
@@ -49,6 +50,7 @@ class NLUAugmenter:
     16. Formats temps/date (14h30 -> quatorze heures trente, demain -> le lendemain)
     17. Variations de politesse (je veux -> je voudrais, + s'il vous plaît)
     18. Questions implicites (Paris Lyon -> Paris Lyon ?, affirmation -> question)
+    19. Variantes de noms de villes (Saint->St, tirets supprimés, abréviations)
     """
 
     def __init__(self):
@@ -72,6 +74,7 @@ class NLUAugmenter:
             (augment_time_date_formats, 0.5),  # Variations de formats temps/date
             (augment_politeness_variations, 0.6),  # Augmente a 0.6 pour mieux renforcer contexte consommation
             (augment_implicit_questions, 0.2),  # Questions implicites
+            (augment_city_variants, 0.4),  # Variantes de noms de villes (Saint->St, tirets, abréviations)
         ]
 
     def augment_example(self, text: str, entities: Dict,
@@ -92,8 +95,10 @@ class NLUAugmenter:
         # Check if this is a beverage/food consumption context
         skip_entity_swap = should_skip_entity_swap_for_beverage(text, entities)
 
-        # Appliquer chaque technique
+        # Appliquer chaque technique (early exit when enough variants collected)
         for technique, probability in self.techniques:
+            if len(all_variants) >= num_variants * 2:  # Margin for dedup
+                break
             try:
                 # Skip entity_swap for beverage/food contexts to avoid reinforcing location interpretation
                 if technique.__name__ == "augment_entity_swap" and skip_entity_swap:
@@ -102,7 +107,6 @@ class NLUAugmenter:
                 variants = technique(text, entities, probability)
                 all_variants.extend(variants)
             except Exception as e:
-                print(f"Warning: {technique.__name__} failed: {e}")
                 continue
 
         # Dédupliquer et limiter
