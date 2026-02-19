@@ -23,6 +23,7 @@ from .entity_swap import augment_entity_swap
 from .time_date_formats import augment_time_date_formats
 from .politeness_variations import augment_politeness_variations
 from .implicit_questions import augment_implicit_questions
+from .context_awareness import should_skip_entity_swap_for_beverage
 
 
 class NLUAugmenter:
@@ -67,9 +68,9 @@ class NLUAugmenter:
             (augment_person_prefix, 0.3),
             (augment_accent_variants, 0.3),  # Retire 30% des accents aléatoirement
             (augment_homophones, 0.2),  # Erreurs homophones (à/a, où/ou, etc.)
-            (augment_entity_swap, 0.15),  # Inverse FROM <-> TO pour trajets retour
+            (augment_entity_swap, 0.05),  # Reduit a 0.05 pour eviter renforcer interpretation location pour boissons
             (augment_time_date_formats, 0.5),  # Variations de formats temps/date
-            (augment_politeness_variations, 0.4),  # Variations de politesse
+            (augment_politeness_variations, 0.6),  # Augmente a 0.6 pour mieux renforcer contexte consommation
             (augment_implicit_questions, 0.2),  # Questions implicites
         ]
 
@@ -88,9 +89,16 @@ class NLUAugmenter:
         """
         all_variants = [(text, entities)]  # Inclure l'original
 
+        # Check if this is a beverage/food consumption context
+        skip_entity_swap = should_skip_entity_swap_for_beverage(text, entities)
+
         # Appliquer chaque technique
         for technique, probability in self.techniques:
             try:
+                # Skip entity_swap for beverage/food contexts to avoid reinforcing location interpretation
+                if technique.__name__ == "augment_entity_swap" and skip_entity_swap:
+                    continue
+                
                 variants = technique(text, entities, probability)
                 all_variants.extend(variants)
             except Exception as e:

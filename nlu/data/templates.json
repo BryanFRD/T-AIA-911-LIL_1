@@ -1,70 +1,205 @@
 {
-  "voices": [
-    "Maude",
-    "Valérian",
-    "Simon",
-    "Jayce"
-  ],
+  "voices": ["Maude", "Valérian", "Simon", "Jayce"],
 
   "transports": [
-    "train", "TER", "TGV", "Intercités",
-    "taxi", "Uber", "VTC",
-    "avion", "vol",
-    "bus", "car", "autocar"
+    "train",
+    "TER",
+    "TGV",
+    "Intercités",
+    "taxi",
+    "Uber",
+    "VTC",
+    "avion",
+    "vol",
+    "bus",
+    "car",
+    "autocar"
   ],
 
   "times": [
-    "8h", "8h30", "9h", "9h15", "9h30", "10h", "10h30", "11h", "11h30",
-    "12h", "12h30", "13h", "13h30", "14h", "14h15", "14h30", "15h", "15h30",
-    "16h", "16h30", "17h", "17h30", "18h", "18h30", "19h", "19h30", "20h", "20h30",
-    "21h", "22h", "23h",
-    "dans 1h", "dans 2h", "dans 3h", "dans 30 minutes", "dans une heure"
+    "8h",
+    "8h30",
+    "9h",
+    "9h15",
+    "9h30",
+    "10h",
+    "10h30",
+    "11h",
+    "11h30",
+    "12h",
+    "12h30",
+    "13h",
+    "13h30",
+    "14h",
+    "14h15",
+    "14h30",
+    "15h",
+    "15h30",
+    "16h",
+    "16h30",
+    "17h",
+    "17h30",
+    "18h",
+    "18h30",
+    "19h",
+    "19h30",
+    "20h",
+    "20h30",
+    "21h",
+    "22h",
+    "23h",
+    "dans 1h",
+    "dans 2h",
+    "dans 3h",
+    "dans 30 minutes",
+    "dans une heure"
   ],
 
   "dates": [
-    "demain", "après-demain", "ce soir", "ce matin", "cet après-midi",
-    "aujourd'hui", "ce week-end", "la semaine prochaine", "le mois prochain",
-    "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
-    "lundi prochain", "mardi prochain", "mercredi prochain", "jeudi prochain", "vendredi prochain",
-    "lundi matin", "mardi matin", "mercredi matin", "jeudi matin", "vendredi matin",
-    "lundi après-midi", "mardi après-midi", "mercredi après-midi", "jeudi après-midi", "vendredi après-midi",
-    "lundi soir", "mardi soir", "mercredi soir", "jeudi soir", "vendredi soir",
-    "samedi matin", "dimanche matin", "samedi après-midi", "dimanche après-midi"
+    "demain",
+    "après-demain",
+    "ce soir",
+    "ce matin",
+    "cet après-midi",
+    "aujourd'hui",
+    "ce week-end",
+    "la semaine prochaine",
+    "le mois prochain",
+    "lundi",
+    "mardi",
+    "mercredi",
+    "jeudi",
+    "vendredi",
+    "samedi",
+    "dimanche",
+    "lundi prochain",
+    "mardi prochain",
+    "mercredi prochain",
+    "jeudi prochain",
+    "vendredi prochain",
+    "lundi matin",
+    "mardi matin",
+    "mercredi matin",
+    "jeudi matin",
+    "vendredi matin",
+    "lundi après-midi",
+    "mardi après-midi",
+    "mercredi après-midi",
+    "jeudi après-midi",
+    "vendredi après-midi",
+    "lundi soir",
+    "mardi soir",
+    "mercredi soir",
+    "jeudi soir",
+    "vendredi soir",
+    "samedi matin",
+    "dimanche matin",
+    "samedi après-midi",
+    "dimanche après-midi"
   ],
 
   "templates": [
-    { "pattern": "Je veux aller de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Aller de {from_city} à {to_city}", "intent": "trajet" },
     { "pattern": "Voyage de {from_city} à {to_city}", "intent": "trajet" },
     { "pattern": "Trajet de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je pars de {from_city} pour aller à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je pars de {from_city} pour aller à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je vais de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Il faut que j'aille de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je dois aller à {to_city} depuis {from_city}", "intent": "trajet" },
-    { "pattern": "Je veux aller à {to_city} depuis {from_city}", "intent": "trajet" },
+    {
+      "pattern": "Il faut que j'aille de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je dois aller à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux aller à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Aller à {to_city} depuis {from_city}", "intent": "trajet" },
-    { "pattern": "Comment aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Comment me rendre à {to_city} depuis {from_city}", "intent": "trajet" },
-    { "pattern": "Quel est le trajet de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Il y a-t-il des trains de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Comment aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Comment me rendre à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Quel est le trajet de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Il y a-t-il des trains de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{from_city} {to_city}", "intent": "trajet" },
     { "pattern": "{from_city} vers {to_city}", "intent": "trajet" },
     { "pattern": "{from_city} -> {to_city}", "intent": "trajet" },
     { "pattern": "Trajet {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux aller de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Aller de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "De {from_city} à {to_city} par {via_city}", "intent": "trajet" },
-    { "pattern": "{from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
-    { "pattern": "Trajet de {from_city} vers {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "De {from_city} à {to_city} avec un arrêt à {via_city}", "intent": "trajet" },
-    { "pattern": "Route {from_city} {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Trajet {from_city} {to_city} avec escale à {via_city}", "intent": "trajet" },
-    { "pattern": "Comment aller de {from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
-    { "pattern": "Je veux aller de {from_city} à {to_city} via {via_city1} et {via_city2}", "intent": "trajet" },
-    { "pattern": "Aller de {from_city} à {to_city} en passant par {via_city1} et {via_city2}", "intent": "trajet" },
-    { "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2}", "intent": "trajet" },
-    { "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2} et {via_city3}", "intent": "trajet" },
-    { "pattern": "Trajet de {from_city} à {to_city} en passant par {via_city1}, {via_city2} et {via_city3}", "intent": "trajet" },
+    {
+      "pattern": "Je veux aller de {from_city} à {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Aller de {from_city} à {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "De {from_city} à {to_city} par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{from_city} à {to_city} en passant par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Trajet de {from_city} vers {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "De {from_city} à {to_city} avec un arrêt à {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Route {from_city} {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Trajet {from_city} {to_city} avec escale à {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Comment aller de {from_city} à {to_city} en passant par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux aller de {from_city} à {to_city} via {via_city1} et {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Aller de {from_city} à {to_city} en passant par {via_city1} et {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "De {from_city} à {to_city} via {via_city1}, {via_city2} et {via_city3}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Trajet de {from_city} à {to_city} en passant par {via_city1}, {via_city2} et {via_city3}",
+      "intent": "trajet"
+    },
     { "pattern": "Je veux faire {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Aller {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Trajet {from_city} vers {to_city}", "intent": "trajet" },
@@ -81,13 +216,25 @@
     { "pattern": "Je vais direct à {to_city}", "intent": "trajet" },
     { "pattern": "Je me casse à {to_city}", "intent": "trajet" },
     { "pattern": "On va à {to_city}", "intent": "trajet" },
-    { "pattern": "Trajet depuis {from_city} direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Trajet depuis {from_city} direction {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Me rendre de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Besoin d'aller de {from_city} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Besoin d'aller de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Un billet de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Prendre le train de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Prendre le train de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Rejoindre {to_city} depuis {from_city}", "intent": "trajet" },
-    { "pattern": "Je cherche un trajet de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je cherche un trajet de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Emmène-moi à {to_city}", "intent": "trajet" },
     { "pattern": "Amène-moi à {to_city}", "intent": "trajet" },
     { "pattern": "Aller à {to_city}", "intent": "trajet" },
@@ -106,110 +253,284 @@
     { "pattern": "Vers {to_city}", "intent": "trajet" },
     { "pattern": "Pour {to_city}", "intent": "trajet" },
     { "pattern": "Je me rends à {to_city}", "intent": "trajet" },
-    { "pattern": "Route de {from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
-    { "pattern": "Itinéraire {from_city} {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Je veux passer par {via_city} entre {from_city} et {to_city}", "intent": "trajet" },
-    { "pattern": "Trajet {from_city} {to_city} avec escale à {via_city}", "intent": "trajet" },
-    { "pattern": "Depuis {from_city} vers {to_city} par {via_city}", "intent": "trajet" },
-    { "pattern": "Comment aller de {from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
-    { "pattern": "Route {from_city} {to_city} via {via_city1} {via_city2}", "intent": "trajet" },
-    { "pattern": "Itinéraire de {from_city} à {to_city} par {via_city1} et {via_city2}", "intent": "trajet" },
-    { "pattern": "{from_city} vers {to_city} en passant par {via_city1} {via_city2}", "intent": "trajet" },
-    { "pattern": "Aller à {to_city} rapidement depuis {from_city}", "intent": "trajet" },
-    { "pattern": "Je veux rejoindre {to_city} depuis {from_city} sans arrêt", "intent": "trajet" },
-    { "pattern": "Comment me rendre rapidement à {to_city} depuis {from_city}", "intent": "trajet" },
-    { "pattern": "Un itinéraire direct de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Ouais je cherche à aller de {from_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Attends c'est quoi le trajet {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Genre je voudrais partir de {from_city}", "intent": "trajet" },
-    { "pattern": "Bon alors voilà je veux aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Tu vois je cherche à rejoindre {to_city}", "intent": "trajet" },
-    { "pattern": "Euh comment je fais pour aller à {to_city}", "intent": "trajet" },
-    { "pattern": "Dis-moi comment aller de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Route de {from_city} à {to_city} en passant par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Itinéraire {from_city} {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux passer par {via_city} entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Trajet {from_city} {to_city} avec escale à {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Depuis {from_city} vers {to_city} par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Comment aller de {from_city} à {to_city} en passant par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Route {from_city} {to_city} via {via_city1} {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Itinéraire de {from_city} à {to_city} par {via_city1} et {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{from_city} vers {to_city} en passant par {via_city1} {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Aller à {to_city} rapidement depuis {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux rejoindre {to_city} depuis {from_city} sans arrêt",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Comment me rendre rapidement à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un itinéraire direct de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Ouais je cherche à aller de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Attends c'est quoi le trajet {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Genre je voudrais partir de {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Bon alors voilà je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Tu vois je cherche à rejoindre {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Euh comment je fais pour aller à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Dis-moi comment aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "T'as le trajet pour {to_city}", "intent": "trajet" },
-    { "pattern": "C'est quoi le meilleur itinéraire de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "C'est quoi le meilleur itinéraire de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Bon bah je vais à {to_city} moi", "intent": "trajet" },
     { "pattern": "Je vais {from_city} à {to_city}", "intent": "trajet" },
     { "pattern": "Trajet pour aller {to_city}", "intent": "trajet" },
     { "pattern": "De {from_city} je veux {to_city}", "intent": "trajet" },
     { "pattern": "Aller {to_city} depuis {from_city}", "intent": "trajet" },
     { "pattern": "Je dois {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Faire le trajet {from_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Demain je veux aller de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Faire le trajet {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Demain je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Ce soir trajet {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Dans 2h je pars de {from_city}", "intent": "trajet" },
     { "pattern": "Lundi matin je dois aller à {to_city}", "intent": "trajet" },
-    { "pattern": "La semaine prochaine je vais à {to_city} depuis {from_city}", "intent": "trajet" },
+    {
+      "pattern": "La semaine prochaine je vais à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Aujourd'hui direction {to_city}", "intent": "trajet" },
     { "pattern": "Faut qu'j'aille à {to_city}", "intent": "trajet" },
-    { "pattern": "Chuis à {from_city} et j'veux aller à {to_city}", "intent": "trajet" },
-    { "pattern": "J'dois m'rendre de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Chuis à {from_city} et j'veux aller à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "J'dois m'rendre de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "J'peux aller à {to_city} comment", "intent": "trajet" },
-    { "pattern": "J'suis où pour aller à {to_city} depuis {from_city}", "intent": "trajet" },
+    {
+      "pattern": "J'suis où pour aller à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je veux partir sur {to_city}", "intent": "trajet" },
     { "pattern": "Je redescends sur {to_city}", "intent": "trajet" },
     { "pattern": "Je remonte vers {to_city}", "intent": "trajet" },
     { "pattern": "On se tape {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "On se fait le trajet de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "On se fait le trajet de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Bon écoute je vais à {to_city}", "intent": "trajet" },
-    { "pattern": "Alors voilà je voudrais aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Genre euh je dois aller à {to_city} enfin", "intent": "trajet" },
+    {
+      "pattern": "Alors voilà je voudrais aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Genre euh je dois aller à {to_city} enfin",
+      "intent": "trajet"
+    },
     { "pattern": "Tu vois quoi je pars de {from_city}", "intent": "trajet" },
     { "pattern": "Hein comment j'vais à {to_city}", "intent": "trajet" },
-    { "pattern": "Bah en fait je veux aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Y'a moyen d'aller à {to_city} depuis {from_city}", "intent": "trajet" },
-    { "pattern": "C'est possible d'aller de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Bah en fait je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Y'a moyen d'aller à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "C'est possible d'aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Tu connais le chemin pour {to_city}", "intent": "trajet" },
-    { "pattern": "T'aurais le trajet {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Je je veux aller de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "T'aurais le trajet {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Tra- trajet {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Je v- je vais à {to_city}", "intent": "trajet" },
-    { "pattern": "De {from_city} à {to_city} je veux aller", "intent": "trajet" },
+    {
+      "pattern": "De {from_city} à {to_city} je veux aller",
+      "intent": "trajet"
+    },
     { "pattern": "À {to_city} je dois aller", "intent": "trajet" },
     { "pattern": "Vers {to_city} direction", "intent": "trajet" },
-    { "pattern": "Le parcours de {from_city} jusqu'à {to_city}", "intent": "trajet" },
-    { "pattern": "L'itinéraire pour rejoindre {to_city} depuis {from_city}", "intent": "trajet" },
-    { "pattern": "Le chemin entre {from_city} et {to_city}", "intent": "trajet" },
-    { "pattern": "La route qui va de {from_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Peux-tu me donner le trajet de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Pourrais-je avoir l'itinéraire vers {to_city}", "intent": "trajet" },
-    { "pattern": "Aurais-tu le chemin de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Le parcours de {from_city} jusqu'à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "L'itinéraire pour rejoindre {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Le chemin entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "La route qui va de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Peux-tu me donner le trajet de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Pourrais-je avoir l'itinéraire vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Aurais-tu le chemin de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je veux bien aller à {to_city}", "intent": "trajet" },
-    { "pattern": "J'aimerais bien partir de {from_city} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "J'aimerais bien partir de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Ça serait cool d'aller à {to_city}", "intent": "trajet" },
 
-    { "pattern": "Je veux un train de {from_city} à {to_city} {time}", "intent": "trajet" },
+    {
+      "pattern": "Je veux un train de {from_city} à {to_city} {time}",
+      "intent": "trajet"
+    },
     { "pattern": "Un train pour {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Trajet de {from_city} à {to_city} {time}", "intent": "trajet" },
-    { "pattern": "{time} je veux aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je pars de {from_city} vers {to_city} {time}", "intent": "trajet" },
+    {
+      "pattern": "Trajet de {from_city} à {to_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{time} je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je pars de {from_city} vers {to_city} {time}",
+      "intent": "trajet"
+    },
     { "pattern": "Aller à {to_city} {time}", "intent": "trajet" },
     { "pattern": "{time} direction {to_city}", "intent": "trajet" },
     { "pattern": "Je dois être à {to_city} {time}", "intent": "trajet" },
     { "pattern": "Arriver à {to_city} {time}", "intent": "trajet" },
     { "pattern": "Train {from_city} {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Départ {time} de {from_city} pour {to_city}", "intent": "trajet" },
-    { "pattern": "Je cherche un train {time} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Départ {time} de {from_city} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je cherche un train {time} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Y'a un train {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Un départ {time} de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je voudrais partir {time} de {from_city}", "intent": "trajet" },
+    {
+      "pattern": "Un départ {time} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je voudrais partir {time} de {from_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Partir {time} vers {to_city}", "intent": "trajet" },
     { "pattern": "Train de {from_city} qui part {time}", "intent": "trajet" },
-    { "pattern": "Arrivée {time} à {to_city} depuis {from_city}", "intent": "trajet" },
+    {
+      "pattern": "Arrivée {time} à {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je dois partir {time} pour {to_city}", "intent": "trajet" },
     { "pattern": "Faut que je sois à {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Combien de temps pour aller de {from_city} à {to_city} {time}", "intent": "trajet" },
+    {
+      "pattern": "Combien de temps pour aller de {from_city} à {to_city} {time}",
+      "intent": "trajet"
+    },
     { "pattern": "{time} train pour {to_city}", "intent": "trajet" },
     { "pattern": "Vers {time} je veux aller à {to_city}", "intent": "trajet" },
-    { "pattern": "Un train qui part {time} de {from_city}", "intent": "trajet" },
-    { "pattern": "Le prochain train {time} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Un train qui part {time} de {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Le prochain train {time} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{time} prochain train vers {to_city}", "intent": "trajet" },
     { "pattern": "Départ vers {time} direction {to_city}", "intent": "trajet" },
     { "pattern": "Train qui arrive {time} à {to_city}", "intent": "trajet" },
     { "pattern": "Je veux être à {to_city} {time}", "intent": "trajet" },
 
-    { "pattern": "{date} je veux aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux aller de {from_city} à {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "{date} je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux aller de {from_city} à {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "{date} trajet {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Trajet {from_city} {to_city} {date}", "intent": "trajet" },
     { "pattern": "Aller à {to_city} {date}", "intent": "trajet" },
@@ -218,115 +539,355 @@
     { "pattern": "Train pour {to_city} {date}", "intent": "trajet" },
     { "pattern": "{date} je dois aller à {to_city}", "intent": "trajet" },
     { "pattern": "Je dois être à {to_city} {date}", "intent": "trajet" },
-    { "pattern": "{date} je vais de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Partir {date} de {from_city} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} je vais de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Partir {date} de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Un train {date} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{date} un train de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je cherche un train {date} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Y'a des trains {date} de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} un train de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je cherche un train {date} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Y'a des trains {date} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Départ {date} direction {to_city}", "intent": "trajet" },
     { "pattern": "{date} je veux partir pour {to_city}", "intent": "trajet" },
-    { "pattern": "Voyage {date} de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Voyage {date} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{date} voyage vers {to_city}", "intent": "trajet" },
     { "pattern": "Je vais à {to_city} {date}", "intent": "trajet" },
     { "pattern": "Faut que j'aille à {to_city} {date}", "intent": "trajet" },
-    { "pattern": "{date} faut que je parte pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} faut que je parte pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Un billet pour {to_city} {date}", "intent": "trajet" },
-    { "pattern": "{date} un billet de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Réserver un train {date} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} un billet de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Réserver un train {date} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{date} réserver {from_city} {to_city}", "intent": "trajet" },
 
-    { "pattern": "{date} {time} je veux aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux aller de {from_city} à {to_city} {date} {time}", "intent": "trajet" },
-    { "pattern": "Train de {from_city} à {to_city} {date} {time}", "intent": "trajet" },
-    { "pattern": "{date} {time} trajet {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Départ {date} {time} de {from_city} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} {time} je veux aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux aller de {from_city} à {to_city} {date} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Train de {from_city} à {to_city} {date} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {time} trajet {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Départ {date} {time} de {from_city} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je pars {date} {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{date} vers {time} train pour {to_city}", "intent": "trajet" },
-    { "pattern": "Un train {date} {time} direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} vers {time} train pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un train {date} {time} direction {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Arriver à {to_city} {date} {time}", "intent": "trajet" },
-    { "pattern": "{date} {time} direction {to_city} depuis {from_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} {time} direction {to_city} depuis {from_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je dois être à {to_city} {date} {time}", "intent": "trajet" },
     { "pattern": "{date} {time} aller à {to_city}", "intent": "trajet" },
-    { "pattern": "Train qui part {date} {time} de {from_city}", "intent": "trajet" },
+    {
+      "pattern": "Train qui part {date} {time} de {from_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{date} {time} je pars de {from_city}", "intent": "trajet" },
     { "pattern": "Partir {date} {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux partir {date} {time} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je veux partir {date} {time} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{date} {time} un train pour {to_city}", "intent": "trajet" },
-    { "pattern": "Y'a un train {date} {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Je cherche un train {date} {time} de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "{date} {time} faut que je sois à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Y'a un train {date} {time} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je cherche un train {date} {time} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {time} faut que je sois à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Billet {date} {time} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{date} {time} billet de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Réserver {date} {time} {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Le train de {date} {time} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{date} {time} le prochain train vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} {time} billet de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Réserver {date} {time} {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Le train de {date} {time} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {time} le prochain train vers {to_city}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "Train {time} de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "{date} aller de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "{date} {time} trajet {from_city} {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Je pars {time} de {from_city} vers {to_city} en passant par {via_city}", "intent": "trajet" },
-    { "pattern": "{date} train de {from_city} à {to_city} avec arrêt à {via_city}", "intent": "trajet" },
+    {
+      "pattern": "Train {time} de {from_city} à {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} aller de {from_city} à {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {time} trajet {from_city} {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je pars {time} de {from_city} vers {to_city} en passant par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} train de {from_city} à {to_city} avec arrêt à {via_city}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "De {from_city} à {to_city} via {via_city} {time}", "intent": "trajet" },
-    { "pattern": "Passer par {via_city} entre {from_city} et {to_city}", "intent": "trajet" },
-    { "pattern": "{date} je passe par {via_city} pour aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux faire {from_city} {via_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Aller de {from_city} à {to_city} en passant par {via_city}", "intent": "trajet" },
-    { "pattern": "{from_city} {to_city} avec escale à {via_city}", "intent": "trajet" },
-    { "pattern": "Trajet via {via_city} de {from_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{time} de {from_city} à {to_city} par {via_city}", "intent": "trajet" },
-    { "pattern": "Je veux m'arrêter à {via_city} entre {from_city} et {to_city}", "intent": "trajet" },
-    { "pattern": "{date} escale à {via_city} pour {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Route de {from_city} à {to_city} avec arrêt {via_city}", "intent": "trajet" },
-    { "pattern": "Faire une pause à {via_city} entre {from_city} et {to_city}", "intent": "trajet" },
-    { "pattern": "{from_city} {via_city} {to_city} {date}", "intent": "trajet" },
-    { "pattern": "Je dois passer par {via_city} pour aller à {to_city}", "intent": "trajet" },
-    { "pattern": "{date} {time} {from_city} {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Correspondance à {via_city} de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Train avec changement à {via_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{time} changement à {via_city} direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "De {from_city} à {to_city} via {via_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Passer par {via_city} entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} je passe par {via_city} pour aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux faire {from_city} {via_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Aller de {from_city} à {to_city} en passant par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{from_city} {to_city} avec escale à {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Trajet via {via_city} de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{time} de {from_city} à {to_city} par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux m'arrêter à {via_city} entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} escale à {via_city} pour {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Route de {from_city} à {to_city} avec arrêt {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Faire une pause à {via_city} entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{from_city} {via_city} {to_city} {date}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je dois passer par {via_city} pour aller à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {time} {from_city} {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Correspondance à {via_city} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Train avec changement à {via_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{time} changement à {via_city} direction {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je change à {via_city} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{date} correspondance {via_city} pour {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "De {from_city} via {via_city} vers {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Itinéraire {from_city} {via_city} {to_city} {date}", "intent": "trajet" },
-    { "pattern": "{via_city} entre {from_city} et {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} correspondance {via_city} pour {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "De {from_city} via {via_city} vers {to_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Itinéraire {from_city} {via_city} {to_city} {date}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{via_city} entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Passer par {via_city} {date} {time}", "intent": "trajet" },
-    { "pattern": "Je fais escale à {via_city} pour aller à {to_city}", "intent": "trajet" },
-    { "pattern": "{from_city} {to_city} avec un stop à {via_city}", "intent": "trajet" },
-    { "pattern": "Arrêt intermédiaire à {via_city} entre {from_city} et {to_city}", "intent": "trajet" },
-    { "pattern": "{date} je m'arrête à {via_city} en allant à {to_city}", "intent": "trajet" },
-    { "pattern": "Via {via_city} de {from_city} à {to_city} {time}", "intent": "trajet" },
+    {
+      "pattern": "Je fais escale à {via_city} pour aller à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{from_city} {to_city} avec un stop à {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Arrêt intermédiaire à {via_city} entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} je m'arrête à {via_city} en allant à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Via {via_city} de {from_city} à {to_city} {time}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "De {from_city} à {to_city} via {via_city1} et {via_city2}", "intent": "trajet" },
-    { "pattern": "{from_city} {to_city} en passant par {via_city1} {via_city2}", "intent": "trajet" },
-    { "pattern": "{date} trajet {from_city} {to_city} via {via_city1} {via_city2}", "intent": "trajet" },
-    { "pattern": "Passer par {via_city1} et {via_city2} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{time} de {from_city} via {via_city1} et {via_city2} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux faire {from_city} {via_city1} {via_city2} {to_city}", "intent": "trajet" },
-    { "pattern": "{date} {time} {from_city} {via_city1} {via_city2} {to_city}", "intent": "trajet" },
-    { "pattern": "Arrêts à {via_city1} et {via_city2} entre {from_city} et {to_city}", "intent": "trajet" },
+    {
+      "pattern": "De {from_city} à {to_city} via {via_city1} et {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{from_city} {to_city} en passant par {via_city1} {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} trajet {from_city} {to_city} via {via_city1} {via_city2}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Passer par {via_city1} et {via_city2} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{time} de {from_city} via {via_city1} et {via_city2} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux faire {from_city} {via_city1} {via_city2} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {time} {from_city} {via_city1} {via_city2} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Arrêts à {via_city1} et {via_city2} entre {from_city} et {to_city}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "Avec la voix de {voice} aller de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "En voix {voice} trajet {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "{voice} pour le trajet de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux {voice} pour {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Réponds avec {voice} de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Avec la voix de {voice} aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "En voix {voice} trajet {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{voice} pour le trajet de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux {voice} pour {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Réponds avec {voice} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{from_city} {to_city} avec {voice}", "intent": "trajet" },
     { "pattern": "Utilise {voice} pour {to_city}", "intent": "trajet" },
     { "pattern": "{voice} direction {to_city} {date}", "intent": "trajet" },
-    { "pattern": "{date} {time} avec voix {voice} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux la voix {voice} pour aller à {to_city}", "intent": "trajet" },
-    { "pattern": "Prends la voix de {voice} {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "{voice} me donne le trajet pour {to_city}", "intent": "trajet" },
-    { "pattern": "En {voice} s'il te plaît vers {to_city}", "intent": "trajet" },
-    { "pattern": "Mets {voice} pour {from_city} {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "{date} {time} avec voix {voice} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux la voix {voice} pour aller à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Prends la voix de {voice} {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{voice} me donne le trajet pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "En {voice} s'il te plaît vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Mets {voice} pour {from_city} {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "{time} {voice} direction {to_city}", "intent": "trajet" },
-    { "pattern": "Voix {voice} pour le train de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Voix {voice} pour le train de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je préfère {voice} pour {to_city}", "intent": "trajet" },
     { "pattern": "{voice} {date} aller à {to_city}", "intent": "trajet" },
-    { "pattern": "Change en {voice} trajet {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Avec {voice} train {time} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Change en {voice} trajet {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Avec {voice} train {time} vers {to_city}",
+      "intent": "trajet"
+    },
 
     { "pattern": "Un train {time} s'il vous plaît", "intent": "trajet" },
     { "pattern": "Je cherche un train {time}", "intent": "trajet" },
@@ -342,113 +903,314 @@
     { "pattern": "Train tôt le matin pour {to_city}", "intent": "trajet" },
     { "pattern": "Premier train {date} vers {to_city}", "intent": "trajet" },
     { "pattern": "Dernier train {date} pour {to_city}", "intent": "trajet" },
-    { "pattern": "Train en fin de journée de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Train en fin de journée de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Train de nuit vers {to_city}", "intent": "trajet" },
-    { "pattern": "{date} premier train direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} premier train direction {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{date} dernier départ pour {to_city}", "intent": "trajet" },
     { "pattern": "Tôt {date} aller à {to_city}", "intent": "trajet" },
     { "pattern": "Tard {date} train pour {to_city}", "intent": "trajet" },
-    { "pattern": "En début de journée {date} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "En début de journée {date} vers {to_city}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "Je veux un {transport} de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je veux un {transport} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Un {transport} pour {to_city}", "intent": "trajet" },
     { "pattern": "{transport} de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Prendre le {transport} de {from_city} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Prendre le {transport} de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Un {transport} pour {to_city} {time}", "intent": "trajet" },
     { "pattern": "{transport} {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Je cherche un {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} de {from_city} à {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "Je cherche un {transport} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} de {from_city} à {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "Réserver un {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux voyager en {transport} jusqu'à {to_city}", "intent": "trajet" },
-    { "pattern": "Un billet de {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{date} je prends le {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "Y'a un {transport} qui part {time} pour {to_city}", "intent": "trajet" },
-    { "pattern": "Je cherche un {transport} {date} direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je veux voyager en {transport} jusqu'à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un billet de {transport} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} je prends le {transport} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Y'a un {transport} qui part {time} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je cherche un {transport} {date} direction {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{transport} direction {to_city}", "intent": "trajet" },
-    { "pattern": "Réserver un {transport} {date} {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} {from_city} {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Le {transport} de {time} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} qui part {time} de {from_city}", "intent": "trajet" },
-    { "pattern": "Un {transport} {date} pour aller à {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} vers {to_city} {date} {time}", "intent": "trajet" },
-    { "pattern": "Je veux prendre le {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} {date} de {from_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Y'a des {transport} pour {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "Réserver un {transport} {date} {time} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} {from_city} {to_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Le {transport} de {time} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} qui part {time} de {from_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un {transport} {date} pour aller à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} vers {to_city} {date} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux prendre le {transport} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} {date} de {from_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Y'a des {transport} pour {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "Un {transport} qui va à {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} pour {from_city} {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "{transport} pour {from_city} {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "Le prochain {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} {time} de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Je veux un {transport} {date} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} pour aller de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{transport} {time} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je veux un {transport} {date} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} pour aller de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Réserver le {transport} de {time}", "intent": "trajet" },
-    { "pattern": "{transport} {date} {time} direction {to_city}", "intent": "trajet" },
-    { "pattern": "Un {transport} {from_city} {to_city} s'il vous plaît", "intent": "trajet" },
-    { "pattern": "Je prends le {transport} {date} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} qui part de {from_city} {time}", "intent": "trajet" },
-    { "pattern": "Le {transport} de {from_city} à {to_city} {date}", "intent": "trajet" },
-    { "pattern": "Y'a un {transport} {date} {time} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{transport} {date} {time} direction {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un {transport} {from_city} {to_city} s'il vous plaît",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je prends le {transport} {date} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} qui part de {from_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Le {transport} de {from_city} à {to_city} {date}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Y'a un {transport} {date} {time} vers {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{transport} direction {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Je veux monter dans le {transport} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je veux monter dans le {transport} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{transport} de {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Un {transport} {date} de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Prendre un {transport} {time} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} qui va de {from_city} à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Un {transport} {date} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Prendre un {transport} {time} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} qui va de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Le {transport} {date} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} {from_city} vers {to_city} {date}", "intent": "trajet" },
-    { "pattern": "Je voudrais un {transport} pour {to_city} {time}", "intent": "trajet" },
-    { "pattern": "{transport} départ {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Un {transport} pour {to_city} {date} {time}", "intent": "trajet" },
+    {
+      "pattern": "{transport} {from_city} vers {to_city} {date}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je voudrais un {transport} pour {to_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} départ {time} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un {transport} pour {to_city} {date} {time}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "{transport} de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Un {transport} via {via_city} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} {date} en passant par {via_city}", "intent": "trajet" },
-    { "pattern": "Je prends le {transport} via {via_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} avec arrêt à {via_city} {time}", "intent": "trajet" },
-    { "pattern": "{transport} qui passe par {via_city} {date}", "intent": "trajet" },
-    { "pattern": "Un {transport} de {from_city} via {via_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} {time} avec escale à {via_city}", "intent": "trajet" },
-    { "pattern": "{transport} en passant par {via_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{date} {transport} via {via_city} direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{transport} de {from_city} à {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un {transport} via {via_city} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} {date} en passant par {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je prends le {transport} via {via_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} avec arrêt à {via_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} qui passe par {via_city} {date}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un {transport} de {from_city} via {via_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} {time} avec escale à {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} en passant par {via_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {transport} via {via_city} direction {to_city}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "Avec {voice} un {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{voice} réserver un {transport} {date} vers {to_city}", "intent": "trajet" },
-    { "pattern": "En {voice} je veux un {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} avec la voix de {voice} direction {to_city}", "intent": "trajet" },
-    { "pattern": "{voice} {transport} {date} {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Utilise {voice} pour un {transport} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} {voice} de {from_city} à {to_city}", "intent": "trajet" },
-    { "pattern": "Avec {voice} prendre le {transport} {date}", "intent": "trajet" },
+    {
+      "pattern": "Avec {voice} un {transport} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{voice} réserver un {transport} {date} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "En {voice} je veux un {transport} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} avec la voix de {voice} direction {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{voice} {transport} {date} {time} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Utilise {voice} pour un {transport} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} {voice} de {from_city} à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Avec {voice} prendre le {transport} {date}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "Un billet s'il vous plaît pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Un billet s'il vous plaît pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Départ {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Combien coûte un aller {from_city} {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Combien coûte un aller {from_city} {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "C'est combien pour aller à {to_city}", "intent": "trajet" },
     { "pattern": "Le prochain départ pour {to_city}", "intent": "trajet" },
     { "pattern": "Horaires {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Un billet pour {to_city} {date}", "intent": "trajet" },
     { "pattern": "Je voudrais un billet pour {to_city}", "intent": "trajet" },
-    { "pattern": "Réservation {from_city} {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "Réservation {from_city} {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "Tarif {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Prix d'un aller pour {to_city}", "intent": "trajet" },
     { "pattern": "Combien coûte {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Un aller simple pour {to_city}", "intent": "trajet" },
     { "pattern": "Aller retour {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Je voudrais réserver pour {to_city} {date}", "intent": "trajet" },
-    { "pattern": "Disponibilités {from_city} {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "Je voudrais réserver pour {to_city} {date}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Disponibilités {from_city} {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "Y'a de la place pour {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Réserver une place {date} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Un billet {date} {time} direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Réserver une place {date} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Un billet {date} {time} direction {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je réserve pour {to_city}", "intent": "trajet" },
     { "pattern": "Billet aller pour {to_city} {date}", "intent": "trajet" },
-    { "pattern": "Combien pour {from_city} {to_city} {date}", "intent": "trajet" },
+    {
+      "pattern": "Combien pour {from_city} {to_city} {date}",
+      "intent": "trajet"
+    },
     { "pattern": "Prix billet {to_city}", "intent": "trajet" },
     { "pattern": "Réserver {from_city} {to_city} {time}", "intent": "trajet" },
-    { "pattern": "Une place pour {to_city} s'il vous plaît", "intent": "trajet" },
+    {
+      "pattern": "Une place pour {to_city} s'il vous plaît",
+      "intent": "trajet"
+    },
     { "pattern": "Je veux réserver {date} pour {to_city}", "intent": "trajet" },
     { "pattern": "Disponible {date} vers {to_city}", "intent": "trajet" },
     { "pattern": "Horaires départ {from_city}", "intent": "trajet" },
     { "pattern": "Prochain départ {time} pour {to_city}", "intent": "trajet" },
-    { "pattern": "Y'a encore de la place {date} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Y'a encore de la place {date} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Combien coûte le trajet vers {to_city}", "intent": "trajet" },
     { "pattern": "Un aller {from_city} {to_city} {date}", "intent": "trajet" },
     { "pattern": "Billet simple vers {to_city}", "intent": "trajet" },
@@ -456,30 +1218,75 @@
     { "pattern": "Résa {from_city} {to_city} {date}", "intent": "trajet" },
     { "pattern": "Prix trajet {from_city} {to_city}", "intent": "trajet" },
 
-    { "pattern": "Y'a quoi comme {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "Quel {transport} pour aller à {to_city}", "intent": "trajet" },
-    { "pattern": "C'est possible en {transport} jusqu'à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Y'a quoi comme {transport} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Quel {transport} pour aller à {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "C'est possible en {transport} jusqu'à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je peux prendre un {transport} {time}", "intent": "trajet" },
-    { "pattern": "Y'a des {transport} qui vont à {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Y'a des {transport} qui vont à {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Quel {transport} {date} pour {to_city}", "intent": "trajet" },
-    { "pattern": "C'est quel {transport} pour {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Je peux avoir un {transport} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Y'a moyen de prendre un {transport} {date}", "intent": "trajet" },
-    { "pattern": "Quel type de {transport} vers {to_city}", "intent": "trajet" },
-    { "pattern": "C'est possible {date} {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Je peux réserver un {transport} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "C'est quel {transport} pour {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je peux avoir un {transport} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Y'a moyen de prendre un {transport} {date}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Quel type de {transport} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "C'est possible {date} {time} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je peux réserver un {transport} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Y'a des {transport} disponibles {date}", "intent": "trajet" },
-    { "pattern": "Quelle heure le {transport} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Quelle heure le {transport} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Je peux partir {time} vers {to_city}", "intent": "trajet" },
     { "pattern": "C'est comment pour aller à {to_city}", "intent": "trajet" },
     { "pattern": "Y'a quoi {date} direction {to_city}", "intent": "trajet" },
-    { "pattern": "Je peux avoir les horaires {from_city} {to_city}", "intent": "trajet" },
-    { "pattern": "Quel {transport} part {time} vers {to_city}", "intent": "trajet" },
-    { "pattern": "C'est possible de partir {date} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Je peux avoir les horaires {from_city} {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Quel {transport} part {time} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "C'est possible de partir {date} pour {to_city}",
+      "intent": "trajet"
+    },
 
     { "pattern": "{transport} rapide vers {to_city}", "intent": "trajet" },
     { "pattern": "Le plus rapide pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} direct {from_city} {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{transport} direct {from_city} {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Sans changement vers {to_city}", "intent": "trajet" },
     { "pattern": "{transport} express pour {to_city}", "intent": "trajet" },
     { "pattern": "Le plus court vers {to_city}", "intent": "trajet" },
@@ -494,28 +1301,76 @@
     { "pattern": "{transport} budget pour {to_city}", "intent": "trajet" },
     { "pattern": "Tarif réduit {from_city} {to_city}", "intent": "trajet" },
     { "pattern": "Promotion {transport} vers {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} abordable {date} vers {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{transport} abordable {date} vers {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Prix bas {from_city} {to_city}", "intent": "trajet" },
 
-    { "pattern": "Premier {transport} {date} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Dernier {transport} {date} pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} tôt le matin pour {to_city}", "intent": "trajet" },
-    { "pattern": "{transport} en fin de journée {from_city} {to_city}", "intent": "trajet" },
+    {
+      "pattern": "Premier {transport} {date} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Dernier {transport} {date} pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} tôt le matin pour {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} en fin de journée {from_city} {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "{transport} de nuit vers {to_city}", "intent": "trajet" },
-    { "pattern": "{date} premier départ {transport} direction {to_city}", "intent": "trajet" },
-    { "pattern": "{date} dernier {transport} pour {to_city}", "intent": "trajet" },
+    {
+      "pattern": "{date} premier départ {transport} direction {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} dernier {transport} pour {to_city}",
+      "intent": "trajet"
+    },
     { "pattern": "Tôt {date} {transport} vers {to_city}", "intent": "trajet" },
     { "pattern": "Tard {date} {transport} pour {to_city}", "intent": "trajet" },
-    { "pattern": "En début de journée {transport} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Le soir {transport} direction {to_city}", "intent": "trajet" },
+    {
+      "pattern": "En début de journée {transport} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Le soir {transport} direction {to_city}",
+      "intent": "trajet"
+    },
 
-    { "pattern": "{transport} avec {voice} {date} {time} de {from_city} à {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Avec {voice} réserver un {transport} {date} pour {to_city} via {via_city}", "intent": "trajet" },
-    { "pattern": "Je préfère {voice} pour un {transport} vers {to_city} {time}", "intent": "trajet" },
-    { "pattern": "{transport} en passant par {via_city} {date} avec {voice}", "intent": "trajet" },
-    { "pattern": "{voice} {transport} {time} de {from_city} via {via_city} vers {to_city}", "intent": "trajet" },
-    { "pattern": "Utilise {voice} {transport} {date} direction {to_city}", "intent": "trajet" },
-    { "pattern": "{date} {time} {transport} {voice} vers {to_city} via {via_city}", "intent": "trajet" }
+    {
+      "pattern": "{transport} avec {voice} {date} {time} de {from_city} à {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Avec {voice} réserver un {transport} {date} pour {to_city} via {via_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Je préfère {voice} pour un {transport} vers {to_city} {time}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{transport} en passant par {via_city} {date} avec {voice}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{voice} {transport} {time} de {from_city} via {via_city} vers {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "Utilise {voice} {transport} {date} direction {to_city}",
+      "intent": "trajet"
+    },
+    {
+      "pattern": "{date} {time} {transport} {voice} vers {to_city} via {via_city}",
+      "intent": "trajet"
+    }
   ],
 
   "negative_examples": [
@@ -537,6 +1392,31 @@
     { "pattern": "Je joue à un jeu vidéo", "intent": "other" },
     { "pattern": "Je veux dormir", "intent": "other" },
     { "pattern": "Allons au cinéma", "intent": "other" },
-    { "pattern": "Je veux prendre le bus", "intent": "other" }
+    { "pattern": "Je veux prendre le bus", "intent": "other" },
+    { "pattern": "Peux-tu me verser un verre de monaco", "intent": "other" },
+    { "pattern": "Un monaco bien glacé", "intent": "other" },
+    { "pattern": "Je voudrais un monaco siropé", "intent": "other" },
+    { "pattern": "Serve-moi un monaco", "intent": "other" },
+    { "pattern": "Verse-moi un verre de monaco", "intent": "other" },
+    { "pattern": "Peux-tu préparer un monaco", "intent": "other" },
+    { "pattern": "Je bois un monaco chaque jour", "intent": "other" },
+    { "pattern": "Donne-moi un monaco s'il te plaît", "intent": "other" },
+    { "pattern": "Un monaco avec glaçons", "intent": "other" },
+    { "pattern": "Je prendrais bien un monaco", "intent": "other" },
+    { "pattern": "Apporte-moi un monaco frais", "intent": "other" },
+    { "pattern": "Je veux un monaco bien froid", "intent": "other" },
+    { "pattern": "Prépare un monaco pour moi", "intent": "other" },
+    { "pattern": "Un monaco s'il vous plaît barman", "intent": "other" },
+    { "pattern": "Je peux avoir un monaco", "intent": "other" },
+    { "pattern": "Verse-moi un monaco pas trop sucré", "intent": "other" },
+    { "pattern": "Un monaco avec beaucoup de glaçons", "intent": "other" },
+    { "pattern": "Je veux prendre une menthe à l'eau", "intent": "other" },
+    { "pattern": "Peux-tu me préparer une bière", "intent": "other" },
+    { "pattern": "Je voudrais un verre de vin", "intent": "other" },
+    { "pattern": "Verse-moi une orangina", "intent": "other" },
+    { "pattern": "Je vais boire un pastis", "intent": "other" },
+    { "pattern": "Donne-moi une bière bien fraîche", "intent": "other" },
+    { "pattern": "Je prendrais un verre de rouge", "intent": "other" },
+    { "pattern": "Apporte une menthe à l'eau", "intent": "other" }
   ]
 }

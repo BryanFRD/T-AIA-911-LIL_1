@@ -4,6 +4,7 @@ import json
 import tempfile
 import atexit
 from pathlib import Path
+from typing import Dict
 from transformers import (
     AutoTokenizer,
     AutoModelForTokenClassification,
@@ -23,6 +24,7 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 # Import NER model with CRF
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from nlu.layers.ner_crf import CamembertForTokenClassificationWithCRF
+from nlu.augments.context_awareness import get_consumption_context_score
 from common.mlflow_utils import setup_mlflow, start_run, log_training_config, log_pytorch_model, end_run
 from common.training_utils import detect_device, print_system_info, load_config, print_dataset_info, ensure_dir, get_machine_name, load_env
 
@@ -31,6 +33,16 @@ import mlflow
 
 # Load environment variables from .env (AWS credentials, MLflow config)
 load_env()
+
+
+def load_lexicons(lexicon_file="nlu/data/lexicons.json") -> Dict:
+    """Load beverage/food context lexicons for semantic awareness"""
+    try:
+        with open(lexicon_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[WARN] Could not load lexicons: {e}")
+        return {}
 
 
 def export_model_to_onnx(model, tokenizer, output_path, task_type="token-classification", opset_version=17):
