@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Mic, Bookmark } from "lucide-react-native";
 import VoiceRecorderScreen from "@/screens/VoiceRecorderScreen";
 import SavedTripsScreen from "@/screens/SavedTripsScreen";
-import { useSavedProposals } from "@/hooks/useSavedProposals";
+import { SavedProposalsProvider, useSavedProposals } from "@/context/SavedProposalsContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,9 +64,11 @@ function TabNavigator() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <NavigationContainer>
-        <TabNavigator />
-      </NavigationContainer>
+      <SavedProposalsProvider>
+        <NavigationContainer>
+          <TabNavigator />
+        </NavigationContainer>
+      </SavedProposalsProvider>
     </QueryClientProvider>
   );
 }

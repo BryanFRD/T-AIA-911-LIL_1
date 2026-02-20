@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { MapPin, Clock, ArrowLeft, Repeat, MoonStar, Train, ChevronDown, Bookmark, BookmarkCheck } from "lucide-react-native";
+import { MapPin, Clock, ArrowLeft, Repeat, MoonStar, Train, Bookmark, Trash2 } from "lucide-react-native";
 import { Proposal } from "@/interfaces/solution.interface";
 
 interface ProposalDetailProps {
@@ -175,7 +175,7 @@ export default function ProposalDetail({ proposal, onBack, isSaved, onToggleSave
         <TouchableOpacity
           onPress={onToggleSave}
           activeOpacity={0.7}
-          className={`flex-1 flex-row items-center justify-center py-3 rounded-xl ${isSaved ? "bg-[#007AFF]" : "bg-white"}`}
+          className={`flex-1 flex-row items-center justify-center py-3 rounded-xl ${isSaved ? "bg-[#FF3B30]" : "bg-white"}`}
           style={{
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 1 },
@@ -185,9 +185,9 @@ export default function ProposalDetail({ proposal, onBack, isSaved, onToggleSave
           }}
         >
           {isSaved ?
-            <BookmarkCheck size={16} color="white" />
+            <Trash2 size={16} color="white" />
           : <Bookmark size={16} color="#007AFF" />}
-          <Text className={`font-semibold ml-1.5 text-[15px] ${isSaved ? "text-white" : "text-[#007AFF]"}`}>{isSaved ? "Sauvegardé" : "Sauvegarder"}</Text>
+          <Text className={`font-semibold ml-1.5 text-[15px] ${isSaved ? "text-white" : "text-[#007AFF]"}`}>{isSaved ? "Supprimer" : "Sauvegarder"}</Text>
         </TouchableOpacity>
       </View>
     </View>
