@@ -217,7 +217,7 @@ class CamembertForTokenClassificationWithCRF(PreTrainedModel):
 
         return TokenClassifierOutput(
             loss=loss,
-            logits=predictions if not self.training else emissions,  # Retourner les émissions originales (FP16) pour compatibilité
+            logits=emissions if labels is not None else predictions,  # Emissions (3D) si labels fournis (train/eval), prédictions CRF (2D) si inférence pure
             hidden_states=outputs.hidden_states if hasattr(outputs, 'hidden_states') else None,
             attentions=outputs.attentions if hasattr(outputs, 'attentions') else None,
         )
