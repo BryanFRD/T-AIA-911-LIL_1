@@ -1,0 +1,60 @@
+{
+  "rules": {
+    "saint_to_st": {
+      "pattern": "^Saint-(.*)$",
+      "replacement": "St-\\1",
+      "probability": 0.7,
+      "description": "Saint-Etienne -> St-Etienne"
+    },
+    "remove_hyphens": {
+      "pattern": "^([A-Z][a-z]*)-([a-z].*)$",
+      "replacement": "\\1 \\2",
+      "probability": 0.5,
+      "description": "Aix-en-Provence -> Aix en Provence"
+    },
+    "remove_hyphens_caps": {
+      "pattern": "^([A-Z][a-z]*)-([A-Z].*)$",
+      "replacement": "\\1 \\2",
+      "probability": 0.4,
+      "description": "Asnières-sur-Seine -> Asnières sur Seine"
+    }
+  },
+  "common_abbreviations": {
+    "Bordeaux": "Bdx",
+    "Marseille": "Mse",
+    "Toulouse": "Tse",
+    "Lyon": "Ldm",
+    "Nice": "Nce",
+    "Strasbourg": "Sbg",
+    "Lille": "Lle",
+    "Rennes": "Rns",
+    "Reims": "Rms",
+    "Caen": "Cen",
+    "Nantes": "Nts",
+    "Montpellier": "Mtp",
+    "Dijon": "Djn",
+    "Nîmes": "Nms",
+    "Clermont-Ferrand": "CF",
+    "Le Havre": "LH",
+    "Saint-Denis": "St-Denis",
+    "Saint-Jean": "St-Jean",
+    "Saint-Pierre": "St-Pierre",
+    "Saint-Martin": "St-Martin",
+    "Saint-Paul": "St-Paul",
+    "Saint-André": "St-André",
+    "Saint-Claude": "St-Claude",
+    "Saint-Brieuc": "St-Brieuc",
+    "Saint-Omer": "St-Omer",
+    "Saint-Nazaire": "St-Nazaire",
+    "Puy-en-Velay": "PYPV",
+    "Chamonix-Mont-Blanc": "Chamonix"
+  },
+  "variant_generation": {
+    "remove_accents_city": {
+      "enabled": true,
+      "description": "Generate lowercase and accent-free variants"
+    },
+    "abbreviation_probability": 0.3,
+    "description": "Probability of applying abbreviation during augmentation"
+  }
+}

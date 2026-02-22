@@ -2,13 +2,13 @@
 # Variables globales
 # ===============================
 variables:
-  PIP_CACHE_DIR: "/cache/pip"
-  HF_HOME: "/cache/huggingface"
-  XDG_CACHE_HOME: "/cache"
-  MODEL_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
-  MODEL_VERSION: "${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+  PIP_CACHE_DIR: '/cache/pip'
+  HF_HOME: '/cache/huggingface'
+  XDG_CACHE_HOME: '/cache'
+  MODEL_REGISTRY_URL: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic'
+  MODEL_VERSION: '${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}'
   # Use CI-optimized configuration for training
-  CONFIG_OVERRIDE: ""  # Override in specific jobs with config.ci.json
+  CONFIG_OVERRIDE: '' # Override in specific jobs with config.ci.json
 
 # ===============================
 # Stages
@@ -40,12 +40,12 @@ init:sonarqube:
   stage: init
   image:
     name: sonarsource/sonar-scanner-cli:latest
-    entrypoint: [""]
+    entrypoint: ['']
   variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
-    GIT_DEPTH: "0"
+    SONAR_USER_HOME: '${CI_PROJECT_DIR}/.sonar'
+    GIT_DEPTH: '0'
   cache:
-    key: "${CI_JOB_NAME}"
+    key: '${CI_JOB_NAME}'
     paths:
       - .sonar/cache
   script:
@@ -63,7 +63,7 @@ train:nlu:
     - gpu-arthur
   extends: .python
   variables:
-    CONFIG_OVERRIDE: "nlu/config.ci.json"
+    CONFIG_OVERRIDE: 'nlu/config.ci.json'
   script:
     - python nlu/generate_from_templates.py
     - python nlu/train.py
@@ -75,79 +75,79 @@ train:nlu:
         - common/**/*
         - .gitlab-ci.yml
       when: on_success
-    - when: manual 
-
-train:stt:lite:
-  stage: train
-  tags:
-    - gpu-arthur
-  extends: .python
-  variables:
-    CONFIG_OVERRIDE: "stt/config.lite.json"
-    MODEL_VARIANT: "lite"
-  script:
-    - python stt/train.py
-  rules:
-    - changes:
-        - stt/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
     - when: manual
 
-train:stt:full:
-  stage: train
-  tags:
-    - gpu-arthur
-  extends: .python
-  variables:
-    CONFIG_OVERRIDE: "stt/config.full.json"
-    MODEL_VARIANT: "full"
-  script:
-    - python stt/train.py
-  rules:
-    - changes:
-        - stt/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
-    - when: manual
+# train:stt:lite:
+#   stage: train
+#   tags:
+#     - gpu-arthur
+#   extends: .python
+#   variables:
+#     CONFIG_OVERRIDE: "stt/config.lite.json"
+#     MODEL_VARIANT: "lite"
+#   script:
+#     - python stt/train.py
+#   rules:
+#     - changes:
+#         - stt/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
 
-train:tts:lite:
-  stage: train
-  tags:
-    - gpu-arthur
-  extends: .python
-  variables:
-    CONFIG_OVERRIDE: "tts/config.lite.json"
-    MODEL_VARIANT: "lite"
-  script:
-    - python tts/train.py
-  rules:
-    - changes:
-        - tts/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
-    - when: manual
+# train:stt:full:
+#   stage: train
+#   tags:
+#     - gpu-arthur
+#   extends: .python
+#   variables:
+#     CONFIG_OVERRIDE: "stt/config.full.json"
+#     MODEL_VARIANT: "full"
+#   script:
+#     - python stt/train.py
+#   rules:
+#     - changes:
+#         - stt/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
 
-train:tts:full:
-  stage: train
-  tags:
-    - gpu-arthur
-  extends: .python
-  variables:
-    CONFIG_OVERRIDE: "tts/config.full.json"
-    MODEL_VARIANT: "full"
-  script:
-    - python tts/train.py
-  rules:
-    - changes:
-        - tts/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
-    - when: manual
+# train:tts:lite:
+#   stage: train
+#   tags:
+#     - gpu-arthur
+#   extends: .python
+#   variables:
+#     CONFIG_OVERRIDE: "tts/config.lite.json"
+#     MODEL_VARIANT: "lite"
+#   script:
+#     - python tts/train.py
+#   rules:
+#     - changes:
+#         - tts/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
+
+# train:tts:full:
+#   stage: train
+#   tags:
+#     - gpu-arthur
+#   extends: .python
+#   variables:
+#     CONFIG_OVERRIDE: "tts/config.full.json"
+#     MODEL_VARIANT: "full"
+#   script:
+#     - python tts/train.py
+#   rules:
+#     - changes:
+#         - tts/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
 
 # ===============================
 # PROMOTE
@@ -170,74 +170,74 @@ promote:nlu:
       when: on_success
     - when: manual
 
-promote:stt:lite:
-  stage: promote
-  image: python:3.11-slim
-  before_script:
-    - pip install --quiet mlflow
-  script:
-    - python common/promote_models.py --models stt-onnx-lite
-  needs:
-    - job: train:stt:lite
-      optional: false
-  rules:
-    - changes:
-        - stt/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
-    - when: manual
+# promote:stt:lite:
+#   stage: promote
+#   image: python:3.11-slim
+#   before_script:
+#     - pip install --quiet mlflow
+#   script:
+#     - python common/promote_models.py --models stt-onnx-lite
+#   needs:
+#     - job: train:stt:lite
+#       optional: false
+#   rules:
+#     - changes:
+#         - stt/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
 
-promote:stt:full:
-  stage: promote
-  image: python:3.11-slim
-  before_script:
-    - pip install --quiet mlflow
-  script:
-    - python common/promote_models.py --models stt-onnx-full
-  needs:
-    - job: train:stt:full
-      optional: false
-  rules:
-    - changes:
-        - stt/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
-    - when: manual
+# promote:stt:full:
+#   stage: promote
+#   image: python:3.11-slim
+#   before_script:
+#     - pip install --quiet mlflow
+#   script:
+#     - python common/promote_models.py --models stt-onnx-full
+#   needs:
+#     - job: train:stt:full
+#       optional: false
+#   rules:
+#     - changes:
+#         - stt/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
 
-promote:tts:lite:
-  stage: promote
-  image: python:3.11-slim
-  before_script:
-    - pip install --quiet mlflow
-  script:
-    - python common/promote_models.py --models tts-onnx-lite
-  needs:
-    - job: train:tts:lite
-      optional: false
-  rules:
-    - changes:
-        - tts/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
-    - when: manual
+# promote:tts:lite:
+#   stage: promote
+#   image: python:3.11-slim
+#   before_script:
+#     - pip install --quiet mlflow
+#   script:
+#     - python common/promote_models.py --models tts-onnx-lite
+#   needs:
+#     - job: train:tts:lite
+#       optional: false
+#   rules:
+#     - changes:
+#         - tts/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
 
-promote:tts:full:
-  stage: promote
-  image: python:3.11-slim
-  before_script:
-    - pip install --quiet mlflow
-  script:
-    - python common/promote_models.py --models tts-onnx-full
-  needs:
-    - job: train:tts:full
-      optional: false
-  rules:
-    - changes:
-        - tts/**/*
-        - common/**/*
-        - .gitlab-ci.yml
-      when: on_success
-    - when: manual
+# promote:tts:full:
+#   stage: promote
+#   image: python:3.11-slim
+#   before_script:
+#     - pip install --quiet mlflow
+#   script:
+#     - python common/promote_models.py --models tts-onnx-full
+#   needs:
+#     - job: train:tts:full
+#       optional: false
+#   rules:
+#     - changes:
+#         - tts/**/*
+#         - common/**/*
+#         - .gitlab-ci.yml
+#       when: on_success
+#     - when: manual
