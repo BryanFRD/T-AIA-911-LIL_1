@@ -1,0 +1,93 @@
+package com.epitech.travelorder.nlu.util;
+
+import com.epitech.travelorder.common.enumeration.NerLabel;
+import com.epitech.travelorder.nlu.model.ner.NerEntity;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static java.time.LocalDateTime.now;
+import static java.util.Collections.emptyMap;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
+@Slf4j
+@UtilityClass
+public class NerUtils {
+
+    public static Map<String, List<String>> groupEntitiesByType(List<NerEntity> entities) {
+        if (isEmpty(entities)) {
+            return emptyMap();
+        }
+
+        Map<String, List<String>> extractedData = new HashMap<>();
+        StringBuilder currentBuffer = new StringBuilder();
+        String currentEntityType = null;
+        String previousText = "";
+
+        for (NerEntity entity : entities) {
+            NerLabel label = entity.nerLabel();
+            String text = entity.text();
+
+            if (label.isOutside()) {
+                flushEntity(extractedData, currentEntityType, currentBuffer);
+                currentEntityType = null;
+                previousText = text;
+                continue;
+            }
+
+            String entityType = label.entityType();
+
+            boolean canContinueEntity = label.isInside()
+                                       && currentEntityType != null
+                                       && currentEntityType.equals(entityType);
+
+            if (canContinueEntity) {
+                appendToBuffer(currentBuffer, previousText, text);
+            } else {
+                flushEntity(extractedData, currentEntityType, currentBuffer);
+                currentEntityType = entityType;
+                currentBuffer.append(text);
+            }
+
+            previousText = text;
+        }
+
+        flushEntity(extractedData, currentEntityType, currentBuffer);
+        return extractedData;
+    }
+
+    public static LocalDateTime extractDateTime(String dateTimeStr) {
+        try {
+            return LocalDateTime.parse(dateTimeStr);
+        } catch (Exception e) {
+            log.warn("Failed to parse dateTime: {}", dateTimeStr, e);
+            return now();
+        }
+    }
+
+    private static void flushEntity(Map<String, List<String>> map, String type, StringBuilder buffer) {
+        if (type != null && !buffer.isEmpty()) {
+            String value = buffer.toString().trim();
+            log.debug("Extracted entity: type={}, value='{}'", type, value);
+            map.computeIfAbsent(type, k -> new ArrayList<>()).add(value);
+            buffer.setLength(0);
+        }
+    }
+
+    private static void appendToBuffer(StringBuilder buffer, String previousText, String currentText) {
+        if (shouldAppendWithoutSpace(previousText, currentText)) {
+            buffer.append(currentText);
+        } else {
+            buffer.append(" ").append(currentText);
+        }
+    }
+
+    private static boolean shouldAppendWithoutSpace(String previous, String current) {
+        return previous.endsWith("-")
+            || current.startsWith("-")
+            || current.equals("'")
+            || previous.endsWith("'");
+    }
+}

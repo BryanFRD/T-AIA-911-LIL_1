@@ -9,8 +9,6 @@ spring:
 server:
   port: 8080
   shutdown: graceful
-  servlet:
-    context-path: /api
 
 management:
   server:
@@ -32,7 +30,17 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
 
-mlflow:
+bean-config:
   tracking-uri: https://mlflow.bryan-ferrando.fr
   model-alias: champion
   model-cache-dir: /tmp/djl-models
+  vosk-resource-path: audiomodels/vosk-model-fr-0.22
+  vosk-model-url: https://alphacephei.com/vosk/models/vosk-model-fr-0.22.zip
+cors:
+  allowed-origins: "*"
+  allowed-methods:
+    - POST
+    - OPTIONS
+  allowed-headers: "*"
+  max-age: 3600
+

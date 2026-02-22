@@ -23,6 +23,4 @@ WORKDIR /app
 
 COPY --from=builder /app/gtfs/target/gtfs-*.jar app.jar
 
-ENV SPRING_PROFILES_ACTIVE=prod
-
 ENTRYPOINT ["java", "-jar", "app.jar"]

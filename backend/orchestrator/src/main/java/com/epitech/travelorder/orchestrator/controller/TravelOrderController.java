@@ -1,0 +1,39 @@
+package com.epitech.travelorder.orchestrator.controller;
+
+import com.epitech.travelorder.common.dto.CustomerTravelSolution;
+import com.epitech.travelorder.orchestrator.controller.dto.CustomerPathRequest;
+import com.epitech.travelorder.orchestrator.controller.dto.TranscribeRequest;
+import com.epitech.travelorder.orchestrator.controller.dto.TranscribeResponse;
+import com.epitech.travelorder.orchestrator.service.OrchestratorService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+
+@RestController
+@RequestMapping("/travel-order")
+@RequiredArgsConstructor
+public class TravelOrderController {
+
+    private final OrchestratorService orchestratorService;
+
+    @PostMapping(value = "/transcribe", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<TranscribeResponse> transcribeAudio(@Valid @ModelAttribute TranscribeRequest request) throws IOException {
+        byte[] audioData = request.audio().getBytes();
+        return ResponseEntity.ok(orchestratorService.transcribeAudio(audioData));
+    }
+
+    @PostMapping("/find-solution")
+    public ResponseEntity<CustomerTravelSolution> findCustomerSolution(@Valid @RequestBody CustomerPathRequest request) {
+        CustomerTravelSolution solution = orchestratorService.findCustomerSolution(request);
+        return ResponseEntity.ok(solution);
+    }
+}

@@ -6,13 +6,15 @@ AI-powered modular system to process natural language voice commands for train t
 
 Multi-module Maven project that processes voice commands to plan train journeys:
 - Voice input → Text (STT)
-- Text → Intent understanding (NLU)  
+- Text → Intent understanding (NLU)
 - Route calculation (Pathfinding)
 - Text → Voice output (TTS)
 - REST API orchestration
 - GTFS data processing (collect SNCF travel data)
 
 ## Modules
+
+This project uses a multi-module Maven structure and every module uses Hexagonal Architecture.
 
 ```
 travelorder-parent/

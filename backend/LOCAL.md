@@ -1,4 +1,4 @@
-# Local Setup for MLflow with S3 Storage
+# Local Setup Guide for MLflow with S3 Storage 
 
 This guide will help you set up your local environment for MLflow with S3 storage.
 
@@ -43,6 +43,19 @@ Spring boot dont load env file by default. To load it, follow these steps:
 2. Go to **Run** > **Edit Configurations...**
 3. Enable the **EnvFile** checkbox
 4. Click on the **+** icon and select your `.env` file
+
+# Local Setup Guide for Audio Models
+
+## 1. Configure local audio models
+
+To use local audio models, you need to download the required models and place them in the `audiomodels` directory.
+You can find the download links here : `https://alphacephei.com/vosk/models`
+
+Two models for our use case are:
+- Vosk Small Model (for better performance): `https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip`
+- Vosk Large Model (for better accuracy): `https://alphacephei.com/vosk/models/vosk-model-fr-0.22.zip`
+
+Download the model of your choice, unzip it, and place the unzipped folder in the `audiomodels` directory. For example, if you downloaded the small model, you would place the contents of `vosk-model-small-fr-0.22` in `audiomodels/vosk-model-small-fr-0.22`.
 
 
 Enjoy :)

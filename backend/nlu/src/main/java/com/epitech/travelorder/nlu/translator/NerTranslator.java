@@ -6,20 +6,20 @@ import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
 import ai.djl.translate.TranslatorContext;
-import com.epitech.travelorder.common.model.BaseTranslator;
-import com.epitech.travelorder.nlu.dto.NerEntity;
-import com.epitech.travelorder.nlu.dto.NerResult;
-import com.epitech.travelorder.nlu.model.NerLabel;
+import com.epitech.travelorder.common.enumeration.NerLabel;
+import com.epitech.travelorder.common.nlu.mlflow.BaseTranslator;
+import com.epitech.travelorder.nlu.model.ner.Ner;
+import com.epitech.travelorder.nlu.model.ner.NerEntity;
+import com.epitech.travelorder.nlu.util.TokenizerUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.epitech.travelorder.nlu.util.TokenizerUtils.tokenize;
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
-public class NerTranslator extends BaseTranslator<String, NerResult> {
+public class NerTranslator extends BaseTranslator<String, Ner> {
 
     private static final int MAX_LENGTH = 128;
     private static final NerLabel[] NER_LABELS = NerLabel.values();
@@ -42,11 +42,11 @@ public class NerTranslator extends BaseTranslator<String, NerResult> {
     public NDList processInput(TranslatorContext ctx, String input) {
         NDManager manager = ctx.getNDManager();
         ctx.setAttachment("input_text", input);
-        return tokenize(input, manager, tokenizer);
+        return TokenizerUtils.tokenize(input, manager, tokenizer);
     }
 
     @Override
-    public NerResult processOutput(TranslatorContext ctx, NDList list) {
+    public Ner processOutput(TranslatorContext ctx, NDList list) {
         NDArray output = list.singletonOrThrow();
 
         if (output.getShape().dimension() == 3) {
@@ -61,7 +61,7 @@ public class NerTranslator extends BaseTranslator<String, NerResult> {
 
         List<NerEntity> entities = emptyIfNull(extractEntities(output, tokens, seqLength));
 
-        return new NerResult(entities);
+        return new Ner(entities);
     }
 
     private List<NerEntity> extractEntities(NDArray output, String[] tokens, int seqLength) {

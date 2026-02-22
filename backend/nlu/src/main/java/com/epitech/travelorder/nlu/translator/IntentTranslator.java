@@ -5,16 +5,15 @@ import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
 import ai.djl.translate.TranslatorContext;
-import com.epitech.travelorder.common.model.BaseTranslator;
-import com.epitech.travelorder.nlu.dto.IntentResult;
-import com.epitech.travelorder.nlu.model.IntentLabel;
+import com.epitech.travelorder.common.enumeration.IntentLabel;
+import com.epitech.travelorder.common.nlu.mlflow.BaseTranslator;
+import com.epitech.travelorder.nlu.util.TokenizerUtils;
+import com.epitech.travelorder.nlu.model.intent.Intent;
 
 import java.nio.file.Path;
 import java.util.Map;
 
-import static com.epitech.travelorder.nlu.util.TokenizerUtils.tokenize;
-
-public class IntentTranslator extends BaseTranslator<String, IntentResult> {
+public class IntentTranslator extends BaseTranslator<String, Intent> {
 
     private static final int MAX_LENGTH = 128;
     private static final IntentLabel[] INTENT_LABELS = IntentLabel.values();
@@ -36,11 +35,11 @@ public class IntentTranslator extends BaseTranslator<String, IntentResult> {
     @Override
     public NDList processInput(TranslatorContext ctx, String input) {
         NDManager manager = ctx.getNDManager();
-        return tokenize(input, manager, tokenizer);
+        return TokenizerUtils.tokenize(input, manager, tokenizer);
     }
 
     @Override
-    public IntentResult processOutput(TranslatorContext ctx, NDList list) {
+    public Intent processOutput(TranslatorContext ctx, NDList list) {
         NDArray output = list.singletonOrThrow();
 
         if (output.getShape().dimension() > 1) {
@@ -55,6 +54,7 @@ public class IntentTranslator extends BaseTranslator<String, IntentResult> {
             ? INTENT_LABELS[predictedClass]
             : IntentLabel.OTHER;
 
-        return new IntentResult(intent, confidence);
+        return new Intent(intent, confidence);
     }
 }
+

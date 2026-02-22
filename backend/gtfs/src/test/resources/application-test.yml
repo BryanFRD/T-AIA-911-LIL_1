@@ -1,0 +1,15 @@
+wiremock:
+  server:
+    port: 8089
+
+spring:
+  threads:
+    virtual:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  liquibase:
+    enabled: false
+  main:
+    allow-bean-definition-overriding: true
