@@ -1,11 +1,13 @@
-import type { Config } from 'tailwindcss';
-
-const config: Config = {
-  content: ["./App.{ts,tsx}", "./**/*.{ts,tsx}"],
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./App.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}"
+  ],
+  presets: [require("nativewind/preset")],
   theme: {
     extend: {},
   },
   plugins: [],
 };
-
-export default config;
