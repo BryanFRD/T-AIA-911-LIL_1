@@ -1,6 +1,6 @@
 # Packages spécifiques NLU (torch, numpy, nvidia-ml-py sont dans common/requirements.txt)
 transformers==4.57.3
-datasets==4.4.1
+datasets==5.0.1
 accelerate==1.12.0
 huggingface-hub==0.36.0
 tokenizers==0.22.1
